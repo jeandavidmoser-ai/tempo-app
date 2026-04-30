@@ -1,259 +1,190 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEMPO - Votre Coach de Répète</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --accent-red: #ef4444;
-            --accent-yellow: #f59e0b;
-        }
-        body {
-            background-color: var(--bg-dark);
-            color: white;
-            font-family: 'Inter', sans-serif;
-        }
-        .rock-font {
-            font-family: 'Permanent+Marker', cursive;
-        }
-        .skull-logo {
-            filter: drop-shadow(0 0 10px var(--accent-red));
-        }
-        .card {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TEMPO</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  //fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --bg2: #141414; --bg3: #1c1c1c;
+      --border: #272727; --red: #C41E3A; --red-dim: rgba(196,30,58,0.12);
+      --text: #f0f0f0; --text-dim: #777; --text-muted: #444;
+      --gold: #c8a84b;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; min-height: 100vh; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 32px; border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 0.14em; }
+    .logo span { color: var(--red); }
+    .user-switch { display: flex; gap: 4px; background: var(--bg2); border: 1px solid var(--border); padding: 4px; border-radius: 6px; }
+    .user-switch button {
+      background: none; border: none; color: var(--text-dim);
+      font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 0.1em;
+      padding: 6px 18px; border-radius: 4px; cursor: pointer; transition: all 0.15s;
+    }
+    .user-switch button.active { background: var(--red); color: #fff; }
+    .grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+    @media(max-width:768px){ .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; }
+    .card:last-child { margin-bottom: 0; }
+    .card-head {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; }
+    .red-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
+
+    /* AGENT */
+    .agent-body { padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; }
+    .agent-avatar {
+      width: 34px; height: 34px; flex-shrink: 0;
+      background: var(--red-dim); border: 1px solid var(--red);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: 'Oswald', sans-serif; font-size: 11px; color: var(--red); font-weight: 700;
+    }
+    .agent-msg { background: var(--bg3); border: 1px solid var(--border); border-radius: 0 8px 8px 8px; padding: 12px 14px; font-size: 14px; line-height: 1.6; flex: 1; }
+    .agent-input { padding: 0 20px 16px; display: flex; gap: 8px; }
+    .agent-input input {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+      padding: 9px 14px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; outline: none;
+    }
+    .agent-input input:focus { border-color: var(--red); }
+    .agent-input input::placeholder { color: var(--text-muted); }
+
+    /* BUTTONS */
+    .btn { font-family: 'Oswald', sans-serif; letter-spacing: 0.08em; border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .btn-red { background: var(--red); color: #fff; padding: 9px 20px; font-size: 12px; }
+    .btn-red:hover { background: #a01830; }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--text-dim); padding: 8px 16px; font-size: 11px; }
+    .btn-outline:hover { border-color: var(--red); color: var(--text); }
+    .btn-danger { background: none; border: 1px solid #2a1010; color: #664040; padding: 8px 14px; font-size: 11px; margin-right: auto; }
+    .btn-danger:hover { border-color: var(--red); color: var(--red); }
+
+    /* SONGS */
+    .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-title { font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; }
+    #song-list { display: flex; flex-direction: column; gap: 6px; }
+    .song-item {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 13px 18px; display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
+    .song-item:hover { border-color: #3d3d3d; background: var(--bg3); }
+    .song-title { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; }
+    .song-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+    .badge {
+      font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.1em;
+      padding: 3px 10px; border-radius: 4px; text-transform: uppercase;
+    }
+    .b-decouvrir { background: rgba(100,100,100,0.15); color: #666; }
+    .b-en_cours  { background: rgba(200,168,75,0.12); color: var(--gold); }
+    .b-acquis    { background: rgba(196,30,58,0.15); color: var(--red); }
+    .b-maitrise  { background: rgba(196,30,58,0.3); color: #f07080; }
+    .empty { padding: 36px; text-align: center; color: var(--text-muted); border: 1px dashed var(--border); border-radius: 6px; }
+
+    /* SIDE */
+    .side-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .side-card:last-child { margin-bottom: 0; }
+    .stat-num { font-family: 'Oswald', sans-serif; font-size: 48px; font-weight: 700; line-height: 1; }
+    .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 6px; letter-spacing: 0.05em; }
+    .priority-label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; }
+    .priority-val { font-family: 'Oswald', sans-serif; font-size: 20px; color: var(--gold); font-weight: 600; }
+
+    /* MODAL */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
+    .overlay.open { display: flex; }
+    .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; width: 100%; max-width: 540px; }
+    .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.06em; }
+    .modal-close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1/-1; }
+    label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+    input[type=text], input[type=number], select, textarea {
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+      padding: 9px 13px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; outline: none; width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--red); }
+    textarea { resize: vertical; min-height: 72px; }
+    select option { background: var(--bg2); }
+    .hide { display: none !important; }
+  </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
-    <div id="app" class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-12">
-            <div class="flex items-center gap-4">
-                <span class="text-4xl">💀</span>
-                <h1 class="text-5xl rock-font text-white tracking-widest">TEMPO</h1>
-            </div>
-            <div id="user-selector" class="flex gap-2 bg-slate-800 p-1 rounded-full border border-slate-700">
-                <button onclick="switchUser('user1')" id="btn-user1" class="px-4 py-1 rounded-full text-sm font-bold bg-red-600">TOI</button>
-                <button onclick="switchUser('user2')" id="btn-user2" class="px-4 py-1 rounded-full text-sm font-bold text-slate-400">ELLE</button>
-            </div>
-        </header>
+<body>
 
-        <!-- Dashboard -->
-        <main id="dashboard" class="space-y-8">
-            <!-- Agent Section -->
-            <section class="card p-6 border-l-4 border-l-red-500">
-                <div class="flex items-start gap-4">
-                    <div class="text-2xl mt-1">🤖</div>
-                    <div>
-                        <h2 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Coach Tempo</h2>
-                        <p id="coach-message" class="text-lg font-medium italic">"Salut ! Prêt à envoyer du gros ? J'ai analysé ton répertoire, tu devrais attaquer par Sweet Child O' Mine aujourd'hui."</p>
-                    </div>
-                </div>
-            </section>
+<header>
+  <div class="logo">TEMPO<span>.</span></div>
+  <div class="user-switch">
+    <button id="btn-toi" class="active" onclick="switchUser('toi')">TOI</button>
+    <button id="btn-elle" onclick="switchUser('elle')">ELLE</button>
+  </div>
+</header>
 
-            <!-- Stats & Priority -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="card p-6">
-                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">Progression</h3>
-                    <div class="flex justify-between items-end">
-                        <div class="text-3xl font-bold" id="song-count">0</div>
-                        <div class="text-green-400 text-sm font-bold">Morceaux actifs</div>
-                    </div>
-                </div>
-                <div class="card p-6 border-t-2 border-t-yellow-500">
-                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">Priorité du jour</h3>
-                    <div id="priority-song" class="text-xl font-bold text-yellow-500">Aucune priorité</div>
-                </div>
-            </div>
-
-            <!-- Song List -->
-            <section>
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider">Ton Répertoire</h3>
-                    <button onclick="showFiche('new')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-all">+ AJOUTER UN MORCEAU</button>
-                </div>
-                <div id="song-list" class="space-y-2">
-                    <!-- Song items will be injected here -->
-                </div>
-            </section>
-        </main>
-
-        <!-- Modal Fiche Morceau -->
-        <div id="fiche-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 relative">
-                <button onclick="hideFiche()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl">&times;</button>
-                
-                <h2 id="fiche-title-text" class="text-3xl rock-font mb-8">NOUVEAU MORCEAU</h2>
-                
-                <form id="song-form" class="space-y-6">
-                    <input type="hidden" id="song-id">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Titre</label>
-                            <input type="text" id="form-title" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Artiste</label>
-                            <input type="text" id="form-artist" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Instrument</label>
-                            <select id="form-instrument" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
-                                <option value="guitare">🎸 Guitare</option>
-                                <option value="basse">🎸 Basse</option>
-                                <option value="chant">🎤 Chant</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Statut</label>
-                            <select id="form-status" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
-                                <option value="a_decouvrir">À découvrir</option>
-                                <option value="en_cours">En cours</option>
-                                <option value="a_consolider">À consolider</option>
-                                <option value="pret">Prêt / Live</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Focus actuel</label>
-                        <input type="text" id="form-focus" placeholder="Ex: le solo de fin, le riff du refrain..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
-                    </div>
-
-                    <div class="border-t border-slate-800 pt-6 mt-6">
-                        <div class="flex gap-4 mb-4">
-                            <button type="button" onclick="setPlayer('studio')" id="btn-player-studio" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-2 rounded text-xs font-bold uppercase">Album</button>
-                            <button type="button" onclick="setPlayer('live')" id="btn-player-live" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-2 rounded text-xs font-bold uppercase">Live</button>
-                            <button type="button" onclick="setPlayer('tuto')" id="btn-player-tuto" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-2 rounded text-xs font-bold uppercase">Tuto</button>
-                        </div>
-                        <div class="aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center text-slate-600 text-sm italic">
-                            Zone Lecteur (Simulation)
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4 pt-4">
-                        <button type="button" onclick="hideFiche()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-lg transition-all">ANNULER</button>
-                        <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-all">ENREGISTRER</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<div class="grid">
+  <div>
+    <!-- AGENT -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-label">Coach Tempo</span>
+        <div class="red-dot"></div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-avatar">T</div>
+        <div class="agent-msg" id="agent-msg">Salut. Prêt à bosser ? Dis-moi ce dont tu as besoin — je suis là pour t'aider à progresser.</div>
+      </div>
+      <div class="agent-input">
+        <input type="text" id="agent-input" placeholder="Pose une question à ton coach…" onkeydown="if(event.key==='Enter')askCoach()">
+        <button class="btn btn-red" onclick="askCoach()">ENVOYER</button>
+      </div>
     </div>
 
-    <script>
-        // CONFIG SUPABASE (A REMPLACER PAR TES CLES)
-        const supabaseUrl = 'https://sgmdswnspwfaavqvfjtc.supabase.co';
-        const supabaseKey = 'sb_publishable_5TplmJMNq2dMdrA0b6F1sg_GHfrR...'; // Remplace avec ta anon key complete
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    <!-- SONGS -->
+    <div class="list-header">
+      <span class="section-title">Ton répertoire</span>
+      <button class="btn btn-red" onclick="openModal('new')" style="font-size:11px;padding:7px 16px;">+ AJOUTER</button>
+    </div>
+    <div id="song-list"></div>
+  </div>
 
-        let currentUser = 'user1';
-        let songs = [];
+  <!-- SIDE -->
+  <div>
+    <div class="side-card">
+      <div class="priority-label">Progression</div>
+      <div class="stat-num" id="stat-count">0</div>
+      <div class="stat-sub">morceaux actifs</div>
+    </div>
+    <div class="side-card">
+      <div class="priority-label">Priorité du jour</div>
+      <div class="priority-val" id="priority-song">—</div>
+    </div>
+    <div class="side-card" style="margin-top:8px;">
+      <div class="priority-label" style="margin-bottom:12px;">Répartition</div>
+      <div id="stats-breakdown" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+</div>
 
-        async function fetchSongs() {
-            // Simulation pour le moment, brancher Supabase ensuite
-            // const { data, error } = await supabase.from('songs').select('*').eq('user_id', currentUser);
-            // if (data) songs = data;
-            renderSongs();
-        }
-
-        function renderSongs() {
-            const list = document.getElementById('song-list');
-            const count = document.getElementById('song-count');
-            list.innerHTML = '';
-            
-            const userSongs = songs.filter(s => s.user_id === currentUser);
-            count.innerText = userSongs.length;
-
-            if (userSongs.length === 0) {
-                list.innerHTML = '<div class="text-slate-600 text-sm italic p-4 text-center">Aucun morceau enregistré.</div>';
-                return;
-            }
-
-            userSongs.forEach(song => {
-                const item = document.createElement('div');
-                item.className = 'card p-4 flex justify-between items-center hover:border-red-500 cursor-pointer transition-all';
-                item.onclick = () => showFiche(song.id);
-                item.innerHTML = `
-                    <div>
-                        <div class="font-bold text-lg">${song.title}</div>
-                        <div class="text-slate-400 text-sm">${song.artist} • ${song.instrument}</div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-slate-800">${song.status.replace('_', ' ')}</span>
-                        <span class="text-xl">➔</span>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function switchUser(user) {
-            currentUser = user;
-            document.getElementById('btn-user1').className = user === 'user1' ? 'px-4 py-1 rounded-full text-sm font-bold bg-red-600' : 'px-4 py-1 rounded-full text-sm font-bold text-slate-400';
-            document.getElementById('btn-user2').className = user === 'user2' ? 'px-4 py-1 rounded-full text-sm font-bold bg-red-600' : 'px-4 py-1 rounded-full text-sm font-bold text-slate-400';
-            fetchSongs();
-        }
-
-        function showFiche(id) {
-            const modal = document.getElementById('fiche-modal');
-            modal.classList.remove('hidden');
-            if (id === 'new') {
-                document.getElementById('fiche-title-text').innerText = 'NOUVEAU MORCEAU';
-                document.getElementById('song-form').reset();
-                document.getElementById('song-id').value = '';
-            } else {
-                const song = songs.find(s => s.id === id);
-                document.getElementById('fiche-title-text').innerText = 'DÉTAILS MORCEAU';
-                document.getElementById('song-id').value = song.id;
-                document.getElementById('form-title').value = song.title;
-                document.getElementById('form-artist').value = song.artist;
-                document.getElementById('form-instrument').value = song.instrument;
-                document.getElementById('form-status').value = song.status;
-                document.getElementById('form-focus').value = song.focus || '';
-            }
-        }
-
-        function hideFiche() {
-            document.getElementById('fiche-modal').classList.add('hidden');
-        }
-
-        document.getElementById('song-form').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('song-id').value;
-            const newSong = {
-                id: id || Math.random().toString(36).substr(2, 9),
-                user_id: currentUser,
-                title: document.getElementById('form-title').value,
-                artist: document.getElementById('form-artist').value,
-                instrument: document.getElementById('form-instrument').value,
-                status: document.getElementById('form-status').value,
-                focus: document.getElementById('form-focus').value
-            };
-
-            if (id) {
-                songs = songs.map(s => s.id === id ? newSong : s);
-            } else {
-                songs.push(newSong);
-            }
-
-            hideFiche();
-            renderSongs();
-            // Brancher Supabase ici pour l'upsert réel
-        };
-
-        // Init
-        fetchSongs();
-    </script>
-</body>
-</html>
+<!-- MODAL FICHE -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-title">NOUVEAU MORCEAU</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form id="song-form">
+      <input type="hidden" id="form-id">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group full">
+            abel>Titre</label>
+            <input type="text" id="form-titre" required placeholder="ex: Sweet Child O' Mine">
+          
