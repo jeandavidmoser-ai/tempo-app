@@ -612,3 +612,136 @@ function renderPlanning() {
           <button class="btn-done ${p&&p.done?'checked':''}" onclick="markDone('${day.key}')">✓ FAIT</button>
           <button class="btn-skip" onclick="markSkip('${day.key}')">SKIP</button>` :
           p&&p.done ? `<span style="font-size:11px;color:var(--dim)">✓
+          ` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function markDone(key) {
+  if (!planning[key]) return;
+  planning[key].done = true;
+  const song = songs.find(s => s.id===planning[key].songId);
+  if (song) { song.lastPractice = key; }
+  saveAll(); renderPlanning(); renderHome();
+}
+
+function markSkip(key) {
+  if (!planning[key]) return;
+  const mine = songs.filter(s => s.user===currentUser && s.statut!=='autre');
+  const current = planning[key].songId;
+  const others = mine.filter(s => s.id!==current);
+  if (others.length) planning[key].songId = others[Math.floor(Math.random()*others.length)].id;
+  saveAll(); renderPlanning();
+}
+
+// --- CONCERTS ---
+function renderConcerts() {
+  const list = document.getElementById('concert-list');
+  const mine = concerts.filter(c => c.user===currentUser).sort((a,b)=>a.date>b.date?1:-1);
+  if (!mine.length) {
+    list.innerHTML = '<div class="empty">Aucun concert ou répète planifié.</div>';
+    return;
+  }
+  list.innerHTML = mine.map(c => {
+    const setlistSongs = (c.setlist||[]).map(id => songs.find(s=>s.id===id)).filter(Boolean);
+    const myDuration = setlistSongs.filter(s=>s.statut!=='autre').length * 4;
+    return `<div class="concert-item" onclick="openConcertModal('${c.id}')">
+      <div class="concert-date">${formatDate(c.date)} — ${c.type==='repete'?'Répète':'Concert'}</div>
+      <div class="concert-name">${c.nom}</div>
+      <div class="concert-meta">${setlistSongs.length} morceaux${myDuration?` · ~${myDuration} min estimées`:''}</div>
+      ${setlistSongs.length ? `<div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">
+        ${setlistSongs.map(s=>`<div class="setlist-item">
+          <span>${s.titre}${s.artiste?' — '+s.artiste:''}</span>
+          <span class="badge ${statusClass(s.statut)}">${statusLabel(s.statut)}</span>
+        </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openConcertModal(id) {
+  document.getElementById('ov-concert').classList.add('open');
+  document.getElementById('cf').reset();
+  const picker = document.getElementById('setlist-picker');
+  const mine = songs.filter(s => s.user===currentUser);
+  picker.innerHTML = mine.map(s => `
+    abel class="check-row">
+      <input type="checkbox" class="setlist-check" value="${s.id}">
+      ${s.titre}${s.artiste?' — '+s.artiste:''}
+    </label>`).join('');
+  if (id === 'new') {
+    document.getElementById('concert-modal-t').textContent = 'NOUVEAU CONCERT';
+    document.getElementById('c-id').value = '';
+    document.getElementById('btn-del-concert').style.display = 'none';
+  } else {
+    const c = concerts.find(x=>x.id===id);
+    if (!c) return;
+    document.getElementById('concert-modal-t').textContent = 'MODIFIER';
+    document.getElementById('c-id').value = c.id;
+    document.getElementById('c-nom').value = c.nom;
+    document.getElementById('c-date').value = c.date;
+    document.getElementById('c-type').value = c.type;
+    document.getElementById('btn-del-concert').style.display = 'inline-block';
+    document.querySelectorAll('.setlist-check').forEach(cb => {
+      cb.checked = (c.setlist||[]).includes(cb.value);
+    });
+  }
+}
+
+function closeConcertModal() { document.getElementById('ov-concert').classList.remove('open'); }
+
+function saveConcert(e) {
+  e.preventDefault();
+  const id = document.getElementById('c-id').value;
+  const setlist = [...document.querySelectorAll('.setlist-check:checked')].map(cb=>cb.value);
+  const concert = {
+    id: id || Date.now().toString(),
+    user: currentUser,
+    nom: document.getElementById('c-nom').value,
+    date: document.getElementById('c-date').value,
+    type: document.getElementById('c-type').value,
+    setlist
+  };
+  if (id) { concerts = concerts.map(c=>c.id===id?concert:c); }
+  else { concerts.push(concert); }
+  saveAll(); closeConcertModal(); renderConcerts();
+}
+
+function deleteConcert() {
+  const id = document.getElementById('c-id').value;
+  if (!id || !confirm('Supprimer cet événement ?')) return;
+  concerts = concerts.filter(c=>c.id!==id);
+  saveAll(); closeConcertModal(); renderConcerts();
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  return d.toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// --- AGENT ---
+function askCoach() {
+  const q = document.getElementById('agent-in').value.trim();
+  if (!q) return;
+  const mine = songs.filter(s => s.user===currentUser);
+  const nextConcert = concerts.filter(c=>c.user===currentUser&&c.date>=new Date().toISOString().split('T')[0]).sort((a,b)=>a.date>b.date?1:-1)[0];
+  let context = `Je suis musicien et j'utilise une app de suivi de répète appelée TEMPO. `;
+  if (mine.length) context += `Mon répertoire (${mine.length} morceaux) : ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${statusLabel(s.statut)}${s.bpm?', '+s.bpm+' BPM':''})`).join(', ')}. `;
+  if (nextConcert) context += `Mon prochain concert : ${nextConcert.nom} le ${formatDate(nextConcert.date)}. `;
+  context += `Mes sessions durent 20 minutes. `;
+  window.open(`https://www.perplexity.ai/search?q=${encodeURIComponent(context+q)}`, '_blank');
+  document.getElementById('agent-in').value = '';
+}
+
+// --- CLOSE ON OVERLAY CLICK ---
+document.getElementById('ov-song').addEventListener('click', function(e){ if(e.target===this) closeSongModal(); });
+document.getElementById('ov-concert').addEventListener('click', function(e){ if(e.target===this) closeConcertModal(); });
+
+// --- INIT ---
+switchUser(currentUser);
+renderHome();
+</script>
+</body>
+</html>
