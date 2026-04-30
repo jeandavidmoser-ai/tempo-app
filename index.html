@@ -382,8 +382,7 @@ function renderPlanning(){
   const mine=songs.filter(s=>s.user===currentUser&&s.statut!=='autre');
   if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
   const sorted=[...mine].sort((a,b)=>{
-    const o={en_cours:0,a_
-    const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};
+      const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};
     return (o[a.statut]||0)-(o[b.statut]||0);
   });
   grid.innerHTML=days.map((day,i)=>{
