@@ -383,3 +383,45 @@ function renderPlanning(){
   if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
   const sorted=[...mine].sort((a,b)=>{
     const o={en_cours:0,a_
+    const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};
+    return (o[a.statut]||0)-(o[b.statut]||0);
+  });
+  grid.innerHTML=days.map((day,i)=>{
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    const key=d.toISOString().split('T')[0];
+    const isToday=key===today.toISOString().split('T')[0];
+    const p=planning[currentUser+'-'+key];
+    const song=p?songs.find(s=>s.id===p.songId):sorted[i%sorted.length];
+    const done=p&&p.done;
+    return `<div class="week-row">
+      <div class="day-name${isToday?' today':''}">${day}</div>
+      <div class="day-task${done?' done':''}">${song?song.titre+' — '+(song.artiste||''):'—'}</div>
+      <div class="day-btns">
+        ${!done?`<button class="btn-done" onclick="markDone('${key}','${song?song.id:''}')">✓ FAIT</button>
+        <button class="btn-skip" onclick="markSkip('${key}','${song?song.id:''}')">SKIP</button>`:'<span style="font-size:11px;color:var(--accent)">✓ Fait</span>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function markDone(key,songId){
+  planning[currentUser+'-'+key]={songId,done:true};
+  const s=songs.find(x=>x.id===songId);
+  if(s){s.lastPractice=key;localStorage.setItem('tempo-songs',JSON.stringify(songs));}
+  localStorage.setItem('tempo-planning',JSON.stringify(planning));
+  renderPlanning();renderStats();
+}
+
+function markSkip(key,songId){
+  const mine=songs.filter(s=>s.user===currentUser&&s.statut!=='autre'&&s.id!==songId);
+  const next=mine[Math.floor(Math.random()*mine.length)];
+  planning[currentUser+'-'+key]={songId:next?next.id:songId,done:false};
+  localStorage.setItem('tempo-planning',JSON.stringify(planning));
+  renderPlanning();
+}
+
+document.getElementById('ov').addEventListener('click',function(e){if(e.target===this)closeModal();});
+switchUser(currentUser);
+</script>
+</body>
+</html>
