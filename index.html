@@ -1,190 +1,183 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TEMPO</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  //fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0d0d0d; --bg2: #141414; --bg3: #1c1c1c;
-      --border: #272727; --red: #C41E3A; --red-dim: rgba(196,30,58,0.12);
-      --text: #f0f0f0; --text-dim: #777; --text-muted: #444;
-      --gold: #c8a84b;
-    }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; min-height: 100vh; }
-    header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 32px; border-bottom: 1px solid var(--border);
-    }
-    .logo { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 0.14em; }
-    .logo span { color: var(--red); }
-    .user-switch { display: flex; gap: 4px; background: var(--bg2); border: 1px solid var(--border); padding: 4px; border-radius: 6px; }
-    .user-switch button {
-      background: none; border: none; color: var(--text-dim);
-      font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 0.1em;
-      padding: 6px 18px; border-radius: 4px; cursor: pointer; transition: all 0.15s;
-    }
-    .user-switch button.active { background: var(--red); color: #fff; }
-    .grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
-    @media(max-width:768px){ .grid { grid-template-columns: 1fr; } }
-    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; }
-    .card:last-child { margin-bottom: 0; }
-    .card-head {
-      padding: 14px 20px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .card-label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; }
-    .red-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
-
-    /* AGENT */
-    .agent-body { padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; }
-    .agent-avatar {
-      width: 34px; height: 34px; flex-shrink: 0;
-      background: var(--red-dim); border: 1px solid var(--red);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-family: 'Oswald', sans-serif; font-size: 11px; color: var(--red); font-weight: 700;
-    }
-    .agent-msg { background: var(--bg3); border: 1px solid var(--border); border-radius: 0 8px 8px 8px; padding: 12px 14px; font-size: 14px; line-height: 1.6; flex: 1; }
-    .agent-input { padding: 0 20px 16px; display: flex; gap: 8px; }
-    .agent-input input {
-      flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
-      padding: 9px 14px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; outline: none;
-    }
-    .agent-input input:focus { border-color: var(--red); }
-    .agent-input input::placeholder { color: var(--text-muted); }
-
-    /* BUTTONS */
-    .btn { font-family: 'Oswald', sans-serif; letter-spacing: 0.08em; border: none; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
-    .btn-red { background: var(--red); color: #fff; padding: 9px 20px; font-size: 12px; }
-    .btn-red:hover { background: #a01830; }
-    .btn-outline { background: none; border: 1px solid var(--border); color: var(--text-dim); padding: 8px 16px; font-size: 11px; }
-    .btn-outline:hover { border-color: var(--red); color: var(--text); }
-    .btn-danger { background: none; border: 1px solid #2a1010; color: #664040; padding: 8px 14px; font-size: 11px; margin-right: auto; }
-    .btn-danger:hover { border-color: var(--red); color: var(--red); }
-
-    /* SONGS */
-    .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .section-title { font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; }
-    #song-list { display: flex; flex-direction: column; gap: 6px; }
-    .song-item {
-      background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
-      padding: 13px 18px; display: flex; align-items: center; justify-content: space-between;
-      cursor: pointer; transition: border-color 0.15s, background 0.15s;
-    }
-    .song-item:hover { border-color: #3d3d3d; background: var(--bg3); }
-    .song-title { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; }
-    .song-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-    .badge {
-      font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.1em;
-      padding: 3px 10px; border-radius: 4px; text-transform: uppercase;
-    }
-    .b-decouvrir { background: rgba(100,100,100,0.15); color: #666; }
-    .b-en_cours  { background: rgba(200,168,75,0.12); color: var(--gold); }
-    .b-acquis    { background: rgba(196,30,58,0.15); color: var(--red); }
-    .b-maitrise  { background: rgba(196,30,58,0.3); color: #f07080; }
-    .empty { padding: 36px; text-align: center; color: var(--text-muted); border: 1px dashed var(--border); border-radius: 6px; }
-
-    /* SIDE */
-    .side-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-    .side-card:last-child { margin-bottom: 0; }
-    .stat-num { font-family: 'Oswald', sans-serif; font-size: 48px; font-weight: 700; line-height: 1; }
-    .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 6px; letter-spacing: 0.05em; }
-    .priority-label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.18em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; }
-    .priority-val { font-family: 'Oswald', sans-serif; font-size: 20px; color: var(--gold); font-weight: 600; }
-
-    /* MODAL */
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
-    .overlay.open { display: flex; }
-    .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; width: 100%; max-width: 540px; }
-    .modal-head { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-    .modal-title { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.06em; }
-    .modal-close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; }
-    .modal-close:hover { color: var(--text); }
-    .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
-    .modal-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group.full { grid-column: 1/-1; }
-    label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
-    input[type=text], input[type=number], select, textarea {
-      background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
-      padding: 9px 13px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; outline: none; width: 100%;
-    }
-    input:focus, select:focus, textarea:focus { border-color: var(--red); }
-    textarea { resize: vertical; min-height: 72px; }
-    select option { background: var(--bg2); }
-    .hide { display: none !important; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEMPO</title>
+//fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--border:#272727;--red:#C41E3A;--text:#f0f0f0;--dim:#777;--muted:#444;--gold:#c8a84b}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--border)}
+.logo{font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;letter-spacing:0.14em}
+.logo span{color:var(--red)}
+.usw{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:3px;border-radius:6px}
+.usw button{background:none;border:none;color:var(--dim);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;padding:5px 16px;border-radius:4px;cursor:pointer;transition:all .15s}
+.usw button.on{background:var(--red);color:#fff}
+.grid{display:grid;grid-template-columns:1fr 280px;gap:24px;max-width:1100px;margin:0 auto;padding:28px 24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:20px}
+.card:last-child{margin-bottom:0}
+.ch{padding:13px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cl{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.18em;color:var(--dim);text-transform:uppercase}
+.dot{width:6px;height:6px;background:var(--red);border-radius:50%}
+.ab{padding:16px 20px;display:flex;gap:12px;align-items:flex-start}
+.av{width:34px;height:34px;flex-shrink:0;background:rgba(196,30,58,.12);border:1px solid var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:11px;color:var(--red);font-weight:700}
+.am{background:var(--bg3);border:1px solid var(--border);border-radius:0 8px 8px 8px;padding:11px 14px;font-size:14px;line-height:1.6;flex:1}
+.ai{padding:0 20px 16px;display:flex;gap:8px}
+.ai input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none}
+.ai input:focus{border-color:var(--red)}
+.ai input::placeholder{color:var(--muted)}
+.btn{font-family:'Oswald',sans-serif;letter-spacing:0.08em;border:none;border-radius:6px;cursor:pointer;transition:all .15s}
+.br{background:var(--red);color:#fff;padding:9px 18px;font-size:12px}
+.br:hover{background:#a01830}
+.bo{background:none;border:1px solid var(--border);color:var(--dim);padding:7px 14px;font-size:11px}
+.bo:hover{border-color:var(--red);color:var(--text)}
+.bd{background:none;border:1px solid #2a1010;color:#664040;padding:7px 14px;font-size:11px;margin-right:auto}
+.bd:hover{border-color:var(--red);color:var(--red)}
+.lh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.st{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.15em;color:var(--dim);text-transform:uppercase}
+#sl{display:flex;flex-direction:column;gap:6px}
+.si{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .15s}
+.si:hover{border-color:#3d3d3d;background:var(--bg3)}
+.stt{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600}
+.sm{font-size:12px;color:var(--dim);margin-top:2px}
+.badge{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.1em;padding:3px 9px;border-radius:4px;text-transform:uppercase}
+.bd0{background:rgba(100,100,100,.15);color:#666}
+.bd1{background:rgba(200,168,75,.12);color:var(--gold)}
+.bd2{background:rgba(196,30,58,.15);color:var(--red)}
+.bd3{background:rgba(196,30,58,.3);color:#f07080}
+.empty{padding:36px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px;font-size:13px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.sc:last-child{margin-bottom:0}
+.sn{font-family:'Oswald',sans-serif;font-size:46px;font-weight:700;line-height:1}
+.sb{font-size:11px;color:var(--dim);margin-top:5px}
+.pl{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.18em;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+.pv{font-family:'Oswald',sans-serif;font-size:18px;color:var(--gold);font-weight:600}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.ov.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:10px;width:100%;max-width:540px}
+.mh{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mt{font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;letter-spacing:0.06em}
+.mc{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;padding:0 4px}
+.mc:hover{color:var(--text)}
+.mb{padding:22px 24px;display:flex;flex-direction:column;gap:14px}
+.mf{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+label{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim)}
+input[type=text],input[type=number],select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 13px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--red)}
+textarea{resize:vertical;min-height:72px}
+select option{background:var(--bg2)}
+.hide{display:none!important}
+.sbr{display:flex;flex-direction:column;gap:5px}
+.sbr-row{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.sbr-row span:first-child{color:var(--dim)}
+.sbr-row span:last-child{font-family:'Oswald',sans-serif;font-size:13px}
+</style>
 </head>
 <body>
 
 <header>
-  <div class="logo">TEMPO<span>.</span></div>
-  <div class="user-switch">
-    <button id="btn-toi" class="active" onclick="switchUser('toi')">TOI</button>
-    <button id="btn-elle" onclick="switchUser('elle')">ELLE</button>
+  <div class="logo">💀 TEMPO<span>.</span></div>
+  <div class="usw">
+    <button id="bu1" class="on" onclick="switchUser('toi')">TOI</button>
+    <button id="bu2" onclick="switchUser('elle')">ELLE</button>
   </div>
 </header>
 
 <div class="grid">
   <div>
-    <!-- AGENT -->
     <div class="card">
-      <div class="card-head">
-        <span class="card-label">Coach Tempo</span>
-        <div class="red-dot"></div>
+      <div class="ch"><span class="cl">Coach Tempo</span><div class="dot"></div></div>
+      <div class="ab">
+        <div class="av">T</div>
+        <div class="am" id="agent-msg">Salut. Prêt à bosser ? Dis-moi ce dont tu as besoin — je suis là pour t'aider à progresser.</div>
       </div>
-      <div class="agent-body">
-        <div class="agent-avatar">T</div>
-        <div class="agent-msg" id="agent-msg">Salut. Prêt à bosser ? Dis-moi ce dont tu as besoin — je suis là pour t'aider à progresser.</div>
-      </div>
-      <div class="agent-input">
-        <input type="text" id="agent-input" placeholder="Pose une question à ton coach…" onkeydown="if(event.key==='Enter')askCoach()">
-        <button class="btn btn-red" onclick="askCoach()">ENVOYER</button>
+      <div class="ai">
+        <input type="text" id="agent-in" placeholder="Pose une question à ton coach…" onkeydown="if(event.key==='Enter')askCoach()">
+        <button class="btn br" onclick="askCoach()">ENVOYER</button>
       </div>
     </div>
 
-    <!-- SONGS -->
-    <div class="list-header">
-      <span class="section-title">Ton répertoire</span>
-      <button class="btn btn-red" onclick="openModal('new')" style="font-size:11px;padding:7px 16px;">+ AJOUTER</button>
+    <div class="lh">
+      <span class="st">Ton répertoire</span>
+      <button class="btn br" style="font-size:11px;padding:7px 14px" onclick="openModal('new')">+ AJOUTER</button>
     </div>
-    <div id="song-list"></div>
+    <div id="sl"></div>
   </div>
 
-  <!-- SIDE -->
   <div>
-    <div class="side-card">
-      <div class="priority-label">Progression</div>
-      <div class="stat-num" id="stat-count">0</div>
-      <div class="stat-sub">morceaux actifs</div>
+    <div class="sc">
+      <div class="pl">Progression</div>
+      <div class="sn" id="stat-n">0</div>
+      <div class="sb">morceaux actifs</div>
     </div>
-    <div class="side-card">
-      <div class="priority-label">Priorité du jour</div>
-      <div class="priority-val" id="priority-song">—</div>
+    <div class="sc">
+      <div class="pl">Priorité du jour</div>
+      <div class="pv" id="stat-p">—</div>
     </div>
-    <div class="side-card" style="margin-top:8px;">
-      <div class="priority-label" style="margin-bottom:12px;">Répartition</div>
-      <div id="stats-breakdown" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <div class="sc">
+      <div class="pl">Répartition</div>
+      <div class="sbr" id="stat-r"></div>
     </div>
   </div>
 </div>
 
-<!-- MODAL FICHE -->
-<div class="overlay" id="modal-overlay">
+<!-- MODAL -->
+<div class="ov" id="ov">
   <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title" id="modal-title">NOUVEAU MORCEAU</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="mh">
+      <span class="mt" id="modal-t">NOUVEAU MORCEAU</span>
+      <button class="mc" onclick="closeModal()">✕</button>
     </div>
-    <form id="song-form">
-      <input type="hidden" id="form-id">
-      <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group full">
-            abel>Titre</label>
-            <input type="text" id="form-titre" required placeholder="ex: Sweet Child O' Mine">
-          
+    <form id="sf" onsubmit="saveSong(event)">
+      <input type="hidden" id="f-id">
+      <div class="mb">
+        <div class="fr">
+          <div class="fg full">
+            abel>Titre *</label>
+            <input type="text" id="f-titre" required placeholder="Ex: Sweet Child O' Mine">
+          </div>
+          <div class="fg">
+            abel>Artiste</label>
+            <input type="text" id="f-artiste" placeholder="Ex: Guns N' Roses">
+          </div>
+          <div class="fg" id="fg-inst">
+            abel>Instrument</label>
+            <input type="text" id="f-inst" placeholder="Ex: Guitare">
+          </div>
+          <div class="fg">
+            abel>Statut</label>
+            <select id="f-statut">
+              <option value="a_decouvrir">À découvrir</option>
+              <option value="en_cours">En cours</option>
+              <option value="acquis">Acquis</option>
+              <option value="maitrise">Maîtrisé</option>
+            </select>
+          </div>
+          <div class="fg">
+            abel>Difficulté (1-5)</label>
+            <input type="number" id="f-diff" min="1" max="5" value="3">
+          </div>
+          <div class="fg full">
+            abel>Point de focus</label>
+            <input type="text" id="f-focus" placeholder="Ex: Le solo du milieu">
+          </div>
+          <div class="fg full">
+            abel>Notes</label>
+            <textarea id="f-notes" placeholder="Observations, ressources, timing…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="mf">
+        <button type="button" class="btn bd" id="btn-del" onclick="deleteSong()" style="display:none">SUPPRIMER</button>
+        <button type="button" class="btn bo" onclick="closeModal()">ANNULER</button>
+        <button type="submit" class="btn br">SAUVEGARDER</button>
+      </div>
+    </form>
+  </div>
+</div
