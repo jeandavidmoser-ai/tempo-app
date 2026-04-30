@@ -181,3 +181,133 @@ select option{background:var(--bg2)}
     </form>
   </div>
 </div
+>
+
+<script>
+let songs = JSON.parse(localStorage.getItem('tempo-songs') || '[]');
+let currentUser = localStorage.getItem('tempo-user') || 'toi';
+
+function save() { localStorage.setItem('tempo-songs', JSON.stringify(songs)); }
+
+function switchUser(u) {
+  currentUser = u;
+  localStorage.setItem('tempo-user', u);
+  document.getElementById('bu1').className = u==='toi' ? 'on' : '';
+  document.getElementById('bu2').className = u==='elle' ? 'on' : '';
+  document.getElementById('fg-inst').classList.toggle('hide', u==='elle');
+  render();
+}
+
+function statusClass(s) {
+  return {a_decouvrir:'bd0',en_cours:'bd1',acquis:'bd2',maitrise:'bd3'}[s]||'bd0';
+}
+function statusLabel(s) {
+  return {a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'}[s]||s;
+}
+
+function render() {
+  const list = document.getElementById('sl');
+  const mine = songs.filter(s => s.user === currentUser);
+  if (!mine.length) {
+    list.innerHTML = '<div class="empty">Aucun morceau. Ajoute ton premier avec le bouton ci-dessus.</div>';
+  } else {
+    list.innerHTML = mine.map(s => `
+      <div class="si" onclick="openModal('${s.id}')">
+        <div>
+          <div class="stt">${s.titre}</div>
+          <div class="sm">${s.artiste||''}${s.artiste&&s.inst?' · ':''}${currentUser==='toi'&&s.inst?s.inst:''}</div>
+        </div>
+        <span class="badge ${statusClass(s.statut)}">${statusLabel(s.statut)}</span>
+      </div>`).join('');
+  }
+  updateStats(mine);
+}
+
+function updateStats(mine) {
+  document.getElementById('stat-n').textContent = mine.length;
+  const counts = {a_decouvrir:0,en_cours:0,acquis:0,maitrise:0};
+  mine.forEach(s => counts[s.statut] = (counts[s.statut]||0)+1);
+  const enCours = mine.filter(s => s.statut==='en_cours');
+  const prio = enCours.length ? enCours[0].titre : (mine.length ? mine[0].titre : '—');
+  document.getElementById('stat-p').textContent = prio;
+  document.getElementById('stat-r').innerHTML = [
+    ['À découvrir', counts.a_decouvrir],
+    ['En cours', counts.en_cours],
+    ['Acquis', counts.acquis],
+    ['Maîtrisé', counts.maitrise]
+  ].map(([l,n]) => n>0 ? `<div class="sbr-row"><span>${l}</span><span>${n}</span></div>` : '').join('');
+}
+
+function openModal(id) {
+  document.getElementById('ov').classList.add('open');
+  document.getElementById('sf').reset();
+  document.getElementById('fg-inst').classList.toggle('hide', currentUser==='elle');
+  if (id === 'new') {
+    document.getElementById('modal-t').textContent = 'NOUVEAU MORCEAU';
+    document.getElementById('f-id').value = '';
+    document.getElementById('btn-del').style.display = 'none';
+  } else {
+    const s = songs.find(x => x.id===id);
+    if (!s) return;
+    document.getElementById('modal-t').textContent = 'MODIFIER LE MORCEAU';
+    document.getElementById('f-id').value = s.id;
+    document.getElementById('f-titre').value = s.titre;
+    document.getElementById('f-artiste').value = s.artiste||'';
+    document.getElementById('f-inst').value = s.inst||'';
+    document.getElementById('f-statut').value = s.statut;
+    document.getElementById('f-diff').value = s.diff||3;
+    document.getElementById('f-focus').value = s.focus||'';
+    document.getElementById('f-notes').value = s.notes||'';
+    document.getElementById('btn-del').style.display = 'inline-block';
+  }
+}
+
+function closeModal() { document.getElementById('ov').classList.remove('open'); }
+
+function saveSong(e) {
+  e.preventDefault();
+  const id = document.getElementById('f-id').value;
+  const song = {
+    id: id || Date.now().toString(),
+    user: currentUser,
+    titre: document.getElementById('f-titre').value,
+    artiste: document.getElementById('f-artiste').value,
+    inst: document.getElementById('f-inst').value,
+    statut: document.getElementById('f-statut').value,
+    diff: document.getElementById('f-diff').value,
+    focus: document.getElementById('f-focus').value,
+    notes: document.getElementById('f-notes').value,
+  };
+  if (id) { songs = songs.map(s => s.id===id ? song : s); }
+  else { songs.push(song); }
+  save(); closeModal(); render();
+}
+
+function deleteSong() {
+  const id = document.getElementById('f-id').value;
+  if (!id) return;
+  if (!confirm('Supprimer ce morceau ?')) return;
+  songs = songs.filter(s => s.id !== id);
+  save(); closeModal(); render();
+}
+
+function askCoach() {
+  const q = document.getElementById('agent-in').value.trim();
+  if (!q) return;
+  const mine = songs.filter(s => s.user===currentUser);
+  const context = mine.length
+    ? `Mon répertoire TEMPO (${mine.length} morceaux) : ${mine.map(s=>`${s.titre} de ${s.artiste||'?'} (${statusLabel(s.statut)})`).join(', ')}. `
+    : '';
+  const url = `https://www.perplexity.ai/search?q=${encodeURIComponent(context + q)}`;
+  window.open(url, '_blank');
+  document.getElementById('agent-in').value = '';
+}
+
+document.getElementById('ov').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+switchUser(currentUser);
+</script>
+</body>
+</html>
