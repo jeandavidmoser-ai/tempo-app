@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEMPO - Votre Coach de Répète</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+        }
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        .rock-font {
+            font-family: 'Permanent+Marker', cursive;
+        }
+        .skull-logo {
+            filter: drop-shadow(0 0 10px var(--accent-red));
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+    <div id="app" class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-12">
+            <div class="flex items-center gap-4">
+                <span class="text-4xl">💀</span>
+                <h1 class="text-5xl rock-font text-white tracking-widest">TEMPO</h1>
+            </div>
+            <div id="user-selector" class="flex gap-2 bg-slate-800 p-1 rounded-full border border-slate-700">
+                <button onclick="switchUser('user1')" id="btn-user1" class="px-4 py-1 rounded-full text-sm font-bold bg-red-600">TOI</button>
+                <button onclick="switchUser('user2')" id="btn-user2" class="px-4 py-1 rounded-full text-sm font-bold text-slate-400">ELLE</button>
+            </div>
+        </header>
+
+        <!-- Dashboard -->
+        <main id="dashboard" class="space-y-8">
+            <!-- Agent Section -->
+            <section class="card p-6 border-l-4 border-l-red-500">
+                <div class="flex items-start gap-4">
+                    <div class="text-2xl mt-1">🤖</div>
+                    <div>
+                        <h2 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Coach Tempo</h2>
+                        <p id="coach-message" class="text-lg font-medium italic">"Salut ! Prêt à envoyer du gros ? J'ai analysé ton répertoire, tu devrais attaquer par Sweet Child O' Mine aujourd'hui."</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats & Priority -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="card p-6">
+                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">Progression</h3>
+                    <div class="flex justify-between items-end">
+                        <div class="text-3xl font-bold" id="song-count">0</div>
+                        <div class="text-green-400 text-sm font-bold">Morceaux actifs</div>
+                    </div>
+                </div>
+                <div class="card p-6 border-t-2 border-t-yellow-500">
+                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">Priorité du jour</h3>
+                    <div id="priority-song" class="text-xl font-bold text-yellow-500">Aucune priorité</div>
+                </div>
+            </div>
+
+            <!-- Song List -->
+            <section>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider">Ton Répertoire</h3>
+                    <button onclick="showFiche('new')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-all">+ AJOUTER UN MORCEAU</button>
+                </div>
+                <div id="song-list" class="space-y-2">
+                    <!-- Song items will be injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal Fiche Morceau -->
+        <div id="fiche-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 relative">
+                <button onclick="hideFiche()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl">&times;</button>
+                
+                <h2 id="fiche-title-text" class="text-3xl rock-font mb-8">NOUVEAU MORCEAU</h2>
+                
+                <form id="song-form" class="space-y-6">
+                    <input type="hidden" id="song-id">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Titre</label>
+                            <input type="text" id="form-title" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Artiste</label>
+                            <input type="text" id="form-artist" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Instrument</label>
+                            <select id="form-instrument" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
+                                <option value="guitare">🎸 Guitare</option>
+                                <option value="basse">🎸 Basse</option>
+                                <option value="chant">🎤 Chant</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Statut</label>
+                            <select id="form-status" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
+                                <option value="a_decouvrir">À découvrir</option>
+                                <option value="en_cours">En cours</option>
+                                <option value="a_consolider">À consolider</option>
+                                <option value="pret">Prêt / Live</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Focus actuel</label>
+                        <input type="text" id="form-focus" placeholder="Ex: le solo de fin, le riff du refrain..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-red-500 outline-none">
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-6 mt-6">
+                        <div class="flex gap-4 mb-4">
+                            <button type="button" onclick="setPlayer('studio')" id="btn-player-studio" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-2 rounded text-xs font-bold uppercase">Album</button>
+                            <button type="button" onclick="setPlayer('live')" id="btn-player-live" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-2 rounded text-xs font-bold uppercase">Live</button>
+                            <button type="button" onclick="setPlayer('tuto')" id="btn-player-tuto" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 p-2 rounded text-xs font-bold uppercase">Tuto</button>
+                        </div>
+                        <div class="aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center text-slate-600 text-sm italic">
+                            Zone Lecteur (Simulation)
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 pt-4">
+                        <button type="button" onclick="hideFiche()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-lg transition-all">ANNULER</button>
+                        <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-all">ENREGISTRER</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG SUPABASE (A REMPLACER PAR TES CLES)
+        const supabaseUrl = 'https://sgmdswnspwfaavqvfjtc.supabase.co';
+        const supabaseKey = 'sb_publishable_5TplmJMNq2dMdrA0b6F1sg_GHfrR...'; // Remplace avec ta anon key complete
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let currentUser = 'user1';
+        let songs = [];
+
+        async function fetchSongs() {
+            // Simulation pour le moment, brancher Supabase ensuite
+            // const { data, error } = await supabase.from('songs').select('*').eq('user_id', currentUser);
+            // if (data) songs = data;
+            renderSongs();
+        }
+
+        function renderSongs() {
+            const list = document.getElementById('song-list');
+            const count = document.getElementById('song-count');
+            list.innerHTML = '';
+            
+            const userSongs = songs.filter(s => s.user_id === currentUser);
+            count.innerText = userSongs.length;
+
+            if (userSongs.length === 0) {
+                list.innerHTML = '<div class="text-slate-600 text-sm italic p-4 text-center">Aucun morceau enregistré.</div>';
+                return;
+            }
+
+            userSongs.forEach(song => {
+                const item = document.createElement('div');
+                item.className = 'card p-4 flex justify-between items-center hover:border-red-500 cursor-pointer transition-all';
+                item.onclick = () => showFiche(song.id);
+                item.innerHTML = `
+                    <div>
+                        <div class="font-bold text-lg">${song.title}</div>
+                        <div class="text-slate-400 text-sm">${song.artist} • ${song.instrument}</div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xs font-bold uppercase px-2 py-1 rounded bg-slate-800">${song.status.replace('_', ' ')}</span>
+                        <span class="text-xl">➔</span>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function switchUser(user) {
+            currentUser = user;
+            document.getElementById('btn-user1').className = user === 'user1' ? 'px-4 py-1 rounded-full text-sm font-bold bg-red-600' : 'px-4 py-1 rounded-full text-sm font-bold text-slate-400';
+            document.getElementById('btn-user2').className = user === 'user2' ? 'px-4 py-1 rounded-full text-sm font-bold bg-red-600' : 'px-4 py-1 rounded-full text-sm font-bold text-slate-400';
+            fetchSongs();
+        }
+
+        function showFiche(id) {
+            const modal = document.getElementById('fiche-modal');
+            modal.classList.remove('hidden');
+            if (id === 'new') {
+                document.getElementById('fiche-title-text').innerText = 'NOUVEAU MORCEAU';
+                document.getElementById('song-form').reset();
+                document.getElementById('song-id').value = '';
+            } else {
+                const song = songs.find(s => s.id === id);
+                document.getElementById('fiche-title-text').innerText = 'DÉTAILS MORCEAU';
+                document.getElementById('song-id').value = song.id;
+                document.getElementById('form-title').value = song.title;
+                document.getElementById('form-artist').value = song.artist;
+                document.getElementById('form-instrument').value = song.instrument;
+                document.getElementById('form-status').value = song.status;
+                document.getElementById('form-focus').value = song.focus || '';
+            }
+        }
+
+        function hideFiche() {
+            document.getElementById('fiche-modal').classList.add('hidden');
+        }
+
+        document.getElementById('song-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('song-id').value;
+            const newSong = {
+                id: id || Math.random().toString(36).substr(2, 9),
+                user_id: currentUser,
+                title: document.getElementById('form-title').value,
+                artist: document.getElementById('form-artist').value,
+                instrument: document.getElementById('form-instrument').value,
+                status: document.getElementById('form-status').value,
+                focus: document.getElementById('form-focus').value
+            };
+
+            if (id) {
+                songs = songs.map(s => s.id === id ? newSong : s);
+            } else {
+                songs.push(newSong);
+            }
+
+            hideFiche();
+            renderSongs();
+            // Brancher Supabase ici pour l'upsert réel
+        };
+
+        // Init
+        fetchSongs();
+    </script>
+</body>
+</html>
