@@ -31,13 +31,16 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 .st{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.15em;color:var(--dim);text-transform:uppercase}
 .btn{font-family:'Oswald',sans-serif;letter-spacing:0.08em;border:none;border-radius:6px;cursor:pointer;transition:all .15s}
 .br{background:var(--accent);color:#fff;padding:8px 16px;font-size:11px}
+.bo{background:none;border:1px solid var(--border);color:var(--dim);padding:6px 13px;font-size:10px}
+.bd{background:none;border:1px solid #2a1010;color:#664040;padding:6px 13px;font-size:10px;margin-right:auto}
 #sl{display:flex;flex-direction:column;gap:6px}
 .si{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
 .si:hover{border-color:#3d3d3d;background:var(--bg3)}
 .stt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600}
+.sm{font-size:11px;color:var(--dim);margin-top:2px}
 .badge{font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:0.1em;padding:3px 8px;border-radius:4px;text-transform:uppercase}
 .bd0{background:rgba(100,100,100,.15);color:#666}
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-start;justify-content:center;padding:38px 16px}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-start;justify-content:center;padding:38px 16px;overflow-y:auto}
 .ov.open{display:flex}
 .modal{background:var(--bg2);border:1px solid var(--border);border-radius:10px;width:100%;max-width:560px}
 .mh{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
@@ -50,6 +53,8 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 label{font-family:'Oswald',sans-serif;font-size:9px;color:var(--dim);text-transform:uppercase}
 input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;width:100%}
 input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+.check-row{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text)}
+.check-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -88,11 +93,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 <div class="fr2">
 <div class="fg full"><label>Titre *</label><input type="text" id="f-titre" required></div>
 <div class="fg"><label>Artiste</label><input type="text" id="f-artiste"></div>
+<div class="fg" id="fg-inst"><label>Instrument</label><select id="f-inst"><option value="">— Choisir —</option><option value="Guitare">Guitare</option><option value="Basse">Basse</option><option value="Batterie">Batterie</option><option value="Sans instrument">Sans instrument</option></select></div>
+<div class="fg full"><label>Chant</label><div style="display:flex;gap:20px;margin-top:4px"><label class="check-row"><input type="checkbox" id="f-chant-lead"> Lead</label><label class="check-row"><input type="checkbox" id="f-chant-coeur"> Chœur</label></div></div>
 <div class="fg"><label>Statut</label><select id="f-statut"><option value="en_cours">En cours</option><option value="acquis">Acquis</option></select></div>
+<div class="fg full"><label>URL Vidéo Studio</label><input type="url" id="f-url-studio"></div>
+<div class="fg full"><label>URL Vidéo Live</label><input type="url" id="f-url-live"></div>
+<div class="fg full"><label>URL Tuto</label><input type="url" id="f-url-tuto"></div>
 </div>
 </div>
 <div class="mfoot">
-<button type="button" class="btn br" style="background:none;border:1px solid var(--border);color:var(--dim)" onclick="closeModal()">ANNULER</button>
+<button type="button" class="btn bd" id="btn-del" onclick="del()" style="display:none">SUPPRIMER</button>
+<button type="button" class="btn bo" onclick="closeModal()">ANNULER</button>
 <button type="submit" class="btn br">SAUVEGARDER</button>
 </div>
 </form>
@@ -115,23 +126,35 @@ document.getElementById('bu1').className=u==='toi'?'on':'';
 document.getElementById('bu2').className=u==='elle'?'on':'';
 document.documentElement.style.setProperty('--accent',u==='elle'?'#E91E8C':'#C41E3A');
 document.querySelector('.logo').innerHTML=(u==='elle'?'🌸':'💀')+' TEMPO<span>.</span>';
+document.getElementById('fg-inst').classList.toggle('hide', u==='elle');
+if(document.getElementById('page-repertoire').classList.contains('active')) render();
 }
 function render(){
 const list=document.getElementById('sl');
-list.innerHTML=songs.map(s=>`<div class="si" onclick="openModal('${s.id}')"><div><div class="stt">${s.titre}</div><div class="sm">${s.artiste||''}</div></div><span class="badge bd0">${s.statut}</span></div>`).join('')||'<div class="card" style="padding:20px;text-align:center">Aucun morceau</div>';
+const mine=songs.filter(s=>s.user===currentUser);
+list.innerHTML=mine.map(s=>`<div class="si" onclick="openModal('${s.id}')"><div><div class="stt">${s.titre}</div><div class="sm">${[s.artiste,currentUser==='toi'?s.inst:''].filter(Boolean).join(' · ')}</div></div><span class="badge bd0">${s.statut}</span></div>`).join('')||'<div class="card" style="padding:20px;text-align:center">Aucun morceau</div>';
 }
 function openModal(id){
 document.getElementById('ov').classList.add('open');
-if(id==='new'){document.getElementById('f-id').value='';document.getElementById('sf').reset();}
-else{const s=songs.find(x=>x.id===id);document.getElementById('f-id').value=s.id;document.getElementById('f-titre').value=s.titre;document.getElementById('f-artiste').value=s.artiste;document.getElementById('f-statut').value=s.statut;}
+document.getElementById('sf').reset();
+document.getElementById('btn-del').style.display=id==='new'?'none':'inline-block';
+if(id==='new'){document.getElementById('f-id').value='';}
+else{const s=songs.find(x=>x.id===id);document.getElementById('f-id').value=s.id;document.getElementById('f-titre').value=s.titre;document.getElementById('f-artiste').value=s.artiste;document.getElementById('f-inst').value=s.inst;document.getElementById('f-chant-lead').checked=s.chantLead;document.getElementById('f-chant-coeur').checked=s.chantCoeur;document.getElementById('f-statut').value=s.statut;document.getElementById('f-url-studio').value=s.urlStudio;document.getElementById('f-url-live').value=s.urlLive;document.getElementById('f-url-tuto').value=s.urlTuto;}
 }
 function closeModal(){document.getElementById('ov').classList.remove('open');}
 function save(e){
 e.preventDefault();
 const id=document.getElementById('f-id').value||Date.now().toString();
-const song={id,titre:document.getElementById('f-titre').value,artiste:document.getElementById('f-artiste').value,statut:document.getElementById('f-statut').value};
+const song={id,user:currentUser,titre:document.getElementById('f-titre').value,artiste:document.getElementById('f-artiste').value,inst:document.getElementById('f-inst').value,chantLead:document.getElementById('f-chant-lead').checked,chantCoeur:document.getElementById('f-chant-coeur').checked,statut:document.getElementById('f-statut').value,urlStudio:document.getElementById('f-url-studio').value,urlLive:document.getElementById('f-url-live').value,urlTuto:document.getElementById('f-url-tuto').value};
 const idx=songs.findIndex(s=>s.id===id);
 if(idx>-1)songs[idx]=song;else songs.push(song);
+localStorage.setItem('tempo-songs',JSON.stringify(songs));
+closeModal();render();
+}
+function del(){
+if(!confirm('Supprimer ?'))return;
+const id=document.getElementById('f-id').value;
+songs=songs.filter(s=>s.id!==id);
 localStorage.setItem('tempo-songs',JSON.stringify(songs));
 closeModal();render();
 }
