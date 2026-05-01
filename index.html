@@ -445,10 +445,12 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
 const supabase=window.supabase.createClient(supabaseUrl,supabaseKey);
+</script>
 let songs=[],sessions=[],logs=[],planning={},currentUser='jd';
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true;
 async function loadData(){
