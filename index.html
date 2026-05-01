@@ -126,7 +126,9 @@ textarea{resize:vertical;min-height:72px}
 .modal-panel.active{display:flex;flex-direction:column;gap:13px}
 .empty-hist{text-align:center;color:var(--muted);padding:30px;font-size:12px}
 .filter-row{padding:8px 14px;background:var(--bg3);border-radius:6px;margin-bottom:10px;display:flex;align-items:center;gap:10px;font-size:11px}
+.tags-row{display:flex;gap:10px;align-items:center}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <header>
@@ -146,6 +148,7 @@ textarea{resize:vertical;min-height:72px}
 <button onclick="showPage('stats')">Stats</button>
 <button onclick="showPage('concerts')">Concerts</button>
 </nav>
+
 <div id="page-home" class="page active">
 <div class="grid">
 <div>
@@ -198,6 +201,7 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 </div>
+
 <div id="page-repertoire" class="page">
 <div class="card">
 <div class="ch">
@@ -215,12 +219,14 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 </div>
+
 <div id="page-planning" class="page">
 <div class="card">
 <div class="ch"><div class="cl">Planning semaine</div></div>
 <div id="week-grid" style="padding:14px"></div>
 </div>
 </div>
+
 <div id="page-stats" class="page">
 <div class="card">
 <div class="ch"><div class="cl">Sessions ce mois</div></div>
@@ -242,6 +248,7 @@ textarea{resize:vertical;min-height:72px}
 <div id="stats-bpm"></div>
 </div>
 </div>
+
 <div id="page-concerts" class="page">
 <div class="card">
 <div class="ch">
@@ -251,6 +258,7 @@ textarea{resize:vertical;min-height:72px}
 <div style="padding:20px;text-align:center;color:var(--muted)">À venir</div>
 </div>
 </div>
+
 <div id="ov" class="ov">
 <div class="modal">
 <div class="mh">
@@ -273,7 +281,9 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 <div id="form-full">
-<div class="fg full" style="display:flex;gap:8px;align-items:center">
+<div class="fg full">
+<label>Tags</label>
+<div class="tags-row">
 <label class="check-row" style="margin:0">
 <input type="checkbox" id="f-tag-ba">
 <span>Broken Arms</span>
@@ -282,6 +292,7 @@ textarea{resize:vertical;min-height:72px}
 <input type="checkbox" id="f-tag-masch">
 <span>Masch</span>
 </label>
+</div>
 </div>
 <div class="fr2">
 <div class="fg">
@@ -404,6 +415,7 @@ textarea{resize:vertical;min-height:72px}
 </form>
 </div>
 </div>
+
 <div id="ov-log" class="ov">
 <div class="modal" style="max-width:450px">
 <div class="mh">
@@ -444,39 +456,54 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 </div>
-<script>
+
 <script>
 var currentUser='jd';
 
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
-const supabase=window.supabase.createClient(supabaseUrl,supabaseKey);
+const { createClient } = supabase;
+const supabaseClient=createClient(supabaseUrl,supabaseKey); // CDN v2 UMD [web:96][web:105]
 
 let songs=[],sessions=[],logs=[],planning={};
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true;
 
 async function loadData(){
-const{data:s}=await supabase.from('songs').select('*');
-if(s)songs=s.map(r=>({id:r.id,user:r.user||'jd',playedByMe:r.played_by_me,titre:r.titre,artiste:r.artiste,inst:r.inst,chantLead:r.chant_lead,chantCoeur:r.chant_coeur,statut:r.statut,diff:r.diff,bpm:r.bpm,duree:r.duree,ton:r.ton,urlS:r.url_s,urlL:r.url_l,urlT:r.url_t,urlAudio:r.url_audio,notes:r.notes,tagBA:r.tag_ba,tagMasch:r.tag_masch,lastPractice:r.last_practice}));
-const{data:ss}=await supabase.from('tempo_sessions').select('*');
+const{data:s}=await supabaseClient.from('songs').select('*');
+if(s)songs=s.map(r=>({
+id:r.id,
+user:r.user||'jd',
+playedByMe:r.played_by_me,
+titre:r.titre,
+artiste:r.artiste,
+inst:r.inst,
+chantLead:r.chant_lead,
+chantCoeur:r.chant_coeur,
+statut:r.statut,
+diff:r.diff,
+bpm:r.bpm,
+duree:r.duree,
+ton:r.ton,
+urlS:r.url_s,
+urlL:r.url_l,
+urlT:r.url_t,
+urlAudio:r.url_audio,
+notes:r.notes,
+tagBA:r.tag_ba,
+tagMasch:r.tag_masch,
+lastPractice:r.last_practice
+}));
+const{data:ss}=await supabaseClient.from('tempo_sessions').select('*');
 if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
-const{data:l}=await supabase.from('tempo_logs').select('*');
+const{data:l}=await supabaseClient.from('tempo_logs').select('*');
 if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
-const{data:p}=await supabase.from('tempo_planning').select('*');
+const{data:p}=await supabaseClient.from('tempo_planning').select('*');
 if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
 showPage('home');
-}
-
-async function loadData(){
-const{data:s}=await supabase.from('songs').select('*');
-if(s)songs=s.map(r=>({id:r.id,user:r.user||'jd',playedByMe:r.played_by_me,titre:r.titre,artiste:r.artiste,inst:r.inst,chantLead:r.chant_lead,chantCoeur:r.chant_coeur,statut:r.statut,diff:r.diff,bpm:r.bpm,duree:r.duree,ton:r.ton,urlS:r.url_s,urlL:r.url_l,urlT:r.url_t,urlAudio:r.url_audio,notes:r.notes,tagBA:r.tag_ba,tagMasch:r.tag_masch,lastPractice:r.last_practice}));
-const{data:ss}=await supabase.from('tempo_sessions').select('*');
-if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
-const{data:l}=await supabase.from('tempo_logs').select('*');
-if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
-const{data:p}=await supabase.from('tempo_planning').select('*');
-if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
-showPage('home');
+renderStats();
+renderSongs();
+renderPlanning();
+renderStatsPage();
 }
 
 function searchAudio(){
@@ -512,10 +539,10 @@ document.documentElement.style.setProperty('--accent',accent);
 if(document.getElementById('fg-inst')){
 document.getElementById('fg-inst').style.display=u==='stephanie'?'none':'flex';
 }
-if(document.querySelector('#page-repertoire.active'))renderSongs();
-if(document.querySelector('#page-planning.active'))renderPlanning();
-if(document.querySelector('#page-home.active'))renderStats();
-if(document.querySelector('#page-stats.active'))renderStatsPage();
+renderStats();
+renderSongs();
+renderPlanning();
+renderStatsPage();
 }
 
 function showPage(id){
@@ -710,7 +737,9 @@ const id=document.getElementById('f-id').value||crypto.randomUUID();
 let song;
 if(currentPlayedBy){
 song={
-id,user:currentUser,played_by_me:true,
+id,
+user:currentUser,
+played_by_me:true,
 titre:document.getElementById('f-titre').value,
 artiste:document.getElementById('f-artiste').value,
 inst:document.getElementById('f-inst')?document.getElementById('f-inst').value:'',
@@ -732,29 +761,40 @@ last_practice:songs.find(s=>s.id===id)?.lastPractice||null
 };
 }else{
 song={
-id,user:currentUser,played_by_me:false,
+id,
+user:currentUser,
+played_by_me:false,
 titre:document.getElementById('f-titre-min').value,
 artiste:document.getElementById('f-artiste-min').value||null,
 duree:parseInt(document.getElementById('f-duree-min').value)||null,
-statut:null,inst:null,chant_lead:false,chant_coeur:false,diff:3,bpm:null,ton:null,
-url_s:null,url_l:null,url_t:null,url_audio:null,notes:null,tag_ba:false,tag_masch:false,last_practice:null
+statut:null,
+inst:null,
+chant_lead:false,
+chant_coeur:false,
+diff:3,
+bpm:null,
+ton:null,
+url_s:null,
+url_l:null,
+url_t:null,
+url_audio:null,
+notes:null,
+tag_ba:false,
+tag_masch:false,
+last_practice:null
 };
 }
-await supabase.from('songs').upsert(song);
+await supabaseClient.from('songs').upsert(song);
 await loadData();
 closeModal();
-renderSongs();
-renderStats();
 }
 
 async function del(){
 if(!confirm('Supprimer ce morceau ?'))return;
 const id=document.getElementById('f-id').value;
-await supabase.from('songs').delete().eq('id',id);
+await supabaseClient.from('songs').delete().eq('id',id);
 await loadData();
 closeModal();
-renderSongs();
-renderStats();
 }
 
 function askCoach(){
@@ -817,16 +857,15 @@ bpm:document.getElementById('log-bpm').value||null,
 feeling:document.getElementById('log-feeling').value||null,
 note:document.getElementById('log-note').value||null
 };
-await supabase.from('tempo_logs').insert(log);
+await supabaseClient.from('tempo_logs').insert(log);
 const song=songs.find(s=>s.id===songId);
 if(song){
-await supabase.from('songs').update({last_practice:today}).eq('id',songId);
+await supabaseClient.from('songs').update({last_practice:today}).eq('id',songId);
 }
 const sess={user:currentUser,date:today,duration:mins,blocks:timerBlocks};
-await supabase.from('tempo_sessions').insert(sess);
+await supabaseClient.from('tempo_sessions').insert(sess);
 await loadData();
 closeLogModal();
-renderStats();
 alert('Session enregistrée !');
 }
 
@@ -858,22 +897,19 @@ ${!done?`<button class="btn-done" onclick="markDone('${key}','${song?song.id:''}
 }
 
 async function markDone(key,songId){
-await supabase.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:songId,done:true});
+await supabaseClient.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:songId,done:true});
 const s=songs.find(x=>x.id===songId);
 if(s){
-await supabase.from('songs').update({last_practice:key}).eq('id',songId);
+await supabaseClient.from('songs').update({last_practice:key}).eq('id',songId);
 }
 await loadData();
-renderPlanning();
-renderStats();
 }
 
 async function markSkip(key,songId){
 const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.id!==songId);
 const next=mine[Math.floor(Math.random()*mine.length)];
-await supabase.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:next?next.id:songId,done:false});
+await supabaseClient.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:next?next.id:songId,done:false});
 await loadData();
-renderPlanning();
 }
 
 function renderStatsPage(){
