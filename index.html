@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--border:#272727;--accent:#C41E3A;--text:#f0f0f0;--dim:#777;--muted:#444;--gold:#c8a84b}
@@ -442,62 +441,10 @@ textarea{resize:vertical;min-height:72px}
 <div class="mfoot">
 <button class="bo" onclick="closeLogModal()">Annuler</button>
 <button class="br" onclick="saveLog()">Enregistrer</button>
+</div>
+</div>
+</div>
 <script>
-const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
-const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
-const supabase=window.supabase.createClient(supabaseUrl,supabaseKey);
-
-let songs=[],sessions=[],logs=[],planning={},currentUser='jd';
-let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true;
-async function loadData(){
-  const{data:s}=await supabase.from('songs').select('*');
-  ...
-  showPage('home');
-}
-... (toutes les autres fonctions JS jusqu’à la fin de ton script)
-</script>
-function searchAudio(){
-const titre=document.getElementById('f-titre').value;
-const artiste=document.getElementById('f-artiste').value;
-if(!titre){alert('Entre un titre d\'abord');return;}
-const q=encodeURIComponent((titre+' '+artiste).trim());
-window.open('https://www.youtube.com/results?search_query='+q,'_blank');
-}
-function setPlayedBy(played){
-currentPlayedBy=played;
-document.getElementById('played-yes').classList.toggle('active',played);
-document.getElementById('played-no').classList.toggle('active',!played);
-document.getElementById('form-full').style.display=played?'block':'none';
-document.getElementById('form-minimal').style.display=played?'none':'block';
-if(played){
-document.getElementById('f-titre').value=document.getElementById('f-titre-min').value;
-document.getElementById('f-artiste').value=document.getElementById('f-artiste-min').value;
-}else{
-document.getElementById('f-titre-min').value=document.getElementById('f-titre').value;
-document.getElementById('f-artiste-min').value=document.getElementById('f-artiste').value;
-document.getElementById('f-duree-min').value=document.getElementById('f-duree').value||'';
-}
-}
-function switchUser(u){
-currentUser=u;
-document.getElementById('bu1').className=u==='jd'?'on':'';
-document.getElementById('bu2').className=u==='stephanie'?'on':'';
-const c=u==='stephanie'?'#E91E8C':'#C41E3A';
-const skull=u==='stephanie'?'💀':'💀';
-document.documentElement.style.setProperty('--accent',c);
-document.getElementById('logo').innerHTML=skull+' TEMPO<span>.</span>';
-if(u==='stephanie'){
-document.getElementById('logo').style.color='#E91E8C';
-}else{
-document.getElementById('logo').style.color='';
-}
-if(document.getElementById('fg-inst'))document.getElementById('fg-inst').style.display=u==='stephanie'?'none':'flex';
-renderStats();
-if(document.querySelector('#page-repertoire.active'))renderSongs();
-if(document.querySelector('#page-stats.active'))renderStatsPage();
-}
-function showPage(id){
-document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
 document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
 document.getElementById('page-'+id).classList.add('active');
 const idx={home:0,repertoire:1,planning:2,stats:3,concerts:4}[id];
