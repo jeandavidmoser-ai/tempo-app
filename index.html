@@ -445,6 +445,65 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 <script>
+const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
+const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
+const supabase=window.supabase.createClient(supabaseUrl,supabaseKey);
+
+let songs=[],sessions=[],logs=[],planning={};
+let currentUser='jd';
+let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true;
+
+async function loadData(){
+const{data:s}=await supabase.from('songs').select('*');
+if(s)songs=s.map(r=>({id:r.id,user:r.user||'jd',playedByMe:r.played_by_me,titre:r.titre,artiste:r.artiste,inst:r.inst,chantLead:r.chant_lead,chantCoeur:r.chant_coeur,statut:r.statut,diff:r.diff,bpm:r.bpm,duree:r.duree,ton:r.ton,urlS:r.url_s,urlL:r.url_l,urlT:r.url_t,urlAudio:r.url_audio,notes:r.notes,tagBA:r.tag_ba,tagMasch:r.tag_masch,lastPractice:r.last_practice}));
+const{data:ss}=await supabase.from('tempo_sessions').select('*');
+if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
+const{data:l}=await supabase.from('tempo_logs').select('*');
+if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
+const{data:p}=await supabase.from('tempo_planning').select('*');
+if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
+showPage('home');
+}
+
+function searchAudio(){
+const titre=document.getElementById('f-titre').value;
+const artiste=document.getElementById('f-artiste').value;
+if(!titre){alert("Entre un titre d'abord");return;}
+const q=encodeURIComponent((titre+' '+artiste).trim());
+window.open('https://www.youtube.com/results?search_query='+q,'_blank');
+}
+
+function setPlayedBy(played){
+currentPlayedBy=played;
+document.getElementById('played-yes').classList.toggle('active',played);
+document.getElementById('played-no').classList.toggle('active',!played);
+document.getElementById('form-full').style.display=played?'block':'none';
+document.getElementById('form-minimal').style.display=played?'none':'block';
+if(played){
+document.getElementById('f-titre').value=document.getElementById('f-titre-min').value;
+document.getElementById('f-artiste').value=document.getElementById('f-artiste-min').value;
+}else{
+document.getElementById('f-titre-min').value=document.getElementById('f-titre').value;
+document.getElementById('f-artiste-min').value=document.getElementById('f-artiste').value;
+document.getElementById('f-duree-min').value=document.getElementById('f-duree').value||'';
+}
+}
+
+function switchUser(u){
+currentUser=u;
+document.getElementById('bu1').className=u==='jd'?'on':'';
+document.getElementById('bu2').className=u==='stephanie'?'on':'';
+const accent=u==='stephanie'?'#E91E8C':'#C41E3A';
+document.documentElement.style.setProperty('--accent',accent);
+if(document.getElementById('fg-inst')){
+document.getElementById('fg-inst').style.display=u==='stephanie'?'none':'flex';
+}
+if(document.querySelector('#page-repertoire.active'))renderSongs();
+if(document.querySelector('#page-planning.active'))renderPlanning();
+if(document.querySelector('#page-home.active'))renderStats();
+if(document.querySelector('#page-stats.active'))renderStatsPage();
+}
+
 function showPage(id){
 document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
 document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
@@ -456,6 +515,7 @@ if(id==='planning')renderPlanning();
 if(id==='home')renderStats();
 if(id==='stats')renderStatsPage();
 }
+
 function renderStats(){
 const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
 document.getElementById('stat-count').textContent=mine.length;
@@ -470,6 +530,7 @@ const totalMin=monthLogs.reduce((sum,l)=>sum+l.duration,0);
 document.getElementById('stat-month').textContent=totalMin+' min';
 renderPriorityList();
 }
+
 function renderPriorityList(){
 const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1).slice(0,5);
 const html=mine.length?mine.map(s=>{
@@ -486,7 +547,9 @@ ${s.urlT?`<span class="video-link" onclick="event.stopPropagation();openVideo('$
 }).join(''):'<div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Aucun morceau en cours</div>';
 document.getElementById('prio-list').innerHTML=html;
 }
+
 function openVideo(url){window.open(url,'_blank');}
+
 function calcStreak(){
 if(!logs.length)return 0;
 const days=[...new Set(logs.filter(l=>l.user===currentUser).map(l=>l.date))].sort().reverse();
@@ -498,6 +561,7 @@ else break;
 }
 return streak;
 }
+
 function renderSongs(){
 const list=document.getElementById('sl');
 const showNotPlayed=document.getElementById('show-not-played').checked;
@@ -522,6 +586,7 @@ return `<div class="si" onclick="openModal('${s.id}')">
 </div>`;
 }).join(''):'<div style="padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px">Aucun morceau</div>';
 }
+
 function openModal(id){
 document.getElementById('ov').classList.add('open');
 document.getElementById('sf').reset();
@@ -566,7 +631,9 @@ document.getElementById('f-id').value='';
 document.getElementById('mt').textContent='Nouveau morceau';
 }
 }
+
 function closeModal(){document.getElementById('ov').classList.remove('open');}
+
 function switchModalTab(tab){
 document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
 document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
@@ -584,6 +651,7 @@ document.getElementById('panel-videos').classList.add('active');
 document.getElementById('btn-save').style.display='none';
 }
 }
+
 function renderHistorique(songId){
 const hist=logs.filter(l=>l.songId===songId).sort((a,b)=>b.date.localeCompare(a.date));
 const html=hist.length?hist.map(l=>{
@@ -599,6 +667,7 @@ ${l.note?`<div class="log-note">"${l.note}"</div>`:''}
 }).join(''):'<div class="empty-hist">Aucune session enregistrée pour ce morceau</div>';
 document.getElementById('hist-content').innerHTML=html;
 }
+
 function renderVideos(song){
 const videos=[];
 if(song.urlS)videos.push({title:'Studio',url:song.urlS});
@@ -620,6 +689,7 @@ ${videoId?`<div class="video-wrap">
 }).join(''):'<div class="empty-hist">Aucune vidéo enregistrée</div>';
 document.getElementById('video-content').innerHTML=html;
 }
+
 async function save(e){
 e.preventDefault();
 const id=document.getElementById('f-id').value||crypto.randomUUID();
@@ -662,6 +732,7 @@ closeModal();
 renderSongs();
 renderStats();
 }
+
 async function del(){
 if(!confirm('Supprimer ce morceau ?'))return;
 const id=document.getElementById('f-id').value;
@@ -671,6 +742,7 @@ closeModal();
 renderSongs();
 renderStats();
 }
+
 function askCoach(){
 const q=document.getElementById('agent-in').value.trim();
 if(!q)return;
@@ -679,6 +751,7 @@ const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.m
 window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
 document.getElementById('agent-in').value='';
 }
+
 function startSession(){
 timerSeconds=0;timerBlocks=1;
 document.getElementById('btn-start').style.display='none';
@@ -692,7 +765,9 @@ document.getElementById('timer-display').textContent=m+':'+s;
 document.getElementById('session-info').textContent=`Bloc ${timerBlocks} — objectif ${timerBlocks*20} min`;
 },1000);
 }
+
 function addBlock(){timerBlocks++;}
+
 function openStopModal(){
 clearInterval(timerInterval);
 const mins=Math.round(timerSeconds/60);
@@ -702,6 +777,7 @@ const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
 select.innerHTML='<option value="">— Sélectionner —</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
 document.getElementById('ov-log').classList.add('open');
 }
+
 function closeLogModal(){
 document.getElementById('ov-log').classList.remove('open');
 document.getElementById('btn-start').style.display='inline-block';
@@ -711,6 +787,7 @@ document.getElementById('timer-display').textContent='00:00';
 document.getElementById('session-info').textContent='Aucune session active';
 timerSeconds=0;
 }
+
 async function saveLog(){
 const songId=document.getElementById('log-song').value;
 if(!songId){alert('Sélectionne un morceau');return;}
@@ -738,6 +815,7 @@ closeLogModal();
 renderStats();
 alert('Session enregistrée !');
 }
+
 function renderPlanning(){
 const grid=document.getElementById('week-grid');
 const days=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
@@ -764,6 +842,7 @@ ${!done?`<button class="btn-done" onclick="markDone('${key}','${song?song.id:''}
 </div>`;
 }).join('');
 }
+
 async function markDone(key,songId){
 await supabase.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:songId,done:true});
 const s=songs.find(x=>x.id===songId);
@@ -774,6 +853,7 @@ await loadData();
 renderPlanning();
 renderStats();
 }
+
 async function markSkip(key,songId){
 const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.id!==songId);
 const next=mine[Math.floor(Math.random()*mine.length)];
@@ -781,6 +861,7 @@ await supabase.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:ne
 await loadData();
 renderPlanning();
 }
+
 function renderStatsPage(){
 const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
 const now=new Date();
@@ -835,6 +916,7 @@ document.getElementById('stats-bpm').innerHTML=bpmSorted.length?bpmSorted.slice(
 <div class="stat-val">${x.last}/${x.target} (${x.pct}%)</div>
 </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée BPM</div>';
 }
+
 loadData();
 </script>
 </body>
