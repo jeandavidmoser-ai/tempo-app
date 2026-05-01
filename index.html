@@ -442,27 +442,20 @@ textarea{resize:vertical;min-height:72px}
 <div class="mfoot">
 <button class="bo" onclick="closeLogModal()">Annuler</button>
 <button class="br" onclick="saveLog()">Enregistrer</button>
-</div>
-</div>
-</div>
 <script>
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
 const supabase=window.supabase.createClient(supabaseUrl,supabaseKey);
-</script>
+
 let songs=[],sessions=[],logs=[],planning={},currentUser='jd';
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true;
 async function loadData(){
-const{data:s}=await supabase.from('songs').select('*');
-if(s)songs=s.map(r=>({id:r.id,user:r.user||'jd',playedByMe:r.played_by_me,titre:r.titre,artiste:r.artiste,inst:r.inst,chantLead:r.chant_lead,chantCoeur:r.chant_coeur,statut:r.statut,diff:r.diff,bpm:r.bpm,duree:r.duree,ton:r.ton,urlS:r.url_s,urlL:r.url_l,urlT:r.url_t,urlAudio:r.url_audio,notes:r.notes,tagBA:r.tag_ba,tagMasch:r.tag_masch,lastPractice:r.last_practice}));
-const{data:ss}=await supabase.from('tempo_sessions').select('*');
-if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
-const{data:l}=await supabase.from('tempo_logs').select('*');
-if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
-const{data:p}=await supabase.from('tempo_planning').select('*');
-if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
-showPage('home');
+  const{data:s}=await supabase.from('songs').select('*');
+  ...
+  showPage('home');
 }
+... (toutes les autres fonctions JS jusqu’à la fin de ton script)
+</script>
 function searchAudio(){
 const titre=document.getElementById('f-titre').value;
 const artiste=document.getElementById('f-artiste').value;
