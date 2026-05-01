@@ -445,6 +445,8 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 <script>
+function showPage(id){
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
 document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
 document.getElementById('page-'+id).classList.add('active');
 const idx={home:0,repertoire:1,planning:2,stats:3,concerts:4}[id];
