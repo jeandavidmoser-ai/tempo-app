@@ -389,7 +389,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="fr2">
 <div class="fg">
 <label>Titre *</label>
-<input type="text" id="f-titre-min" required>
+<input type="text" id="f-titre-min">
 </div>
 <div class="fg">
 <label>Artiste</label>
@@ -464,7 +464,7 @@ var currentUser='jd';
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
 const { createClient } = supabase;
-const supabaseClient=createClient(supabaseUrl,supabaseKey); // client CDN OK [web:22][web:24]
+const supabaseClient=createClient(supabaseUrl,supabaseKey);
 
 let songs=[],sessions=[],logs=[],planning={};
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true;
@@ -765,9 +765,9 @@ async function save(e){
       id,
       user:currentUser,
       played_by_me:false,
-      titre:document.getElementById('f-titre-min').value,
-      artiste:document.getElementById('f-artiste-min').value||null,
-      duree:parseInt(document.getElementById('f-duree-min').value)||null,
+      titre:document.getElementById('f-titre-min').value || document.getElementById('f-titre').value,
+      artiste:(document.getElementById('f-artiste-min').value || document.getElementById('f-artiste').value) || null,
+      duree:parseInt(document.getElementById('f-duree-min').value || document.getElementById('f-duree').value) || null,
       statut:null,
       inst:null,
       chant_lead:false,
@@ -785,7 +785,7 @@ async function save(e){
       last_practice:null
     };
   }
-  const { error } = await supabaseClient.from('songs').upsert(song); // upsert v2 OK [web:35]
+  const { error } = await supabaseClient.from('songs').upsert(song);
   if(error){
     console.error('Erreur Supabase (songs.upsert):',error);
     alert('Erreur lors de la sauvegarde du morceau.\nDétail dans la console.');
