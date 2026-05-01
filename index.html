@@ -127,6 +127,7 @@ textarea{resize:vertical;min-height:72px}
 .empty-hist{text-align:center;color:var(--muted);padding:30px;font-size:12px}
 .filter-row{padding:8px 14px;background:var(--bg3);border-radius:6px;margin-bottom:10px;display:flex;align-items:center;gap:10px;font-size:11px}
 .tags-row{display:flex;gap:10px;align-items:center}
+.tags-row label span{white-space:nowrap}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 </head>
@@ -463,120 +464,120 @@ var currentUser='jd';
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
 const { createClient } = supabase;
-const supabaseClient=createClient(supabaseUrl,supabaseKey); // CDN v2 UMD [web:96][web:105]
+const supabaseClient=createClient(supabaseUrl,supabaseKey); // client CDN OK [web:22][web:24]
 
 let songs=[],sessions=[],logs=[],planning={};
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true;
 
 async function loadData(){
-const{data:s}=await supabaseClient.from('songs').select('*');
-if(s)songs=s.map(r=>({
-id:r.id,
-user:r.user||'jd',
-playedByMe:r.played_by_me,
-titre:r.titre,
-artiste:r.artiste,
-inst:r.inst,
-chantLead:r.chant_lead,
-chantCoeur:r.chant_coeur,
-statut:r.statut,
-diff:r.diff,
-bpm:r.bpm,
-duree:r.duree,
-ton:r.ton,
-urlS:r.url_s,
-urlL:r.url_l,
-urlT:r.url_t,
-urlAudio:r.url_audio,
-notes:r.notes,
-tagBA:r.tag_ba,
-tagMasch:r.tag_masch,
-lastPractice:r.last_practice
-}));
-const{data:ss}=await supabaseClient.from('tempo_sessions').select('*');
-if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
-const{data:l}=await supabaseClient.from('tempo_logs').select('*');
-if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
-const{data:p}=await supabaseClient.from('tempo_planning').select('*');
-if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
-showPage('home');
-renderStats();
-renderSongs();
-renderPlanning();
-renderStatsPage();
+  const { data: s } = await supabaseClient.from('songs').select('*');
+  if(s)songs=s.map(r=>({
+    id:r.id,
+    user:r.user||'jd',
+    playedByMe:r.played_by_me,
+    titre:r.titre,
+    artiste:r.artiste,
+    inst:r.inst,
+    chantLead:r.chant_lead,
+    chantCoeur:r.chant_coeur,
+    statut:r.statut,
+    diff:r.diff,
+    bpm:r.bpm,
+    duree:r.duree,
+    ton:r.ton,
+    urlS:r.url_s,
+    urlL:r.url_l,
+    urlT:r.url_t,
+    urlAudio:r.url_audio,
+    notes:r.notes,
+    tagBA:r.tag_ba,
+    tagMasch:r.tag_masch,
+    lastPractice:r.last_practice
+  }));
+  const { data: ss } = await supabaseClient.from('tempo_sessions').select('*');
+  if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
+  const { data: l } = await supabaseClient.from('tempo_logs').select('*');
+  if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
+  const { data: p } = await supabaseClient.from('tempo_planning').select('*');
+  if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
+  showPage('home');
+  renderStats();
+  renderSongs();
+  renderPlanning();
+  renderStatsPage();
 }
 
 function searchAudio(){
-const titre=document.getElementById('f-titre').value;
-const artiste=document.getElementById('f-artiste').value;
-if(!titre){alert("Entre un titre d'abord");return;}
-const q=encodeURIComponent((titre+' '+artiste).trim());
-window.open('https://www.youtube.com/results?search_query='+q,'_blank');
+  const titre=document.getElementById('f-titre').value;
+  const artiste=document.getElementById('f-artiste').value;
+  if(!titre){alert("Entre un titre d'abord");return;}
+  const q=encodeURIComponent((titre+' '+artiste).trim());
+  window.open('https://www.youtube.com/results?search_query='+q,'_blank');
 }
 
 function setPlayedBy(played){
-currentPlayedBy=played;
-document.getElementById('played-yes').classList.toggle('active',played);
-document.getElementById('played-no').classList.toggle('active',!played);
-document.getElementById('form-full').style.display=played?'block':'none';
-document.getElementById('form-minimal').style.display=played?'none':'block';
-if(played){
-document.getElementById('f-titre').value=document.getElementById('f-titre-min').value;
-document.getElementById('f-artiste').value=document.getElementById('f-artiste-min').value;
-}else{
-document.getElementById('f-titre-min').value=document.getElementById('f-titre').value;
-document.getElementById('f-artiste-min').value=document.getElementById('f-artiste').value;
-document.getElementById('f-duree-min').value=document.getElementById('f-duree').value||'';
-}
+  currentPlayedBy=played;
+  document.getElementById('played-yes').classList.toggle('active',played);
+  document.getElementById('played-no').classList.toggle('active',!played);
+  document.getElementById('form-full').style.display=played?'block':'none';
+  document.getElementById('form-minimal').style.display=played?'none':'block';
+  if(played){
+    document.getElementById('f-titre').value=document.getElementById('f-titre-min').value;
+    document.getElementById('f-artiste').value=document.getElementById('f-artiste-min').value;
+  }else{
+    document.getElementById('f-titre-min').value=document.getElementById('f-titre').value;
+    document.getElementById('f-artiste-min').value=document.getElementById('f-artiste').value;
+    document.getElementById('f-duree-min').value=document.getElementById('f-duree').value||'';
+  }
 }
 
 function switchUser(u){
-currentUser=u;
-document.getElementById('bu1').className=u==='jd'?'on':'';
-document.getElementById('bu2').className=u==='stephanie'?'on':'';
-const accent=u==='stephanie'?'#E91E8C':'#C41E3A';
-document.documentElement.style.setProperty('--accent',accent);
-if(document.getElementById('fg-inst')){
-document.getElementById('fg-inst').style.display=u==='stephanie'?'none':'flex';
-}
-renderStats();
-renderSongs();
-renderPlanning();
-renderStatsPage();
+  currentUser=u;
+  document.getElementById('bu1').className=u==='jd'?'on':'';
+  document.getElementById('bu2').className=u==='stephanie'?'on':'';
+  const accent=u==='stephanie'?'#E91E8C':'#C41E3A';
+  document.documentElement.style.setProperty('--accent',accent);
+  if(document.getElementById('fg-inst')){
+    document.getElementById('fg-inst').style.display=u==='stephanie'?'none':'flex';
+  }
+  renderStats();
+  renderSongs();
+  renderPlanning();
+  renderStatsPage();
 }
 
 function showPage(id){
-document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-document.getElementById('page-'+id).classList.add('active');
-const idx={home:0,repertoire:1,planning:2,stats:3,concerts:4}[id];
-document.querySelectorAll('nav button')[idx].classList.add('active');
-if(id==='repertoire')renderSongs();
-if(id==='planning')renderPlanning();
-if(id==='home')renderStats();
-if(id==='stats')renderStatsPage();
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const idx={home:0,repertoire:1,planning:2,stats:3,concerts:4}[id];
+  document.querySelectorAll('nav button')[idx].classList.add('active');
+  if(id==='repertoire')renderSongs();
+  if(id==='planning')renderPlanning();
+  if(id==='home')renderStats();
+  if(id==='stats')renderStatsPage();
 }
 
 function renderStats(){
-const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-document.getElementById('stat-count').textContent=mine.length;
-const prio=mine.filter(s=>s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
-document.getElementById('stat-p').textContent=prio?prio.titre:'—';
-const streak=calcStreak();
-document.getElementById('stat-streak').textContent=streak+'🔥';
-const now=new Date();
-const month=now.toISOString().substring(0,7);
-const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
-const totalMin=monthLogs.reduce((sum,l)=>sum+l.duration,0);
-document.getElementById('stat-month').textContent=totalMin+' min';
-renderPriorityList();
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  document.getElementById('stat-count').textContent=mine.length;
+  const prio=mine.filter(s=>s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
+  document.getElementById('stat-p').textContent=prio?prio.titre:'—';
+  const streak=calcStreak();
+  document.getElementById('stat-streak').textContent=streak+'🔥';
+  const now=new Date();
+  const month=now.toISOString().substring(0,7);
+  const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
+  const totalMin=monthLogs.reduce((sum,l)=>sum+l.duration,0);
+  document.getElementById('stat-month').textContent=totalMin+' min';
+  renderPriorityList();
 }
 
 function renderPriorityList(){
-const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1).slice(0,5);
-const html=mine.length?mine.map(s=>{
-const hasVideos=!!(s.urlS||s.urlL||s.urlT);
-return `<div class="prio-item" onclick="openModal('${s.id}')">
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1).slice(0,5);
+  const html=mine.length?mine.map(s=>{
+    const hasVideos=!!(s.urlS||s.urlL||s.urlT);
+    return `<div class="prio-item" onclick="openModal('${s.id}')">
 <div class="prio-title">${s.titre}</div>
 <div class="prio-meta">${[s.artiste,s.inst].filter(Boolean).join(' · ')}</div>
 ${hasVideos?`<div class="video-links">
@@ -585,307 +586,312 @@ ${s.urlL?`<span class="video-link" onclick="event.stopPropagation();openVideo('$
 ${s.urlT?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlT}')">🎬 Tuto</span>`:''}
 </div>`:''}
 </div>`;
-}).join(''):'<div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Aucun morceau en cours</div>';
-document.getElementById('prio-list').innerHTML=html;
+  }).join(''):'<div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Aucun morceau en cours</div>';
+  document.getElementById('prio-list').innerHTML=html;
 }
 
 function openVideo(url){window.open(url,'_blank');}
 
 function calcStreak(){
-if(!logs.length)return 0;
-const days=[...new Set(logs.filter(l=>l.user===currentUser).map(l=>l.date))].sort().reverse();
-let streak=0,d=new Date();d.setHours(0,0,0,0);
-for(let day of days){
-const sd=new Date(day);
-if(sd.toDateString()===d.toDateString()){streak++;d.setDate(d.getDate()-1);}
-else break;
-}
-return streak;
+  if(!logs.length)return 0;
+  const days=[...new Set(logs.filter(l=>l.user===currentUser).map(l=>l.date))].sort().reverse();
+  let streak=0,d=new Date();d.setHours(0,0,0,0);
+  for(let day of days){
+    const sd=new Date(day);
+    if(sd.toDateString()===d.toDateString()){streak++;d.setDate(d.getDate()-1);}
+    else break;
+  }
+  return streak;
 }
 
 function renderSongs(){
-const list=document.getElementById('sl');
-const showNotPlayed=document.getElementById('show-not-played').checked;
-let mine=songs.filter(s=>s.user===currentUser);
-if(!showNotPlayed){mine=mine.filter(s=>s.playedByMe!==false);}
-const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
-const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
-list.innerHTML=mine.length?mine.map(s=>{
-let subtitle=[s.artiste];
-if(currentUser==='jd'&&s.inst)subtitle.push(s.inst);
-if(s.playedByMe===false)subtitle.push('(non joué)');
-const tags=[];
-if(s.tagBA)tags.push('BA');
-if(s.tagMasch)tags.push('Masch');
-if(tags.length)subtitle.push(tags.join(', '));
-return `<div class="si" onclick="openModal('${s.id}')">
+  const list=document.getElementById('sl');
+  const showNotPlayed=document.getElementById('show-not-played').checked;
+  let mine=songs.filter(s=>s.user===currentUser);
+  if(!showNotPlayed){mine=mine.filter(s=>s.playedByMe!==false);}
+  const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
+  const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
+  list.innerHTML=mine.length?mine.map(s=>{
+    let subtitle=[s.artiste];
+    if(currentUser==='jd'&&s.inst)subtitle.push(s.inst);
+    if(s.playedByMe===false)subtitle.push('(non joué)');
+    const tags=[];
+    if(s.tagBA)tags.push('BA');
+    if(s.tagMasch)tags.push('Masch');
+    if(tags.length)subtitle.push(tags.join(', '));
+    return `<div class="si" onclick="openModal('${s.id}')">
 <div>
 <div class="stt">${s.titre}</div>
 <div class="sm">${subtitle.filter(Boolean).join(' · ')}</div>
 </div>
 <span class="badge ${s.playedByMe===false?'b4':colors[s.statut]||'b0'}">${s.playedByMe===false?'Non joué':labels[s.statut]||s.statut}</span>
 </div>`;
-}).join(''):'<div style="padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px">Aucun morceau</div>';
+  }).join(''):'<div style="padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px">Aucun morceau</div>';
 }
 
 function openModal(id){
-document.getElementById('ov').classList.add('open');
-document.getElementById('sf').reset();
-document.getElementById('btn-del').style.display='none';
-switchModalTab('fiche');
-setPlayedBy(true);
-if(document.getElementById('fg-inst'))document.getElementById('fg-inst').style.display=currentUser==='stephanie'?'none':'flex';
-if(id!=='new'){
-const s=songs.find(x=>x.id===id);
-if(!s)return;
-document.getElementById('f-id').value=s.id;
-setPlayedBy(s.playedByMe!==false);
-if(s.playedByMe!==false){
-document.getElementById('f-titre').value=s.titre||'';
-document.getElementById('f-artiste').value=s.artiste||'';
-if(document.getElementById('f-inst'))document.getElementById('f-inst').value=s.inst||'';
-document.getElementById('f-chant-lead').checked=s.chantLead||false;
-document.getElementById('f-chant-coeur').checked=s.chantCoeur||false;
-document.getElementById('f-statut').value=s.statut||'a_decouvrir';
-document.getElementById('f-diff').value=s.diff||3;
-document.getElementById('f-bpm').value=s.bpm||'';
-document.getElementById('f-duree').value=s.duree||'';
-document.getElementById('f-ton').value=s.ton||'';
-document.getElementById('f-url-s').value=s.urlS||'';
-document.getElementById('f-url-l').value=s.urlL||'';
-document.getElementById('f-url-t').value=s.urlT||'';
-document.getElementById('f-url-audio').value=s.urlAudio||'';
-document.getElementById('f-notes').value=s.notes||'';
-document.getElementById('f-tag-ba').checked=s.tagBA||false;
-document.getElementById('f-tag-masch').checked=s.tagMasch||false;
-}else{
-document.getElementById('f-titre-min').value=s.titre||'';
-document.getElementById('f-artiste-min').value=s.artiste||'';
-document.getElementById('f-duree-min').value=s.duree||'';
-}
-document.getElementById('btn-del').style.display='inline-block';
-document.getElementById('mt').textContent='Modifier le morceau';
-renderHistorique(s.id);
-renderVideos(s);
-}else{
-document.getElementById('f-id').value='';
-document.getElementById('mt').textContent='Nouveau morceau';
-}
+  document.getElementById('ov').classList.add('open');
+  document.getElementById('sf').reset();
+  document.getElementById('btn-del').style.display='none';
+  switchModalTab('fiche');
+  setPlayedBy(true);
+  if(document.getElementById('fg-inst'))document.getElementById('fg-inst').style.display=currentUser==='stephanie'?'none':'flex';
+  if(id!=='new'){
+    const s=songs.find(x=>x.id===id);
+    if(!s)return;
+    document.getElementById('f-id').value=s.id;
+    setPlayedBy(s.playedByMe!==false);
+    if(s.playedByMe!==false){
+      document.getElementById('f-titre').value=s.titre||'';
+      document.getElementById('f-artiste').value=s.artiste||'';
+      if(document.getElementById('f-inst'))document.getElementById('f-inst').value=s.inst||'';
+      document.getElementById('f-chant-lead').checked=s.chantLead||false;
+      document.getElementById('f-chant-coeur').checked=s.chantCoeur||false;
+      document.getElementById('f-statut').value=s.statut||'a_decouvrir';
+      document.getElementById('f-diff').value=s.diff||3;
+      document.getElementById('f-bpm').value=s.bpm||'';
+      document.getElementById('f-duree').value=s.duree||'';
+      document.getElementById('f-ton').value=s.ton||'';
+      document.getElementById('f-url-s').value=s.urlS||'';
+      document.getElementById('f-url-l').value=s.urlL||'';
+      document.getElementById('f-url-t').value=s.urlT||'';
+      document.getElementById('f-url-audio').value=s.urlAudio||'';
+      document.getElementById('f-notes').value=s.notes||'';
+      document.getElementById('f-tag-ba').checked=s.tagBA||false;
+      document.getElementById('f-tag-masch').checked=s.tagMasch||false;
+    }else{
+      document.getElementById('f-titre-min').value=s.titre||'';
+      document.getElementById('f-artiste-min').value=s.artiste||'';
+      document.getElementById('f-duree-min').value=s.duree||'';
+    }
+    document.getElementById('btn-del').style.display='inline-block';
+    document.getElementById('mt').textContent='Modifier le morceau';
+    renderHistorique(s.id);
+    renderVideos(s);
+  }else{
+    document.getElementById('f-id').value='';
+    document.getElementById('mt').textContent='Nouveau morceau';
+  }
 }
 
 function closeModal(){document.getElementById('ov').classList.remove('open');}
 
 function switchModalTab(tab){
-document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
-document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
-if(tab==='fiche'){
-document.querySelectorAll('.modal-tab')[0].classList.add('active');
-document.getElementById('panel-fiche').classList.add('active');
-document.getElementById('btn-save').style.display='inline-block';
-}else if(tab==='historique'){
-document.querySelectorAll('.modal-tab')[1].classList.add('active');
-document.getElementById('panel-historique').classList.add('active');
-document.getElementById('btn-save').style.display='none';
-}else if(tab==='videos'){
-document.querySelectorAll('.modal-tab')[2].classList.add('active');
-document.getElementById('panel-videos').classList.add('active');
-document.getElementById('btn-save').style.display='none';
-}
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
+  if(tab==='fiche'){
+    document.querySelectorAll('.modal-tab')[0].classList.add('active');
+    document.getElementById('panel-fiche').classList.add('active');
+    document.getElementById('btn-save').style.display='inline-block';
+  }else if(tab==='historique'){
+    document.querySelectorAll('.modal-tab')[1].classList.add('active');
+    document.getElementById('panel-historique').classList.add('active');
+    document.getElementById('btn-save').style.display='none';
+  }else if(tab==='videos'){
+    document.querySelectorAll('.modal-tab')[2].classList.add('active');
+    document.getElementById('panel-videos').classList.add('active');
+    document.getElementById('btn-save').style.display='none';
+  }
 }
 
 function renderHistorique(songId){
-const hist=logs.filter(l=>l.songId===songId).sort((a,b)=>b.date.localeCompare(a.date));
-const html=hist.length?hist.map(l=>{
-const parts=[];
-if(l.duration)parts.push(l.duration+' min');
-if(l.bpm)parts.push('BPM '+l.bpm);
-if(l.feeling)parts.push(l.feeling);
-return `<div class="log-row">
+  const hist=logs.filter(l=>l.songId===songId).sort((a,b)=>b.date.localeCompare(a.date));
+  const html=hist.length?hist.map(l=>{
+    const parts=[];
+    if(l.duration)parts.push(l.duration+' min');
+    if(l.bpm)parts.push('BPM '+l.bpm);
+    if(l.feeling)parts.push(l.feeling);
+    return `<div class="log-row">
 <div class="log-date">${new Date(l.date).toLocaleDateString('fr-FR')}</div>
 <div class="log-meta">${parts.join(' · ')}</div>
 ${l.note?`<div class="log-note">"${l.note}"</div>`:''}
 </div>`;
-}).join(''):'<div class="empty-hist">Aucune session enregistrée pour ce morceau</div>';
-document.getElementById('hist-content').innerHTML=html;
+  }).join(''):'<div class="empty-hist">Aucune session enregistrée pour ce morceau</div>';
+  document.getElementById('hist-content').innerHTML=html;
 }
 
 function renderVideos(song){
-const videos=[];
-if(song.urlS)videos.push({title:'Studio',url:song.urlS});
-if(song.urlL)videos.push({title:'Live',url:song.urlL});
-if(song.urlT)videos.push({title:'Tuto',url:song.urlT});
-if(song.urlAudio)videos.push({title:'Audio',url:song.urlAudio});
-const html=videos.length?videos.map(v=>{
-let videoId='';
-if(v.url.includes('youtube.com')||v.url.includes('youtu.be')){
-const match=v.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/);
-if(match)videoId=match[1];
-}
-return `<div style="margin-bottom:16px">
+  const videos=[];
+  if(song.urlS)videos.push({title:'Studio',url:song.urlS});
+  if(song.urlL)videos.push({title:'Live',url:song.urlL});
+  if(song.urlT)videos.push({title:'Tuto',url:song.urlT});
+  if(song.urlAudio)videos.push({title:'Audio',url:song.urlAudio});
+  const html=videos.length?videos.map(v=>{
+    let videoId='';
+    if(v.url.includes('youtube.com')||v.url.includes('youtu.be')){
+      const match=v.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/);
+      if(match)videoId=match[1];
+    }
+    return `<div style="margin-bottom:16px">
 <div style="font-family:'Oswald',sans-serif;font-size:11px;color:var(--dim);margin-bottom:8px;text-transform:uppercase">${v.title}</div>
 ${videoId?`<div class="video-wrap">
 <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>`:`<a href="${v.url}" target="_blank" style="color:var(--accent);font-size:12px">${v.url}</a>`}
 </div>`;
-}).join(''):'<div class="empty-hist">Aucune vidéo enregistrée</div>';
-document.getElementById('video-content').innerHTML=html;
+  }).join(''):'<div class="empty-hist">Aucune vidéo enregistrée</div>';
+  document.getElementById('video-content').innerHTML=html;
 }
 
 async function save(e){
-e.preventDefault();
-const id=document.getElementById('f-id').value||crypto.randomUUID();
-let song;
-if(currentPlayedBy){
-song={
-id,
-user:currentUser,
-played_by_me:true,
-titre:document.getElementById('f-titre').value,
-artiste:document.getElementById('f-artiste').value,
-inst:document.getElementById('f-inst')?document.getElementById('f-inst').value:'',
-chant_lead:document.getElementById('f-chant-lead').checked,
-chant_coeur:document.getElementById('f-chant-coeur').checked,
-statut:document.getElementById('f-statut').value,
-diff:parseInt(document.getElementById('f-diff').value)||3,
-bpm:document.getElementById('f-bpm').value||null,
-duree:parseInt(document.getElementById('f-duree').value)||null,
-ton:document.getElementById('f-ton').value||null,
-url_s:document.getElementById('f-url-s').value||null,
-url_l:document.getElementById('f-url-l').value||null,
-url_t:document.getElementById('f-url-t').value||null,
-url_audio:document.getElementById('f-url-audio').value||null,
-notes:document.getElementById('f-notes').value||null,
-tag_ba:document.getElementById('f-tag-ba').checked,
-tag_masch:document.getElementById('f-tag-masch').checked,
-last_practice:songs.find(s=>s.id===id)?.lastPractice||null
-};
-}else{
-song={
-id,
-user:currentUser,
-played_by_me:false,
-titre:document.getElementById('f-titre-min').value,
-artiste:document.getElementById('f-artiste-min').value||null,
-duree:parseInt(document.getElementById('f-duree-min').value)||null,
-statut:null,
-inst:null,
-chant_lead:false,
-chant_coeur:false,
-diff:3,
-bpm:null,
-ton:null,
-url_s:null,
-url_l:null,
-url_t:null,
-url_audio:null,
-notes:null,
-tag_ba:false,
-tag_masch:false,
-last_practice:null
-};
-}
-await supabaseClient.from('songs').upsert(song);
-await loadData();
-closeModal();
+  e.preventDefault();
+  const id=document.getElementById('f-id').value||crypto.randomUUID();
+  let song;
+  if(currentPlayedBy){
+    song={
+      id,
+      user:currentUser,
+      played_by_me:true,
+      titre:document.getElementById('f-titre').value,
+      artiste:document.getElementById('f-artiste').value,
+      inst:document.getElementById('f-inst')?document.getElementById('f-inst').value:'',
+      chant_lead:document.getElementById('f-chant-lead').checked,
+      chant_coeur:document.getElementById('f-chant-coeur').checked,
+      statut:document.getElementById('f-statut').value,
+      diff:parseInt(document.getElementById('f-diff').value)||3,
+      bpm:document.getElementById('f-bpm').value||null,
+      duree:parseInt(document.getElementById('f-duree').value)||null,
+      ton:document.getElementById('f-ton').value||null,
+      url_s:document.getElementById('f-url-s').value||null,
+      url_l:document.getElementById('f-url-l').value||null,
+      url_t:document.getElementById('f-url-t').value||null,
+      url_audio:document.getElementById('f-url-audio').value||null,
+      notes:document.getElementById('f-notes').value||null,
+      tag_ba:document.getElementById('f-tag-ba').checked,
+      tag_masch:document.getElementById('f-tag-masch').checked,
+      last_practice:songs.find(s=>s.id===id)?.lastPractice||null
+    };
+  }else{
+    song={
+      id,
+      user:currentUser,
+      played_by_me:false,
+      titre:document.getElementById('f-titre-min').value,
+      artiste:document.getElementById('f-artiste-min').value||null,
+      duree:parseInt(document.getElementById('f-duree-min').value)||null,
+      statut:null,
+      inst:null,
+      chant_lead:false,
+      chant_coeur:false,
+      diff:3,
+      bpm:null,
+      ton:null,
+      url_s:null,
+      url_l:null,
+      url_t:null,
+      url_audio:null,
+      notes:null,
+      tag_ba:false,
+      tag_masch:false,
+      last_practice:null
+    };
+  }
+  const { error } = await supabaseClient.from('songs').upsert(song); // upsert v2 OK [web:35]
+  if(error){
+    console.error('Erreur Supabase (songs.upsert):',error);
+    alert('Erreur lors de la sauvegarde du morceau.\nDétail dans la console.');
+    return;
+  }
+  await loadData();
+  closeModal();
 }
 
 async function del(){
-if(!confirm('Supprimer ce morceau ?'))return;
-const id=document.getElementById('f-id').value;
-await supabaseClient.from('songs').delete().eq('id',id);
-await loadData();
-closeModal();
+  if(!confirm('Supprimer ce morceau ?'))return;
+  const id=document.getElementById('f-id').value;
+  await supabaseClient.from('songs').delete().eq('id',id);
+  await loadData();
+  closeModal();
 }
 
 function askCoach(){
-const q=document.getElementById('agent-in').value.trim();
-if(!q)return;
-const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
-window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
-document.getElementById('agent-in').value='';
+  const q=document.getElementById('agent-in').value.trim();
+  if(!q)return;
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
+  window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
+  document.getElementById('agent-in').value='';
 }
 
 function startSession(){
-timerSeconds=0;timerBlocks=1;
-document.getElementById('btn-start').style.display='none';
-document.getElementById('btn-plus').style.display='inline-block';
-document.getElementById('btn-stop').style.display='inline-block';
-timerInterval=setInterval(()=>{
-timerSeconds++;
-const m=String(Math.floor(timerSeconds/60)).padStart(2,'0');
-const s=String(timerSeconds%60).padStart(2,'0');
-document.getElementById('timer-display').textContent=m+':'+s;
-document.getElementById('session-info').textContent=`Bloc ${timerBlocks} — objectif ${timerBlocks*20} min`;
-},1000);
+  timerSeconds=0;timerBlocks=1;
+  document.getElementById('btn-start').style.display='none';
+  document.getElementById('btn-plus').style.display='inline-block';
+  document.getElementById('btn-stop').style.display='inline-block';
+  timerInterval=setInterval(()=>{
+    timerSeconds++;
+    const m=String(Math.floor(timerSeconds/60)).padStart(2,'0');
+    const s=String(timerSeconds%60).padStart(2,'0');
+    document.getElementById('timer-display').textContent=m+':'+s;
+    document.getElementById('session-info').textContent=`Bloc ${timerBlocks} — objectif ${timerBlocks*20} min`;
+  },1000);
 }
 
 function addBlock(){timerBlocks++;}
 
 function openStopModal(){
-clearInterval(timerInterval);
-const mins=Math.round(timerSeconds/60);
-document.getElementById('log-duration-info').textContent=`Durée totale: ${mins} min (${timerBlocks} blocs)`;
-const select=document.getElementById('log-song');
-const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-select.innerHTML='<option value="">— Sélectionner —</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
-document.getElementById('ov-log').classList.add('open');
+  clearInterval(timerInterval);
+  const mins=Math.round(timerSeconds/60);
+  document.getElementById('log-duration-info').textContent=`Durée totale: ${mins} min (${timerBlocks} blocs)`;
+  const select=document.getElementById('log-song');
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  select.innerHTML='<option value="">— Sélectionner —</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
+  document.getElementById('ov-log').classList.add('open');
 }
 
 function closeLogModal(){
-document.getElementById('ov-log').classList.remove('open');
-document.getElementById('btn-start').style.display='inline-block';
-document.getElementById('btn-plus').style.display='none';
-document.getElementById('btn-stop').style.display='none';
-document.getElementById('timer-display').textContent='00:00';
-document.getElementById('session-info').textContent='Aucune session active';
-timerSeconds=0;
+  document.getElementById('ov-log').classList.remove('open');
+  document.getElementById('btn-start').style.display='inline-block';
+  document.getElementById('btn-plus').style.display='none';
+  document.getElementById('btn-stop').style.display='none';
+  document.getElementById('timer-display').textContent='00:00';
+  document.getElementById('session-info').textContent='Aucune session active';
+  timerSeconds=0;
 }
 
 async function saveLog(){
-const songId=document.getElementById('log-song').value;
-if(!songId){alert('Sélectionne un morceau');return;}
-const mins=Math.round(timerSeconds/60);
-const today=new Date().toISOString().split('T')[0];
-const log={
-id:crypto.randomUUID(),
-user:currentUser,
-date:today,
-song_id:songId,
-duration:mins,
-bpm:document.getElementById('log-bpm').value||null,
-feeling:document.getElementById('log-feeling').value||null,
-note:document.getElementById('log-note').value||null
-};
-await supabaseClient.from('tempo_logs').insert(log);
-const song=songs.find(s=>s.id===songId);
-if(song){
-await supabaseClient.from('songs').update({last_practice:today}).eq('id',songId);
-}
-const sess={user:currentUser,date:today,duration:mins,blocks:timerBlocks};
-await supabaseClient.from('tempo_sessions').insert(sess);
-await loadData();
-closeLogModal();
-alert('Session enregistrée !');
+  const songId=document.getElementById('log-song').value;
+  if(!songId){alert('Sélectionne un morceau');return;}
+  const mins=Math.round(timerSeconds/60);
+  const today=new Date().toISOString().split('T')[0];
+  const log={
+    id:crypto.randomUUID(),
+    user:currentUser,
+    date:today,
+    song_id:songId,
+    duration:mins,
+    bpm:document.getElementById('log-bpm').value||null,
+    feeling:document.getElementById('log-feeling').value||null,
+    note:document.getElementById('log-note').value||null
+  };
+  await supabaseClient.from('tempo_logs').insert(log);
+  const song=songs.find(s=>s.id===songId);
+  if(song){
+    await supabaseClient.from('songs').update({last_practice:today}).eq('id',songId);
+  }
+  const sess={user:currentUser,date:today,duration:mins,blocks:timerBlocks};
+  await supabaseClient.from('tempo_sessions').insert(sess);
+  await loadData();
+  closeLogModal();
+  alert('Session enregistrée !');
 }
 
 function renderPlanning(){
-const grid=document.getElementById('week-grid');
-const days=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
-const today=new Date();
-const dow=today.getDay()===0?6:today.getDay()-1;
-const monday=new Date(today);monday.setDate(today.getDate()-dow);
-const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
-const sorted=[...mine].sort((a,b)=>{const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};return (o[a.statut]||0)-(o[b.statut]||0);});
-grid.innerHTML=days.map((day,i)=>{
-const d=new Date(monday);d.setDate(monday.getDate()+i);
-const key=d.toISOString().split('T')[0];
-const isToday=key===today.toISOString().split('T')[0];
-const p=planning[currentUser+'-'+key];
-const song=p?songs.find(s=>s.id===p.songId):sorted[i%sorted.length];
-const done=p&&p.done;
-return `<div class="week-row">
+  const grid=document.getElementById('week-grid');
+  const days=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+  const today=new Date();
+  const dow=today.getDay()===0?6:today.getDay()-1;
+  const monday=new Date(today);monday.setDate(today.getDate()-dow);
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
+  const sorted=[...mine].sort((a,b)=>{const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};return (o[a.statut]||0)-(o[b.statut]||0);});
+  grid.innerHTML=days.map((day,i)=>{
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    const key=d.toISOString().split('T')[0];
+    const isToday=key===today.toISOString().split('T')[0];
+    const p=planning[currentUser+'-'+key];
+    const song=p?songs.find(s=>s.id===p.songId):sorted[i%sorted.length];
+    const done=p&&p.done;
+    return `<div class="week-row">
 <div class="day-name${isToday?' today':''}">${day}</div>
 <div class="day-task${done?' done':''}">${song?song.titre+' — '+(song.artiste||''):'—'}</div>
 <div class="day-btns">
@@ -893,75 +899,75 @@ ${!done?`<button class="btn-done" onclick="markDone('${key}','${song?song.id:''}
 <button class="btn-skip" onclick="markSkip('${key}','${song?song.id:''}')">Skip</button>`:'<span style="font-size:11px;color:var(--accent)">✓ Fait</span>'}
 </div>
 </div>`;
-}).join('');
+  }).join('');
 }
 
 async function markDone(key,songId){
-await supabaseClient.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:songId,done:true});
-const s=songs.find(x=>x.id===songId);
-if(s){
-await supabaseClient.from('songs').update({last_practice:key}).eq('id',songId);
-}
-await loadData();
+  await supabaseClient.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:songId,done:true});
+  const s=songs.find(x=>x.id===songId);
+  if(s){
+    await supabaseClient.from('songs').update({last_practice:key}).eq('id',songId);
+  }
+  await loadData();
 }
 
 async function markSkip(key,songId){
-const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.id!==songId);
-const next=mine[Math.floor(Math.random()*mine.length)];
-await supabaseClient.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:next?next.id:songId,done:false});
-await loadData();
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.id!==songId);
+  const next=mine[Math.floor(Math.random()*mine.length)];
+  await supabaseClient.from('tempo_planning').upsert({key:currentUser+'-'+key,song_id:next?next.id:songId,done:false});
+  await loadData();
 }
 
 function renderStatsPage(){
-const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-const now=new Date();
-const month=now.toISOString().substring(0,7);
-const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
-document.getElementById('stats-sessions-month').textContent=monthLogs.length;
-const totalMin=monthLogs.reduce((sum,l)=>sum+l.duration,0);
-document.getElementById('stats-time-month').textContent=totalMin+' min pratiquées';
-const bySong={};
-logs.filter(l=>l.user===currentUser).forEach(l=>{
-if(!bySong[l.songId])bySong[l.songId]={duration:0,count:0};
-bySong[l.songId].duration+=l.duration;
-bySong[l.songId].count++;
-});
-const sorted=Object.entries(bySong).map(([id,data])=>{const s=songs.find(x=>x.id===id);return{song:s,data};}).filter(x=>x.song).sort((a,b)=>b.data.duration-a.data.duration);
-const maxTime=sorted.length?sorted[0].data.duration:1;
-document.getElementById('stats-by-song').innerHTML=sorted.length?sorted.slice(0,10).map(x=>{
-const pct=Math.round((x.data.duration/maxTime)*100);
-return `<div class="stat-row">
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const now=new Date();
+  const month=now.toISOString().substring(0,7);
+  const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
+  document.getElementById('stats-sessions-month').textContent=monthLogs.length;
+  const totalMin=monthLogs.reduce((sum,l)=>sum+l.duration,0);
+  document.getElementById('stats-time-month').textContent=totalMin+' min pratiquées';
+  const bySong={};
+  logs.filter(l=>l.user===currentUser).forEach(l=>{
+    if(!bySong[l.songId])bySong[l.songId]={duration:0,count:0};
+    bySong[l.songId].duration+=l.duration;
+    bySong[l.songId].count++;
+  });
+  const sorted=Object.entries(bySong).map(([id,data])=>{const s=songs.find(x=>x.id===id);return{song:s,data};}).filter(x=>x.song).sort((a,b)=>b.data.duration-a.data.duration);
+  const maxTime=sorted.length?sorted[0].data.duration:1;
+  document.getElementById('stats-by-song').innerHTML=sorted.length?sorted.slice(0,10).map(x=>{
+    const pct=Math.round((x.data.duration/maxTime)*100);
+    return `<div class="stat-row">
 <div class="stat-name">${x.song.titre}</div>
 <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
 <div class="stat-val">${x.data.duration} min</div>
 </div>`;
-}).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée</div>';
-const today=new Date().toISOString().split('T')[0];
-const risk=mine.filter(s=>{
-if(!s.lastPractice)return true;
-const diff=Math.floor((new Date(today)-new Date(s.lastPractice))/(1000*60*60*24));
-return diff>7;
-});
-document.getElementById('stats-risk').innerHTML=risk.length?risk.map(s=>{
-const days=s.lastPractice?Math.floor((new Date(today)-new Date(s.lastPractice))/(1000*60*60*24)):'?';
-return `<div class="risk-row">
+  }).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée</div>';
+  const today=new Date().toISOString().split('T')[0];
+  const risk=mine.filter(s=>{
+    if(!s.lastPractice)return true;
+    const diff=Math.floor((new Date(today)-new Date(s.lastPractice))/(1000*60*60*24));
+    return diff>7;
+  });
+  document.getElementById('stats-risk').innerHTML=risk.length?risk.map(s=>{
+    const days=s.lastPractice?Math.floor((new Date(today)-new Date(s.lastPractice))/(1000*60*60*24)):'?';
+    return `<div class="risk-row">
 <div class="stat-name">${s.titre}</div>
 <div class="risk-days">${days} jours</div>
 </div>`;
-}).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucun morceau à risque</div>';
-const bpmData={};
-logs.filter(l=>l.user===currentUser&&l.bpm).forEach(l=>{
-if(!bpmData[l.songId])bpmData[l.songId]=[];
-bpmData[l.songId].push({date:l.date,bpm:parseInt(l.bpm)});
-});
-const bpmSorted=Object.entries(bpmData).map(([id,arr])=>{
-const s=songs.find(x=>x.id===id);
-const last=arr.sort((a,b)=>b.date.localeCompare(a.date))[0];
-const target=s&&s.bpm?parseInt(s.bpm):null;
-const pct=target?Math.round((last.bpm/target)*100):null;
-return{song:s,last:last.bpm,target,pct};
-}).filter(x=>x.song&&x.target).sort((a,b)=>b.pct-a.pct);
-document.getElementById('stats-bpm').innerHTML=bpmSorted.length?bpmSorted.slice(0,5).map(x=>`<div class="stat-row">
+  }).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucun morceau à risque</div>';
+  const bpmData={};
+  logs.filter(l=>l.user===currentUser&&l.bpm).forEach(l=>{
+    if(!bpmData[l.songId])bpmData[l.songId]=[];
+    bpmData[l.songId].push({date:l.date,bpm:parseInt(l.bpm)});
+  });
+  const bpmSorted=Object.entries(bpmData).map(([id,arr])=>{
+    const s=songs.find(x=>x.id===id);
+    const last=arr.sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const target=s&&s.bpm?parseInt(s.bpm):null;
+    const pct=target?Math.round((last.bpm/target)*100):null;
+    return{song:s,last:last.bpm,target,pct};
+  }).filter(x=>x.song&&x.target).sort((a,b)=>b.pct-a.pct);
+  document.getElementById('stats-bpm').innerHTML=bpmSorted.length?bpmSorted.slice(0,5).map(x=>`<div class="stat-row">
 <div class="stat-name">${x.song.titre}</div>
 <div class="stat-val">${x.last}/${x.target} (${x.pct}%)</div>
 </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée BPM</div>';
