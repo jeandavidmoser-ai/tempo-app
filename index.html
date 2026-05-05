@@ -283,57 +283,57 @@ textarea{resize:vertical;min-height:72px}
       <button class="br" onclick="openModal('new')">+ Ajouter</button>
     </div>
     <div style="padding:14px">
-<div class="filter-row" style="flex-wrap:wrap">
-  <label class="check-row">
-    <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Broken Arms</span>
-  </label>
+<div class="filter-row" style="justify-content:space-between;flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <label class="check-row">
+      <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Broken Arms</span>
+    </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="filter-masch" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Masch</span>
-  </label>
+    <label class="check-row">
+      <input type="checkbox" id="filter-masch" onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Masch</span>
+    </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Priorité</span>
-  </label>
+    <label class="check-row">
+      <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Priorité</span>
+    </label>
 
-<label style="display:flex;align-items:center;gap:8px;font-size:11px">
-  <span style="font-size:11px">Participation</span>
-  <select id="filter-participation" onchange="renderSongs()" style="width:auto;min-width:170px;padding:5px 8px;font-size:11px">
-    <option value="mine">Moi</option>
-    <option value="all">Moi + non joué</option>
-    <option value="not_played">Non joué seulement</option>
-  </select>
-</label>
+    <label class="check-row">
+      <input type="checkbox" id="filter-inst-guitare" onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Guitare</span>
+    </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="filter-inst-guitare" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Guitare</span>
-  </label>
+    <label class="check-row">
+      <input type="checkbox" id="filter-inst-basse" onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Basse</span>
+    </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="filter-inst-basse" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Basse</span>
-  </label>
+    <label class="check-row">
+      <input type="checkbox" id="filter-inst-sans" onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Sans instrument</span>
+    </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="filter-inst-sans" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Sans instrument</span>
-  </label>
+    <label class="check-row">
+      <input type="checkbox" id="filter-chant-lead" onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Chant lead</span>
+    </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="filter-chant-lead" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Chant lead</span>
-  </label>
+    <label class="check-row">
+      <input type="checkbox" id="filter-chant-coeur" onchange="renderSongs()" style="width:auto;margin:0">
+      <span style="font-size:11px">Chant cœur</span>
+    </label>
+  </div>
 
-  <label class="check-row">
-    <input type="checkbox" id="filter-chant-coeur" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Chant cœur</span>
-  </label>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+    <select id="filter-participation" onchange="renderSongs()" style="width:auto;min-width:170px;padding:5px 8px;font-size:11px">
+      <option value="mine">Moi</option>
+      <option value="all">Moi + non joué</option>
+      <option value="not_played">Non joué seulement</option>
+    </select>
+  </div>
 </div>
-
      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
   <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
   <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
