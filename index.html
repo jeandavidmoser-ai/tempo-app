@@ -369,11 +369,12 @@ textarea{resize:vertical;min-height:72px}
 <input type="text" id="f-ton">
 </div>
 <div class="fg full">
-<label>URL Audio</label>
-<div style="display:flex;gap:6px">
-<input type="url" id="f-url-audio" placeholder="https://...">
-<button type="button" class="bo" onclick="searchAudio()" style="white-space:nowrap">🔍 Rechercher</button>
-</div>
+  <label>URL Audio</label>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <input type="url" id="f-url-audio" placeholder="https://...">
+    <button type="button" class="bo" onclick="searchYoutube()" style="white-space:nowrap">YouTube</button>
+    <button type="button" class="bo" onclick="searchAudio()" style="white-space:nowrap">Audio</button>
+  </div>
 </div>
 <div class="fr2">
 <div class="fg">
@@ -516,12 +517,20 @@ async function loadData(){
   renderStatsPage();
 }
 
+function searchYoutube(){
+  const titre = document.getElementById('f-titre').value || document.getElementById('f-titre-min').value;
+  const artiste = document.getElementById('f-artiste').value || document.getElementById('f-artiste-min').value;
+  if(!titre){ alert("Entre un titre d'abord"); return; }
+  const q = encodeURIComponent((titre + ' ' + artiste).trim());
+  window.open('https://www.youtube.com/results?search_query=' + q, '_blank');
+}
+
 function searchAudio(){
-  const titre=document.getElementById('f-titre').value;
-  const artiste=document.getElementById('f-artiste').value;
-  if(!titre){alert("Entre un titre d'abord");return;}
-  const q=encodeURIComponent((titre+' '+artiste).trim());
-  window.open('https://www.youtube.com/results?search_query='+q,'_blank');
+  const titre = document.getElementById('f-titre').value || document.getElementById('f-titre-min').value;
+  const artiste = document.getElementById('f-artiste').value || document.getElementById('f-artiste-min').value;
+  if(!titre){ alert("Entre un titre d'abord"); return; }
+  const q = encodeURIComponent((titre + ' ' + artiste + ' audio').trim());
+  window.open('https://www.google.com/search?q=' + q, '_blank');
 }
 
 function setPlayedBy(played){
@@ -601,6 +610,13 @@ ${s.urlT?`<span class="video-link" onclick="event.stopPropagation();openVideo('$
 
 function openVideo(url){window.open(url,'_blank');}
 
+function toggleInlineAudio(songId, event){
+  if(event) event.stopPropagation();
+  const row = document.getElementById('audio-row-' + songId);
+  if(!row) return;
+  row.style.display = row.style.display === 'block' ? 'none' : 'block';
+}
+
 function calcStreak(){
   if(!logs.length)return 0;
   const days=[...new Set(logs.filter(l=>l.user===currentUser).map(l=>l.date))].sort().reverse();
@@ -628,12 +644,24 @@ function renderSongs(){
     if(s.tagBA)tags.push('BA');
     if(s.tagMasch)tags.push('Masch');
     if(tags.length)subtitle.push(tags.join(', '));
-    return `<div class="si" onclick="openModal('${s.id}')">
-<div>
-<div class="stt">${s.titre}</div>
-<div class="sm">${subtitle.filter(Boolean).join(' · ')}</div>
-</div>
-<span class="badge ${s.playedByMe===false?'b4':colors[s.statut]||'b0'}">${s.playedByMe===false?'Non joué':labels[s.statut]||s.statut}</span>
+return `<div>
+  <div class="si" onclick="openModal('${s.id}')">
+    <div>
+      <div class="stt">${s.titre}</div>
+      <div class="sm">${subtitle.filter(Boolean).join(' · ')}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
+      <span class="badge ${s.playedByMe===false?'b4':colors[s.statut]||'b0'}">${s.playedByMe===false?'Non joué':labels[s.statut]||s.statut}</span>
+    </div>
+  </div>
+  ${s.urlAudio ? `
+    <div id="audio-row-${s.id}" style="display:none;padding:8px 12px 12px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;margin-top:-6px;margin-bottom:6px">
+      <audio controls preload="none" style="width:100%">
+        <source src="${s.urlAudio}">
+      </audio>
+    </div>
+  ` : ''}
 </div>`;
   }).join(''):'<div style="padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px">Aucun morceau</div>';
 }
