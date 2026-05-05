@@ -44,6 +44,38 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 .si:hover{border-color:#3d3d3d;background:var(--bg3)}
 .stt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600}
 .sm{font-size:11px;color:var(--dim);margin-top:2px}
+  .song-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:6px;
+}
+
+.song-chip{
+  display:inline-flex;
+  align-items:center;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:10px;
+  line-height:1;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+
+.song-chip.artist{
+  color:#cfcfcf;
+}
+
+.song-chip.inst{
+  border-color:rgba(200,168,75,.35);
+  color:#e7c35a;
+}
+
+.song-chip.role{
+  border-color:rgba(196,30,58,.35);
+  color:#f0d7dc;
+}
 .badge{font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:0.1em;padding:3px 8px;border-radius:4px;text-transform:uppercase}
 .b0{background:rgba(100,100,100,.15);color:#666}
 .b1{background:rgba(200,168,75,.12);color:var(--gold)}
@@ -235,27 +267,52 @@ textarea{resize:vertical;min-height:72px}
       <button class="br" onclick="openModal('new')">+ Ajouter</button>
     </div>
     <div style="padding:14px">
-      <div class="filter-row" style="flex-wrap:wrap">
-        <label class="check-row">
-          <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
-          <span style="font-size:11px">Broken Arms</span>
-        </label>
+<div class="filter-row" style="flex-wrap:wrap">
+  <label class="check-row">
+    <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Broken Arms</span>
+  </label>
 
-        <label class="check-row">
-          <input type="checkbox" id="filter-masch" onchange="renderSongs()" style="width:auto;margin:0">
-          <span style="font-size:11px">Masch</span>
-        </label>
+  <label class="check-row">
+    <input type="checkbox" id="filter-masch" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Masch</span>
+  </label>
 
-        <label class="check-row">
-          <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
-          <span style="font-size:11px">Priorité</span>
-        </label>
+  <label class="check-row">
+    <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Priorité</span>
+  </label>
 
-        <label class="check-row">
-          <input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
-          <span style="font-size:11px">Non joué</span>
-        </label>
-      </div>
+  <label class="check-row">
+    <input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Non joué</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-inst-guitare" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Guitare</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-inst-basse" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Basse</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-inst-sans" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Sans instrument</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-chant-lead" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Chant lead</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-chant-coeur" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Chant cœur</span>
+  </label>
+</div>
 
       <div id="songs-count" style="font-size:11px;color:var(--dim);margin-bottom:10px">0 morceau</div>
 
@@ -712,15 +769,51 @@ function renderSongs(){
   const list=document.getElementById('sl');
   const count=document.getElementById('songs-count');
   const showNotPlayed=document.getElementById('show-not-played').checked;
-  let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
-  if(!showNotPlayed){mine=mine.filter(s=>s.playedByMe!==false);}
-  const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
-  const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;
-  const filterMasch=document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;
-  if(filterPrio){mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');}
-  if(filterBA&&!filterMasch){mine=mine.filter(s=>s.tagBA);}
-  else if(filterMasch&&!filterBA){mine=mine.filter(s=>s.tagMasch);}
-  else if(filterBA&&filterMasch){mine=mine.filter(s=>s.tagBA||s.tagMasch);}
+let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
+
+if(showNotPlayed){
+  mine=mine.filter(s=>s.playedByMe===false);
+}else{
+  mine=mine.filter(s=>s.playedByMe!==false);
+}
+const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
+const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;
+const filterMasch=document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;
+
+const filterInstGuitare=document.getElementById('filter-inst-guitare')&&document.getElementById('filter-inst-guitare').checked;
+const filterInstBasse=document.getElementById('filter-inst-basse')&&document.getElementById('filter-inst-basse').checked;
+const filterInstSans=document.getElementById('filter-inst-sans')&&document.getElementById('filter-inst-sans').checked;
+
+const filterChantLead=document.getElementById('filter-chant-lead')&&document.getElementById('filter-chant-lead').checked;
+const filterChantCoeur=document.getElementById('filter-chant-coeur')&&document.getElementById('filter-chant-coeur').checked;
+if(filterPrio){
+  mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');
+}
+
+if(filterBA&&!filterMasch){
+  mine=mine.filter(s=>s.tagBA);
+}else if(filterMasch&&!filterBA){
+  mine=mine.filter(s=>s.tagMasch);
+}else if(filterBA&&filterMasch){
+  mine=mine.filter(s=>s.tagBA||s.tagMasch);
+}
+
+const selectedInst=[];
+if(filterInstGuitare) selectedInst.push('Guitare','Guitare acoustique');
+if(filterInstBasse) selectedInst.push('Basse');
+if(filterInstSans) selectedInst.push('Sans instrument');
+
+if(selectedInst.length){
+  mine=mine.filter(s=>selectedInst.includes(s.inst||''));
+}
+
+if(filterChantLead){
+  mine=mine.filter(s=>s.chantLead);
+}
+
+if(filterChantCoeur){
+  mine=mine.filter(s=>s.chantCoeur);
+}
 
   if(count){
     count.textContent=mine.length+' morceau'+(mine.length>1?'x':'');
@@ -729,18 +822,42 @@ function renderSongs(){
   const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
   const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
   list.innerHTML=mine.length?mine.map(s=>{
-    let subtitle=[s.artiste];
-    if(currentUser==='jd'&&s.inst)subtitle.push(s.inst);
-    if(s.playedByMe===false)subtitle.push('(non joué)');
-    const tags=[];
-    if(s.tagBA)tags.push('BA');
-    if(s.tagMasch)tags.push('Masch');
-    if(tags.length)subtitle.push(tags.join(', '));
+const meta=[];
+
+if(s.artiste){
+  meta.push(`<span class="song-chip artist">${s.artiste}</span>`);
+}
+
+if(currentUser==='jd'){
+  meta.push(`<span class="song-chip inst">${s.inst||'Sans instrument'}</span>`);
+}else if(s.inst){
+  meta.push(`<span class="song-chip inst">${s.inst}</span>`);
+}
+
+if(s.chantLead){
+  meta.push(`<span class="song-chip role">Chant lead</span>`);
+}
+
+if(s.chantCoeur){
+  meta.push(`<span class="song-chip role">Chant cœur</span>`);
+}
+
+if(s.tagBA){
+  meta.push(`<span class="song-chip">Broken Arms</span>`);
+}
+
+if(s.tagMasch){
+  meta.push(`<span class="song-chip">Masch</span>`);
+}
+
+if(s.playedByMe===false){
+  meta.push(`<span class="song-chip">Non joué</span>`);
+}
 return `<div>
   <div class="si" onclick="openModal('${s.id}')">
     <div>
       <div class="stt">${s.titre}</div>
-      <div class="sm">${subtitle.filter(Boolean).join(' · ')}</div>
+      <div class="song-meta">${meta.join('')}</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
