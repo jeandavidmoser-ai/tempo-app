@@ -204,17 +204,26 @@ textarea{resize:vertical;min-height:72px}
 </div>
 
 <div id="page-repertoire" class="page">
-<div class="card">
-<div class="ch">
-<div class="cl">Ton répertoire</div>
-<button class="br" onclick="openModal('new')">+ Ajouter</button>
-</div>
-<div style="padding:14px">
-<div class="filter-row">
-<label class="check-row">
-<input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
-<span style="font-size:11px">Afficher aussi les morceaux que je ne joue pas</span>
-</label>
+<div class="filter-row" style="flex-wrap:wrap">
+  <label class="check-row">
+    <input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Afficher aussi les morceaux que je ne joue pas</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Priorité</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-ba" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Broken Arms</span>
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" id="filter-masch" onchange="renderSongs()" style="width:auto;margin:0">
+    <span style="font-size:11px">Masch</span>
+  </label>
 </div>
 <div id="sl"></div>
 </div>
