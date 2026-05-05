@@ -1018,28 +1018,6 @@ if(!song){
   box.style.display='block';
 }
 
-  title.textContent=song.titre||'—';
-  meta.textContent=[song.artiste, currentUser==='jd'?song.inst:null].filter(Boolean).join(' · ') || '—';
-
-  let url=song.urlS||song.urlL||song.urlT||'';
-  let html='<div style="font-size:11px;color:var(--muted)">Aucune vidéo disponible pour ce morceau.</div>';
-
-  if(url && (url.includes('youtube.com') || url.includes('youtu.be'))){
-    const match=url.match(/(?:youtube\.com\/(?:[^\/]+\/*.+\/|(?:v|embed)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/);
-    const videoId=match?match[1]:'';
-    if(videoId){
-      html=`<div class="video-wrap">
-        <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-      </div>`;
-    }
-  } else if(url){
-    html=`<a href="${url}" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">Ouvrir le lien vidéo</a>`;
-  }
-
-  video.innerHTML=html;
-  box.style.display='block';
-}
-
 function addBlock(){timerBlocks++;}
 
 function openStopModal(){
