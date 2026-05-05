@@ -662,13 +662,29 @@ return `<div>
       <span class="badge ${s.playedByMe===false?'b4':colors[s.statut]||'b0'}">${s.playedByMe===false?'Non joué':labels[s.statut]||s.statut}</span>
     </div>
   </div>
-  ${s.urlAudio ? `
-    <div id="audio-row-${s.id}" style="display:none;padding:8px 12px 12px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;margin-top:-6px;margin-bottom:6px">
-      <audio controls preload="none" style="width:100%">
-        <source src="${s.urlAudio}">
-      </audio>
-    </div>
-  ` : ''}
+${s.urlAudio ? `
+  <div id="audio-row-${s.id}" style="display:none;padding:8px 12px 12px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;margin-top:-6px;margin-bottom:6px">
+    ${
+      /\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(s.urlAudio)
+        ? `<audio controls preload="none" style="width:100%" src="${s.urlAudio}"></audio>`
+        : s.urlAudio.includes('open.spotify.com/track/')
+          ? `<iframe
+              src="${s.urlAudio.replace('open.spotify.com/', 'open.spotify.com/embed/')}"
+              width="100%"
+              height="152"
+              frameborder="0"
+              allowfullscreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              style="border-radius:12px">
+            </iframe>`
+          : `<div style="font-size:11px;color:var(--dim);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+               <span>Cette URL n'est pas lisible directement dans TEMPO.</span>
+               <a href="${s.urlAudio}" target="_blank" style="color:var(--accent);text-decoration:none">Ouvrir le lien</a>
+             </div>`
+    }
+  </div>
+` : ''}
 </div>`;
   }).join(''):'<div style="padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px">Aucun morceau</div>';
 }
