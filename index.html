@@ -504,20 +504,35 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 <div id="form-minimal" style="display:none">
-<div class="fr2">
-<div class="fg">
-<label>Titre *</label>
-<input type="text" id="f-titre-min">
-</div>
-<div class="fg">
-<label>Artiste</label>
-<input type="text" id="f-artiste-min">
-</div>
-</div>
-<div class="fg full">
-  <label>Durée (mm:ss)</label>
-  <input type="text" id="f-duree-min" placeholder="ex: 03:45">
-</div>
+  <div class="fg full">
+    <label>Tags</label>
+    <div class="tags-row">
+      <label class="check-row" style="margin:0">
+        <input type="checkbox" id="f-tag-ba-min">
+        <span>Broken Arms</span>
+      </label>
+      <label class="check-row" style="margin:0">
+        <input type="checkbox" id="f-tag-masch-min">
+        <span>Masch</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="fr2">
+    <div class="fg">
+      <label>Titre *</label>
+      <input type="text" id="f-titre-min">
+    </div>
+    <div class="fg">
+      <label>Artiste</label>
+      <input type="text" id="f-artiste-min">
+    </div>
+  </div>
+
+  <div class="fg full">
+    <label>Durée (mm:ss)</label>
+    <input type="text" id="f-duree-min" placeholder="ex: 03:45">
+  </div>
 </div>
 </div>
 <div id="panel-historique" class="modal-panel">
@@ -691,13 +706,19 @@ function setPlayedBy(played){
   document.getElementById('played-no').classList.toggle('active',!played);
   document.getElementById('form-full').style.display=played?'block':'none';
   document.getElementById('form-minimal').style.display=played?'none':'block';
+
   if(played){
     document.getElementById('f-titre').value=document.getElementById('f-titre-min').value;
     document.getElementById('f-artiste').value=document.getElementById('f-artiste-min').value;
+    document.getElementById('f-duree').value=document.getElementById('f-duree-min').value||'';
+    document.getElementById('f-tag-ba').checked=document.getElementById('f-tag-ba-min').checked;
+    document.getElementById('f-tag-masch').checked=document.getElementById('f-tag-masch-min').checked;
   }else{
     document.getElementById('f-titre-min').value=document.getElementById('f-titre').value;
     document.getElementById('f-artiste-min').value=document.getElementById('f-artiste').value;
     document.getElementById('f-duree-min').value=document.getElementById('f-duree').value||'';
+    document.getElementById('f-tag-ba-min').checked=document.getElementById('f-tag-ba').checked;
+    document.getElementById('f-tag-masch-min').checked=document.getElementById('f-tag-masch').checked;
   }
 }
 
@@ -937,11 +958,13 @@ function openModal(id){
       document.getElementById('f-notes').value=s.notes||'';
       document.getElementById('f-tag-ba').checked=s.tagBA||false;
       document.getElementById('f-tag-masch').checked=s.tagMasch||false;
-    }else{
-      document.getElementById('f-titre-min').value=s.titre||'';
-      document.getElementById('f-artiste-min').value=s.artiste||'';
-      document.getElementById('f-duree-min').value=formatDuration(s.duree);
-    }
+}else{
+  document.getElementById('f-titre-min').value=s.titre||'';
+  document.getElementById('f-artiste-min').value=s.artiste||'';
+  document.getElementById('f-duree-min').value=formatDuration(s.duree);
+  document.getElementById('f-tag-ba-min').checked=s.tagBA||false;
+  document.getElementById('f-tag-masch-min').checked=s.tagMasch||false;
+}
     document.getElementById('btn-del').style.display='inline-block';
     document.getElementById('mt').textContent='Modifier le morceau';
     renderHistorique(s.id);
@@ -1038,31 +1061,31 @@ async function save(e){
       tag_masch:document.getElementById('f-tag-masch').checked,
       last_practice:songs.find(s=>s.id===id)?.lastPractice||null
     };
-  }else{
-    song={
-      id,
-      user:currentUser,
-      played_by_me:false,
-      titre:document.getElementById('f-titre-min').value || document.getElementById('f-titre').value,
-      artiste:(document.getElementById('f-artiste-min').value || document.getElementById('f-artiste').value) || null,
-      duree:parseDurationToSeconds(document.getElementById('f-duree-min').value || document.getElementById('f-duree').value),
-      statut:null,
-      inst:null,
-      chant_lead:false,
-      chant_coeur:false,
-      diff:3,
-      bpm:null,
-      ton:null,
-      url_s:null,
-      url_l:null,
-      url_t:null,
-      url_audio:null,
-      notes:null,
-      tag_ba:false,
-      tag_masch:false,
-      last_practice:null
-    };
-  }
+}else{
+  song={
+    id,
+    user:currentUser,
+    played_by_me:false,
+    titre:document.getElementById('f-titre-min').value || document.getElementById('f-titre').value,
+    artiste:(document.getElementById('f-artiste-min').value || document.getElementById('f-artiste').value) || null,
+    duree:parseDurationToSeconds(document.getElementById('f-duree-min').value || document.getElementById('f-duree').value),
+    statut:null,
+    inst:null,
+    chant_lead:false,
+    chant_coeur:false,
+    diff:3,
+    bpm:null,
+    ton:null,
+    url_s:null,
+    url_l:null,
+    url_t:null,
+    url_audio:null,
+    notes:null,
+    tag_ba:document.getElementById('f-tag-ba-min').checked,
+    tag_masch:document.getElementById('f-tag-masch-min').checked,
+    last_practice:null
+  };
+}
   const { error } = await supabaseClient.from('songs').upsert(song);
   if(error){
     console.error('Erreur Supabase (songs.upsert):',error);
