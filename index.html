@@ -299,10 +299,14 @@ textarea{resize:vertical;min-height:72px}
     <span style="font-size:11px">Priorité</span>
   </label>
 
-  <label class="check-row">
-    <input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Non joué</span>
-  </label>
+<label style="display:flex;align-items:center;gap:8px;font-size:11px">
+  <span style="font-size:11px">Participation</span>
+  <select id="filter-participation" onchange="renderSongs()" style="width:auto;min-width:170px;padding:5px 8px;font-size:11px">
+    <option value="mine">Moi</option>
+    <option value="all">Moi + non joué</option>
+    <option value="not_played">Non joué seulement</option>
+  </select>
+</label>
 
   <label class="check-row">
     <input type="checkbox" id="filter-inst-guitare" onchange="renderSongs()" style="width:auto;margin:0">
@@ -817,11 +821,13 @@ function renderSongs(){
   const list=document.getElementById('sl');
   const count=document.getElementById('songs-count');
   const totalBox=document.getElementById('songs-duration-total');
-  const showNotPlayed=document.getElementById('show-not-played').checked;
+  const participationMode=(document.getElementById('filter-participation')&&document.getElementById('filter-participation').value)||'mine';
 let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
 
-if(!showNotPlayed){
+if(participationMode==='mine'){
   mine=mine.filter(s=>s.playedByMe!==false);
+}else if(participationMode==='not_played'){
+  mine=mine.filter(s=>s.playedByMe===false);
 }
 const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
 const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;
