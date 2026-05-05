@@ -330,7 +330,10 @@ textarea{resize:vertical;min-height:72px}
   </label>
 </div>
 
-      <div id="songs-count" style="font-size:11px;color:var(--dim);margin-bottom:10px">0 morceau</div>
+     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+  <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
+  <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
+</div>
 
       <div id="sl"></div>
     </div>
@@ -646,6 +649,15 @@ function formatDuration(value){
   return `${minutes}:${String(seconds).padStart(2,'0')}`;
 }
 
+function formatDurationLong(value){
+  const total = parseInt(value,10) || 0;
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+
+  return `${hours} heure${hours>1?'s':''}, ${minutes} minute${minutes>1?'s':''}, ${seconds} seconde${seconds>1?'s':''}`;
+}
+
 async function loadData(){
   const { data: s } = await supabaseClient.from('songs').select('*');
   if(s)songs=s.map(r=>({
@@ -803,8 +815,10 @@ function calcStreak(){
 }
 
 function renderSongs(){
+function renderSongs(){
   const list=document.getElementById('sl');
   const count=document.getElementById('songs-count');
+  const totalBox=document.getElementById('songs-duration-total');
   const showNotPlayed=document.getElementById('show-not-played').checked;
 let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
 
@@ -852,9 +866,15 @@ if(filterChantCoeur){
   mine=mine.filter(s=>s.chantCoeur);
 }
 
-  if(count){
-    count.textContent=mine.length+' morceau'+(mine.length>1?'x':'');
-  }
+const totalDurationSeconds = mine.reduce((sum,s)=>sum + (parseInt(s.duree,10) || 0), 0);
+
+if(count){
+  count.textContent=mine.length+' morceau'+(mine.length>1?'x':'');
+}
+
+if(totalBox){
+  totalBox.textContent=formatDurationLong(totalDurationSeconds);
+}
 
   const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
   const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
