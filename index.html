@@ -63,10 +63,6 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
   color:var(--text);
 }
 
-.song-chip.artist{
-  color:#cfcfcf;
-}
-
 .song-chip.inst{
   border-color:rgba(200,168,75,.35);
   color:#e7c35a;
@@ -821,9 +817,7 @@ if(filterChantCoeur){
 
   const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
   const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
-  list.innerHTML=mine.length?mine.map(s=>{
-const meta=[];
-
+list.innerHTML=mine.length?mine.map(s=>{
 const artistText=s.artiste||'';
 const meta=[];
 
@@ -842,7 +836,7 @@ if(s.chantCoeur){
 }
 
 if(s.tagBA){
-  meta.push(`<span class="song-chip">Broken Arms</span>`);
+  meta.push(`<span class="song-chip">BA</span>`);
 }
 
 if(s.tagMasch){
