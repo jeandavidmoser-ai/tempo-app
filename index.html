@@ -352,11 +352,12 @@ textarea{resize:vertical;min-height:72px}
 <div class="fg" id="fg-inst">
 <label>Instrument</label>
 <select id="f-inst">
-<option value="">—</option>
-<option value="Guitare">Guitare</option>
-<option value="Basse">Basse</option>
-<option value="Batterie">Batterie</option>
-<option value="Sans instrument">Sans instrument</option>
+  <option value="">—</option>
+  <option value="Guitare">Guitare</option>
+  <option value="Guitare acoustique">Guitare acoustique</option>
+  <option value="Basse">Basse</option>
+  <option value="Batterie">Batterie</option>
+  <option value="Sans instrument">Sans instrument</option>
 </select>
 </div>
 <div class="fg">
@@ -394,8 +395,8 @@ textarea{resize:vertical;min-height:72px}
 <input type="number" id="f-bpm">
 </div>
 <div class="fg">
-<label>Durée (minutes)</label>
-<input type="number" id="f-duree" placeholder="ex: 4">
+  <label>Durée (mm:ss)</label>
+  <input type="text" id="f-duree" placeholder="ex: 03:45">
 </div>
 </div>
 <div class="fg full">
@@ -441,8 +442,8 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 <div class="fg full">
-<label>Durée (minutes)</label>
-<input type="number" id="f-duree-min" placeholder="ex: 4">
+  <label>Durée (mm:ss)</label>
+  <input type="text" id="f-duree-min" placeholder="ex: 03:45">
 </div>
 </div>
 </div>
@@ -531,6 +532,31 @@ const supabaseClient=createClient(supabaseUrl,supabaseKey);
 
 let songs=[],sessions=[],logs=[],planning={};
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null;
+
+function parseDurationToSeconds(value){
+  if(!value) return null;
+  const v = String(value).trim();
+
+  if(/^\d+$/.test(v)){
+    return parseInt(v,10) * 60;
+  }
+
+  const match = v.match(/^(\d{1,2}):([0-5]\d)$/);
+  if(!match) return null;
+
+  const minutes = parseInt(match[1],10);
+  const seconds = parseInt(match[2],10);
+  return minutes * 60 + seconds;
+}
+
+function formatDuration(value){
+  if(value===null || value===undefined || value==='') return '';
+  const total = parseInt(value,10);
+  if(isNaN(total)) return '';
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes}:${String(seconds).padStart(2,'0')}`;
+}
 
 async function loadData(){
   const { data: s } = await supabaseClient.from('songs').select('*');
@@ -769,7 +795,7 @@ function openModal(id){
       document.getElementById('f-statut').value=s.statut||'a_decouvrir';
       document.getElementById('f-diff').value=s.diff||3;
       document.getElementById('f-bpm').value=s.bpm||'';
-      document.getElementById('f-duree').value=s.duree||'';
+      document.getElementById('f-duree').value=formatDuration(s.duree);
       document.getElementById('f-ton').value=s.ton||'';
       document.getElementById('f-url-s').value=s.urlS||'';
       document.getElementById('f-url-l').value=s.urlL||'';
@@ -781,7 +807,7 @@ function openModal(id){
     }else{
       document.getElementById('f-titre-min').value=s.titre||'';
       document.getElementById('f-artiste-min').value=s.artiste||'';
-      document.getElementById('f-duree-min').value=s.duree||'';
+      document.getElementById('f-duree-min').value=formatDuration(s.duree);
     }
     document.getElementById('btn-del').style.display='inline-block';
     document.getElementById('mt').textContent='Modifier le morceau';
@@ -868,7 +894,7 @@ async function save(e){
       statut:document.getElementById('f-statut').value,
       diff:parseInt(document.getElementById('f-diff').value)||3,
       bpm:document.getElementById('f-bpm').value||null,
-      duree:parseInt(document.getElementById('f-duree').value)||null,
+      duree:parseDurationToSeconds(document.getElementById('f-duree').value),
       ton:document.getElementById('f-ton').value||null,
       url_s:document.getElementById('f-url-s').value||null,
       url_l:document.getElementById('f-url-l').value||null,
@@ -886,7 +912,7 @@ async function save(e){
       played_by_me:false,
       titre:document.getElementById('f-titre-min').value || document.getElementById('f-titre').value,
       artiste:(document.getElementById('f-artiste-min').value || document.getElementById('f-artiste').value) || null,
-      duree:parseInt(document.getElementById('f-duree-min').value || document.getElementById('f-duree').value) || null,
+      duree:parseDurationToSeconds(document.getElementById('f-duree-min').value || document.getElementById('f-duree').value),
       statut:null,
       inst:null,
       chant_lead:false,
