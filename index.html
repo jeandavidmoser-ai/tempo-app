@@ -684,9 +684,22 @@ function calcStreak(){
 
 function renderSongs(){
   const list=document.getElementById('sl');
+  const count=document.getElementById('songs-count');
   const showNotPlayed=document.getElementById('show-not-played').checked;
   let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
-  if(!showNotPlayed){mine=mine.filter(s=>s.playedByMe!==false);}const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;const filterMasch=document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;if(filterPrio){mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');}if(filterBA&&!filterMasch){mine=mine.filter(s=>s.tagBA);}else if(filterMasch&&!filterBA){mine=mine.filter(s=>s.tagMasch);}else if(filterBA&&filterMasch){mine=mine.filter(s=>s.tagBA||s.tagMasch);}
+  if(!showNotPlayed){mine=mine.filter(s=>s.playedByMe!==false);}
+  const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
+  const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;
+  const filterMasch=document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;
+  if(filterPrio){mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');}
+  if(filterBA&&!filterMasch){mine=mine.filter(s=>s.tagBA);}
+  else if(filterMasch&&!filterBA){mine=mine.filter(s=>s.tagMasch);}
+  else if(filterBA&&filterMasch){mine=mine.filter(s=>s.tagBA||s.tagMasch);}
+
+  if(count){
+    count.textContent=mine.length+' morceau'+(mine.length>1?'x':'');
+  }
+
   const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
   const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
   list.innerHTML=mine.length?mine.map(s=>{
