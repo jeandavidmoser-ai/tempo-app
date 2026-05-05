@@ -474,7 +474,7 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 <div class="fr2">
-<div class="fg">
+<div class="fg" style="display:none">
 <label>BPM cible</label>
 <input type="number" id="f-bpm">
 </div>
@@ -484,15 +484,14 @@ textarea{resize:vertical;min-height:72px}
 </div>
 </div>
 <div class="fg full">
-<label>Tonalité</label>
+<label>Accordage/Capo</label>
 <input type="text" id="f-ton">
 </div>
 <div class="fg full">
-  <label>URL Audio</label>
+  <label style="display:none">URL Audio</label>
   <div style="display:flex;gap:6px;flex-wrap:wrap">
-    <input type="url" id="f-url-audio" placeholder="https://...">
+    <input type="url" id="f-url-audio" placeholder="https://..." style="display:none">
     <button type="button" class="bo" onclick="searchYoutube()" style="white-space:nowrap">YouTube</button>
-    <button type="button" class="bo" onclick="searchAudio()" style="white-space:nowrap">Audio</button>
   </div>
 </div>
 <div class="fr2">
