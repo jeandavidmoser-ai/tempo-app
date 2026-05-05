@@ -63,6 +63,10 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
   color:var(--text);
 }
 
+.song-chip.duration{
+  color: var(--dim);
+}
+
 .song-chip.inst{
   border-color:rgba(200,168,75,.35);
   color:#e7c35a;
@@ -907,7 +911,7 @@ if(s.tagMasch){
 }
 
 if(s.duree){
-  meta.push(`<span class="song-chip">${formatDuration(s.duree)}</span>`);
+  meta.push(`<span class="song-chip duration">${formatDuration(s.duree)}</span>`);
 }
 
 if(s.playedByMe===false){
