@@ -906,6 +906,10 @@ if(s.tagMasch){
   meta.push(`<span class="song-chip">Masch</span>`);
 }
 
+if(s.duree){
+  meta.push(`<span class="song-chip">${formatDuration(s.duree)}</span>`);
+}
+
 if(s.playedByMe===false){
   meta.push(`<span class="song-chip">Non joué</span>`);
 }
