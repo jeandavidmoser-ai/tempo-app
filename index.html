@@ -237,17 +237,8 @@ textarea{resize:vertical;min-height:72px}
     <div style="padding:14px">
       <div class="filter-row" style="flex-wrap:wrap">
         <label class="check-row">
-          <input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
-          <span style="font-size:11px">Nonjoué</span>
-        </label>
-
-        <label class="check-row">
-          <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
-          <span style="font-size:11px">Priorité</span>
-        </label>
-
-        <label class="check-row">
-          <input type="checkbox" id="filter-ba" onchange="renderSongs()" style="width:auto;margin:0">
+          <label class="check-row">
+          <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
           <span style="font-size:11px">Broken Arms</span>
         </label>
 
@@ -256,6 +247,17 @@ textarea{resize:vertical;min-height:72px}
           <span style="font-size:11px">Masch</span>
         </label>
       </div>
+
+              <label class="check-row">
+          <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
+          <span style="font-size:11px">Priorité</span>
+        </label>
+          
+          <input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
+          <span style="font-size:11px">Non joué</span>
+        </label>
+
+
 
       <div id="songs-count" style="font-size:11px;color:var(--dim);margin-bottom:10px">0 morceau</div>
 
