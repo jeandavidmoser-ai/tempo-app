@@ -969,15 +969,14 @@ function renderSessionSong(){
   const meta=document.getElementById('session-song-meta');
   const video=document.getElementById('session-video');
 
-  const song=songs.find(s=>s.id===currentSessionSongId);
-
-  if(!song){
-    box.style.display='none';
-    video.innerHTML='';
-    title.textContent='—';
-    meta.textContent='—';
-    return;
-  }
+const song=songs.find(s=>s.id===currentSessionSongId);
+if(!song){
+  box.style.display='none';
+  video.innerHTML='';
+  title.textContent='—';
+  meta.textContent='—';
+  return;
+}
 
   title.textContent=song.titre||'—';
   meta.textContent=[song.artiste, currentUser==='jd' ? song.inst : null].filter(Boolean).join(' · ') || '—';
