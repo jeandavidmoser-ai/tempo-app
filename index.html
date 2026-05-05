@@ -102,6 +102,24 @@ textarea{resize:vertical;min-height:72px}
 .vtab.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .video-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:6px;background:#000}
 .video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%}
+  .session-video-wrap{
+  position:relative;
+  width:100%;
+  padding-bottom:56.25%;
+  height:0;
+  overflow:hidden;
+  border-radius:8px;
+  background:#000;
+  border:1px solid var(--border);
+}
+
+.session-video-wrap iframe{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+}
 .session-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .timer{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;color:var(--gold)}
 .log-row{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:6px}
@@ -171,15 +189,16 @@ textarea{resize:vertical;min-height:72px}
 <div style="flex:1;font-size:11px;color:var(--muted)" id="session-info">Aucune session active</div>
 </div>
 <div style="margin-top:16px;display:flex;gap:8px">
-<button class="br" id="btn-start" onclick="startSession()">▶ Démarrer 20 min</button>
-<button class="bo" id="btn-plus" style="display:none" onclick="addBlock()">+20 min</button>
-<button class="bo" id="btn-stop" style="display:none" onclick="openStopModal()">■ Stop & Logger</button>
-<div id="session-song-box" style="display:none;margin-top:16px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+  <button class="br" id="btn-start" onclick="startSession()">▶ Démarrer 20 min</button>
+  <button class="bo" id="btn-plus" style="display:none" onclick="addBlock()">+20 min</button>
+  <button class="bo" id="btn-stop" style="display:none" onclick="openStopModal()">■ Stop & Logger</button>
+</div>
+
+<div id="session-song-box" style="display:none;margin-top:16px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:100%">
   <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.12em;color:var(--dim);text-transform:uppercase;margin-bottom:8px">Morceau en cours</div>
   <div id="session-song-title" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-bottom:4px">—</div>
   <div id="session-song-meta" style="font-size:11px;color:var(--dim);margin-bottom:12px">—</div>
   <div id="session-video"></div>
-</div>
 </div>
 </div>
 </div>
@@ -951,10 +970,54 @@ function renderSessionSong(){
   const video=document.getElementById('session-video');
 
   const song=songs.find(s=>s.id===currentSessionSongId);
+
   if(!song){
     box.style.display='none';
+    video.innerHTML='';
+    title.textContent='—';
+    meta.textContent='—';
     return;
   }
+
+  title.textContent=song.titre||'—';
+  meta.textContent=[song.artiste, currentUser==='jd' ? song.inst : null].filter(Boolean).join(' · ') || '—';
+
+  const url=song.urlS || song.urlL || song.urlT || '';
+  let html='<div style="font-size:11px;color:var(--muted)">Aucune vidéo disponible pour ce morceau.</div>';
+
+  if(url && (url.includes('youtube.com') || url.includes('youtu.be'))){
+    const match=url.match(/(?:youtube\.com\/(?:[^\/]+\/*.+\/|(?:v|embed)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/);
+    const videoId=match ? match[1] : '';
+
+    if(videoId){
+      html=`
+        <div class="session-video-wrap">
+          <iframe
+            src="https://www.youtube.com/embed/${videoId}"
+            title="Lecteur vidéo"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="bo" type="button" onclick="openVideo('${url}')">Ouvrir dans YouTube</button>
+        </div>
+      `;
+    }
+  } else if(url){
+    html=`
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="bo" type="button" onclick="openVideo('${url}')">Ouvrir le lien vidéo</button>
+      </div>
+    `;
+  }
+
+  video.innerHTML=html;
+  box.style.display='block';
+}
 
   title.textContent=song.titre||'—';
   meta.textContent=[song.artiste, currentUser==='jd'?song.inst:null].filter(Boolean).join(' · ') || '—';
