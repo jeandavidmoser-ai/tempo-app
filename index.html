@@ -698,7 +698,7 @@ function renderHistorique(songId){
   const hist=logs.filter(l=>l.songId===songId).sort((a,b)=>b.date.localeCompare(a.date));
   const html=hist.length?hist.map(l=>{
     const parts=[];
-    if(l.duration)parts.push(l.duration+' min');
+    parts.push((l.duration||0)>0?l.duration+' min':'< 1 min');
     if(l.bpm)parts.push('BPM '+l.bpm);
     if(l.feeling)parts.push(l.feeling);
     return `<div class="log-row">
