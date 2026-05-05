@@ -689,7 +689,6 @@ async function loadData(){
   if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
   const { data: p } = await supabaseClient.from('tempo_planning').select('*');
   if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
-  showPage('home');
   renderStats();
   renderSongs();
   renderPlanning();
@@ -821,9 +820,7 @@ function renderSongs(){
   const showNotPlayed=document.getElementById('show-not-played').checked;
 let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
 
-if(showNotPlayed){
-  mine=mine.filter(s=>s.playedByMe===false);
-}else{
+if(!showNotPlayed){
   mine=mine.filter(s=>s.playedByMe!==false);
 }
 const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
@@ -1387,7 +1384,7 @@ function renderStatsPage(){
 </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée BPM</div>';
 }
 
-loadData();
+loadData().then(()=>showPage('home'));
 </script>
 </body>
 </html>
