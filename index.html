@@ -48,7 +48,7 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 .b0{background:rgba(100,100,100,.15);color:#666}
 .b1{background:rgba(200,168,75,.12);color:var(--gold)}
 .b2{background:rgba(196,30,58,.15);color:var(--accent)}
-.b3{background:rgba(196,30,58,.3);color:#f07080}
+.b3{background:rgba(30,180,80,.25);color:#2ecc71;font-weight:700;border:1px solid rgba(30,180,80,.5)}
 .b4{background:rgba(80,80,180,.15);color:#8888cc}
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-start;justify-content:center;padding:38px 16px;overflow-y:auto}
 .ov.open{display:flex}
@@ -607,8 +607,8 @@ function calcStreak(){
 function renderSongs(){
   const list=document.getElementById('sl');
   const showNotPlayed=document.getElementById('show-not-played').checked;
-  let mine=songs.filter(s=>s.user===currentUser);
-  if(!showNotPlayed){mine=mine.filter(s=>s.playedByMe!==false);}
+  let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
+  if(!showNotPlayed){mine=mine.filter(s=>s.playedByMe!==false);}const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;const filterMasch=document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;if(filterPrio){mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');}if(filterBA&&!filterMasch){mine=mine.filter(s=>s.tagBA);}else if(filterMasch&&!filterBA){mine=mine.filter(s=>s.tagMasch);}else if(filterBA&&filterMasch){mine=mine.filter(s=>s.tagBA||s.tagMasch);}
   const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
   const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
   list.innerHTML=mine.length?mine.map(s=>{
