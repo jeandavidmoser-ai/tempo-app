@@ -200,17 +200,17 @@ textarea{resize:vertical;min-height:72px}
 <body>
 <header>
 <div class="logo-wrap" onclick="showPage('home')">
-<div id="logo" class="logo">💀 TEMPO<span>.</span></div>
-<div class="logo-sub">Travail · Entraînement · Maîtrise · Progression · Objectif</div>
+<div id="logo" class="logo">ðŸ’€ TEMPO<span>.</span></div>
+<div class="logo-sub">Travail Â· EntraÃ®nement Â· MaÃ®trise Â· Progression Â· Objectif</div>
 </div>
 <div class="usw">
 <button id="bu1" class="on" onclick="switchUser('jd')">JD</button>
-<button id="bu2" onclick="switchUser('stephanie')">Stéphanie</button>
+<button id="bu2" onclick="switchUser('stephanie')">StÃ©phanie</button>
 </div>
 </header>
 <nav>
 <button onclick="showPage('home')">Tableau de bord</button>
-<button onclick="showPage('repertoire')">Répertoire</button>
+<button onclick="showPage('repertoire')">RÃ©pertoire</button>
 <button onclick="showPage('planning')">Planning</button>
 <button onclick="showPage('stats')">Stats</button>
 <button onclick="showPage('concerts')">Concerts</button>
@@ -222,9 +222,9 @@ textarea{resize:vertical;min-height:72px}
 <div class="card">
 <div class="ch"><div class="cl">Coach Tempo</div></div>
 <div style="padding:20px">
-<p style="font-size:13px;color:var(--dim);margin-bottom:14px">Salut. Prêt à bosser ? Pose-moi une question ou demande-moi ce que tu dois travailler aujourd'hui.</p>
+<p style="font-size:13px;color:var(--dim);margin-bottom:14px">Salut. PrÃªt Ã  bosser ? Pose-moi une question ou demande-moi ce que tu dois travailler aujourd'hui.</p>
 <div class="ai-row">
-<input type="text" id="agent-in" placeholder="Pose une question à ton coach…" onkeydown="if(event.key==='Enter')askCoach()">
+<input type="text" id="agent-in" placeholder="Pose une question Ã  ton coachâ€¦" onkeydown="if(event.key==='Enter')askCoach()">
 <button class="br" onclick="askCoach()">Envoyer</button>
 </div>
 </div>
@@ -237,15 +237,15 @@ textarea{resize:vertical;min-height:72px}
 <div style="flex:1;font-size:11px;color:var(--muted)" id="session-info">Aucune session active</div>
 </div>
 <div style="margin-top:16px;display:flex;gap:8px">
-  <button class="br" id="btn-start" onclick="startSession()">▶ Démarrer 20 min</button>
+  <button class="br" id="btn-start" onclick="startSession()">â–¶ DÃ©marrer 20 min</button>
   <button class="bo" id="btn-plus" style="display:none" onclick="addBlock()">+20 min</button>
-  <button class="bo" id="btn-stop" style="display:none" onclick="openStopModal()">■ Stop & Logger</button>
+  <button class="bo" id="btn-stop" style="display:none" onclick="openStopModal()">â–  Stop & Logger</button>
 </div>
 
 <div id="session-song-box" style="display:none;margin-top:16px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:100%">
   <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.12em;color:var(--dim);text-transform:uppercase;margin-bottom:8px">Morceau en cours</div>
-  <div id="session-song-title" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-bottom:4px">—</div>
-  <div id="session-song-meta" style="font-size:11px;color:var(--dim);margin-bottom:12px">—</div>
+  <div id="session-song-title" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-bottom:4px">â€”</div>
+  <div id="session-song-meta" style="font-size:11px;color:var(--dim);margin-bottom:12px">â€”</div>
   <div id="session-video"></div>
 </div>
 </div>
@@ -257,16 +257,16 @@ textarea{resize:vertical;min-height:72px}
 <div id="prio-list" style="padding:14px"></div>
 </div>
 <div class="sc">
-<div class="sn" id="stat-streak">0🔥</div>
-<div class="sl2">jours consécutifs</div>
+<div class="sn" id="stat-streak">0ðŸ”¥</div>
+<div class="sl2">jours consÃ©cutifs</div>
 </div>
 <div class="sc">
 <div class="pl">Morceaux actifs</div>
 <div class="pv" id="stat-count">0</div>
 </div>
 <div class="sc">
-<div class="pl">Priorité du jour</div>
-<div class="pv" id="stat-p">—</div>
+<div class="pl">PrioritÃ© du jour</div>
+<div class="pv" id="stat-p">â€”</div>
 </div>
 <div class="sc">
 <div class="pl">Temps total ce mois</div>
@@ -279,7 +279,7 @@ textarea{resize:vertical;min-height:72px}
 <div id="page-repertoire" class="page">
   <div class="card">
     <div class="ch">
-      <div class="cl">Ton répertoire</div>
+      <div class="cl">Ton rÃ©pertoire</div>
       <button class="br" onclick="openModal('new')">+ Ajouter</button>
     </div>
     <div style="padding:14px">
@@ -296,12 +296,12 @@ textarea{resize:vertical;min-height:72px}
 
   <label class="check-row">
     <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Priorité</span>
+    <span style="font-size:11px">PrioritÃ©</span>
   </label>
 
   <label class="check-row">
     <input type="checkbox" id="show-not-played" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Non joué</span>
+    <span style="font-size:11px">Non jouÃ©</span>
   </label>
 
   <label class="check-row">
@@ -326,7 +326,7 @@ textarea{resize:vertical;min-height:72px}
 
   <label class="check-row">
     <input type="checkbox" id="filter-chant-coeur" onchange="renderSongs()" style="width:auto;margin:0">
-    <span style="font-size:11px">Chant cœur</span>
+    <span style="font-size:11px">Chant cÅ“ur</span>
   </label>
 </div>
 
@@ -352,7 +352,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="ch"><div class="cl">Sessions ce mois</div></div>
 <div style="padding:20px">
 <div class="sn" id="stats-sessions-month">0</div>
-<div class="sl2" id="stats-time-month">0 min pratiquées</div>
+<div class="sl2" id="stats-time-month">0 min pratiquÃ©es</div>
 </div>
 </div>
 <div class="stat-block">
@@ -360,7 +360,7 @@ textarea{resize:vertical;min-height:72px}
 <div id="stats-by-song"></div>
 </div>
 <div class="stat-block">
-<div class="stat-title">Morceaux à risque (non travaillés depuis +7j)</div>
+<div class="stat-title">Morceaux Ã  risque (non travaillÃ©s depuis +7j)</div>
 <div id="stats-risk"></div>
 </div>
 <div class="stat-block">
@@ -375,7 +375,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="cl">Concerts</div>
 <button class="br">+ Nouveau</button>
 </div>
-<div style="padding:20px;text-align:center;color:var(--muted)">À venir</div>
+<div style="padding:20px;text-align:center;color:var(--muted)">Ã€ venir</div>
 </div>
 </div>
 
@@ -383,18 +383,18 @@ textarea{resize:vertical;min-height:72px}
 <div class="modal">
 <div class="mh">
 <div id="mt" class="mt">Nouveau morceau</div>
-<button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeModal()">✕</button>
+<button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeModal()">âœ•</button>
 </div>
 <div class="modal-tabs">
 <button class="modal-tab active" onclick="switchModalTab('fiche')">Fiche</button>
 <button class="modal-tab" onclick="switchModalTab('historique')">Historique</button>
-<button class="modal-tab" onclick="switchModalTab('videos')">Vidéos</button>
+<button class="modal-tab" onclick="switchModalTab('videos')">VidÃ©os</button>
 </div>
 <form id="sf" onsubmit="save(event)">
 <div id="panel-fiche" class="modal-panel active">
 <input type="hidden" id="f-id">
 <div class="toggle-row">
-<span class="toggle-label">Joué par moi :</span>
+<span class="toggle-label">JouÃ© par moi :</span>
 <div class="toggle-opts">
 <button type="button" id="played-yes" class="toggle-btn active" onclick="setPlayedBy(true)">Oui</button>
 <button type="button" id="played-no" class="toggle-btn" onclick="setPlayedBy(false)">Non</button>
@@ -428,7 +428,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="fg" id="fg-inst">
 <label>Instrument</label>
 <select id="f-inst">
-  <option value="">—</option>
+  <option value="">â€”</option>
   <option value="Guitare">Guitare</option>
   <option value="Guitare acoustique">Guitare acoustique</option>
   <option value="Basse">Basse</option>
@@ -445,7 +445,7 @@ textarea{resize:vertical;min-height:72px}
 </label>
 <label class="check-row">
 <input type="checkbox" id="f-chant-coeur">
-<span>Chœur</span>
+<span>ChÅ“ur</span>
 </label>
 </div>
 </div>
@@ -454,14 +454,14 @@ textarea{resize:vertical;min-height:72px}
 <div class="fg">
 <label>Statut</label>
 <select id="f-statut">
-<option value="a_decouvrir">À découvrir</option>
+<option value="a_decouvrir">Ã€ dÃ©couvrir</option>
 <option value="en_cours">En cours</option>
 <option value="acquis">Acquis</option>
-<option value="maitrise">Maîtrisé</option>
+<option value="maitrise">MaÃ®trisÃ©</option>
 </select>
 </div>
 <div class="fg">
-<label>Difficulté (1-5)</label>
+<label>DifficultÃ© (1-5)</label>
 <input type="number" id="f-diff" min="1" max="5" value="3">
 </div>
 </div>
@@ -471,12 +471,12 @@ textarea{resize:vertical;min-height:72px}
 <input type="number" id="f-bpm">
 </div>
 <div class="fg">
-  <label>Durée (mm:ss)</label>
+  <label>DurÃ©e (mm:ss)</label>
   <input type="text" id="f-duree" placeholder="ex: 03:45">
 </div>
 </div>
 <div class="fg full">
-<label>Tonalité</label>
+<label>TonalitÃ©</label>
 <input type="text" id="f-ton">
 </div>
 <div class="fg full">
@@ -533,7 +533,7 @@ textarea{resize:vertical;min-height:72px}
   </div>
 
   <div class="fg full">
-    <label>Durée (mm:ss)</label>
+    <label>DurÃ©e (mm:ss)</label>
     <input type="text" id="f-duree-min" placeholder="ex: 03:45">
   </div>
 </div>
@@ -557,28 +557,28 @@ textarea{resize:vertical;min-height:72px}
 <div class="modal" style="max-width:450px">
 <div class="mh">
 <div class="mt">Logger la session</div>
-<button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeLogModal()">✕</button>
+<button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeLogModal()">âœ•</button>
 </div>
 <div class="mb">
 <div style="font-size:12px;color:var(--gold);margin-bottom:8px" id="log-duration-info"></div>
 <div class="fg full">
-<label>Morceau travaillé</label>
+<label>Morceau travaillÃ©</label>
 <select id="log-song">
-<option value="">— Sélectionner —</option>
+<option value="">â€” SÃ©lectionner â€”</option>
 </select>
 </div>
 <div class="fr2">
 <div class="fg">
-<label>BPM travaillé</label>
+<label>BPM travaillÃ©</label>
 <input type="number" id="log-bpm" placeholder="ex: 120">
 </div>
 <div class="fg">
 <label>Ressenti</label>
 <select id="log-feeling">
-<option value="">—</option>
-<option value="facile">🟢 Facile</option>
-<option value="normal">🟠 Normal</option>
-<option value="galere">🔴 Galere</option>
+<option value="">â€”</option>
+<option value="facile">ðŸŸ¢ Facile</option>
+<option value="normal">ðŸŸ  Normal</option>
+<option value="galere">ðŸ”´ Galere</option>
 </select>
 </div>
 </div>
@@ -596,20 +596,20 @@ textarea{resize:vertical;min-height:72px}
 <div id="ov-start" class="ov">
   <div class="modal" style="max-width:450px">
     <div class="mh">
-      <div class="mt">Démarrer une session</div>
-      <button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeStartModal()">✕</button>
+      <div class="mt">DÃ©marrer une session</div>
+      <button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeStartModal()">âœ•</button>
     </div>
     <div class="mb">
       <div class="fg full">
-        <label>Morceau à travailler</label>
+        <label>Morceau Ã  travailler</label>
         <select id="start-song">
-          <option value="">— Sélectionner —</option>
+          <option value="">â€” SÃ©lectionner â€”</option>
         </select>
       </div>
     </div>
     <div class="mfoot">
       <button class="bo" onclick="closeStartModal()">Annuler</button>
-      <button class="br" onclick="confirmStartSession()">Démarrer</button>
+      <button class="br" onclick="confirmStartSession()">DÃ©marrer</button>
     </div>
   </div>
 </div>
@@ -764,9 +764,9 @@ function renderStats(){
   const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
   document.getElementById('stat-count').textContent=mine.length;
   const prio=mine.filter(s=>s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
-  document.getElementById('stat-p').textContent=prio?prio.titre:'—';
+  document.getElementById('stat-p').textContent=prio?prio.titre:'â€”';
   const streak=calcStreak();
-  document.getElementById('stat-streak').textContent=streak+'🔥';
+  document.getElementById('stat-streak').textContent=streak+'ðŸ”¥';
   const now=new Date();
   const month=now.toISOString().substring(0,7);
   const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
@@ -781,11 +781,11 @@ function renderPriorityList(){
     const hasVideos=!!(s.urlS||s.urlL||s.urlT);
     return `<div class="prio-item" onclick="openModal('${s.id}')">
 <div class="prio-title">${s.titre}</div>
-<div class="prio-meta">${[s.artiste,s.inst].filter(Boolean).join(' · ')}</div>
+<div class="prio-meta">${[s.artiste,s.inst].filter(Boolean).join(' Â· ')}</div>
 ${hasVideos?`<div class="video-links">
-${s.urlS?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlS}')">🎬 Studio</span>`:''}
-${s.urlL?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlL}')">🎬 Live</span>`:''}
-${s.urlT?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlT}')">🎬 Tuto</span>`:''}
+${s.urlS?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlS}')">ðŸŽ¬ Studio</span>`:''}
+${s.urlL?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlL}')">ðŸŽ¬ Live</span>`:''}
+${s.urlT?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlT}')">ðŸŽ¬ Tuto</span>`:''}
 </div>`:''}
 </div>`;
   }).join(''):'<div style="color:var(--muted);text-align:center;padding:20px;font-size:12px">Aucun morceau en cours</div>';
@@ -872,7 +872,7 @@ if(totalBox){
   totalBox.textContent=formatDurationLong(totalDurationSeconds);
 }
 
-  const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
+  const labels={a_decouvrir:'Ã€ dÃ©couvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'MaÃ®trisÃ©'};
   const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
 list.innerHTML=mine.length?mine.map(s=>{
 const artistText=s.artiste||'';
@@ -889,7 +889,7 @@ if(s.chantLead){
 }
 
 if(s.chantCoeur){
-  meta.push(`<span class="song-chip role">Chant cœur</span>`);
+  meta.push(`<span class="song-chip role">Chant cÅ“ur</span>`);
 }
 
 if(s.tagBA){
@@ -901,7 +901,7 @@ if(s.tagMasch){
 }
 
 if(s.playedByMe===false){
-  meta.push(`<span class="song-chip">Non joué</span>`);
+  meta.push(`<span class="song-chip">Non jouÃ©</span>`);
 }
 return `<div>
   <div class="si" onclick="openModal('${s.id}')">
@@ -914,7 +914,7 @@ return `<div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
-      <span class="badge ${s.playedByMe===false?'b4':colors[s.statut]||'b0'}">${s.playedByMe===false?'Non joué':labels[s.statut]||s.statut}</span>
+      <span class="badge ${s.playedByMe===false?'b4':colors[s.statut]||'b0'}">${s.playedByMe===false?'Non jouÃ©':labels[s.statut]||s.statut}</span>
     </div>
   </div>
 ${s.urlAudio ? `
@@ -1020,10 +1020,10 @@ function renderHistorique(songId){
     if(l.feeling)parts.push(l.feeling);
     return `<div class="log-row">
 <div class="log-date">${new Date(l.date).toLocaleDateString('fr-FR')}</div>
-<div class="log-meta">${parts.join(' · ')}</div>
+<div class="log-meta">${parts.join(' Â· ')}</div>
 ${l.note?`<div class="log-note">"${l.note}"</div>`:''}
 </div>`;
-  }).join(''):'<div class="empty-hist">Aucune session enregistrée pour ce morceau</div>';
+  }).join(''):'<div class="empty-hist">Aucune session enregistrÃ©e pour ce morceau</div>';
   document.getElementById('hist-content').innerHTML=html;
 }
 
@@ -1045,7 +1045,7 @@ ${videoId?`<div class="video-wrap">
 <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>`:`<a href="${v.url}" target="_blank" style="color:var(--accent);font-size:12px">${v.url}</a>`}
 </div>`;
-  }).join(''):'<div class="empty-hist">Aucune vidéo enregistrée</div>';
+  }).join(''):'<div class="empty-hist">Aucune vidÃ©o enregistrÃ©e</div>';
   document.getElementById('video-content').innerHTML=html;
 }
 
@@ -1105,7 +1105,7 @@ async function save(e){
   const { error } = await supabaseClient.from('songs').upsert(song);
   if(error){
     console.error('Erreur Supabase (songs.upsert):',error);
-    alert('Erreur lors de la sauvegarde du morceau.\nDétail dans la console.');
+    alert('Erreur lors de la sauvegarde du morceau.\nDÃ©tail dans la console.');
     return;
   }
   await loadData();
@@ -1124,7 +1124,7 @@ function askCoach(){
   const q=document.getElementById('agent-in').value.trim();
   if(!q)return;
   const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-  const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
+  const ctx=mine.length?`Mon rÃ©pertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
   window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
   document.getElementById('agent-in').value='';
 }
@@ -1135,8 +1135,8 @@ function startSession(){
     .filter(s=>s.user===currentUser&&s.playedByMe!==false)
     .sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
 
-  select.innerHTML='<option value="">— Sélectionner —</option>' + 
-    mine.map(s=>`<option value="${s.id}">${s.titre}${s.artiste?' — '+s.artiste:''}</option>`).join('');
+  select.innerHTML='<option value="">â€” SÃ©lectionner â€”</option>' + 
+    mine.map(s=>`<option value="${s.id}">${s.titre}${s.artiste?' â€” '+s.artiste:''}</option>`).join('');
 
   document.getElementById('ov-start').classList.add('open');
 }
@@ -1148,7 +1148,7 @@ function closeStartModal(){
 function confirmStartSession(){
   const songId=document.getElementById('start-song').value;
   if(!songId){
-    alert('Sélectionne un morceau');
+    alert('SÃ©lectionne un morceau');
     return;
   }
 
@@ -1171,8 +1171,8 @@ function confirmStartSession(){
     document.getElementById('timer-display').textContent=m+':'+s;
 
     const song=songs.find(x=>x.id===currentSessionSongId);
-    const label=song?` — ${song.titre}`:'';
-    document.getElementById('session-info').textContent=`Bloc ${timerBlocks} — objectif ${timerBlocks*20} min${label}`;
+    const label=song?` â€” ${song.titre}`:'';
+    document.getElementById('session-info').textContent=`Bloc ${timerBlocks} â€” objectif ${timerBlocks*20} min${label}`;
   },1000);
 }
 
@@ -1186,16 +1186,16 @@ const song=songs.find(s=>s.id===currentSessionSongId);
 if(!song){
   box.style.display='none';
   video.innerHTML='';
-  title.textContent='—';
-  meta.textContent='—';
+  title.textContent='â€”';
+  meta.textContent='â€”';
   return;
 }
 
-  title.textContent=song.titre||'—';
-  meta.textContent=[song.artiste, currentUser==='jd' ? song.inst : null].filter(Boolean).join(' · ') || '—';
+  title.textContent=song.titre||'â€”';
+  meta.textContent=[song.artiste, currentUser==='jd' ? song.inst : null].filter(Boolean).join(' Â· ') || 'â€”';
 
   const url=song.urlS || song.urlL || song.urlT || '';
-  let html='<div style="font-size:11px;color:var(--muted)">Aucune vidéo disponible pour ce morceau.</div>';
+  let html='<div style="font-size:11px;color:var(--muted)">Aucune vidÃ©o disponible pour ce morceau.</div>';
 
   if(url && (url.includes('youtube.com') || url.includes('youtu.be'))){
     const match=url.match(/(?:youtube\.com\/(?:[^\/]+\/*.+\/|(?:v|embed)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/);
@@ -1206,7 +1206,7 @@ if(!song){
         <div class="session-video-wrap">
           <iframe
             src="https://www.youtube.com/embed/${videoId}"
-            title="Lecteur vidéo"
+            title="Lecteur vidÃ©o"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin"
@@ -1222,7 +1222,7 @@ if(!song){
   } else if(url){
     html=`
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="bo" type="button" onclick="openVideo('${url}')">Ouvrir le lien vidéo</button>
+        <button class="bo" type="button" onclick="openVideo('${url}')">Ouvrir le lien vidÃ©o</button>
       </div>
     `;
   }
@@ -1236,10 +1236,10 @@ function addBlock(){timerBlocks++;}
 function openStopModal(){
   clearInterval(timerInterval);
   const mins=Math.round(timerSeconds/60);
-  document.getElementById('log-duration-info').textContent=`Durée totale: ${mins} min (${timerBlocks} blocs)`;
+  document.getElementById('log-duration-info').textContent=`DurÃ©e totale: ${mins} min (${timerBlocks} blocs)`;
   const select=document.getElementById('log-song');
   const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-  select.innerHTML='<option value="">— Sélectionner —</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
+  select.innerHTML='<option value="">â€” SÃ©lectionner â€”</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
 select.value=currentSessionSongId||'';
   document.getElementById('ov-log').classList.add('open');
 }
@@ -1254,14 +1254,14 @@ function closeLogModal(){
   timerSeconds=0;
   document.getElementById('session-song-box').style.display='none';
 document.getElementById('session-video').innerHTML='';
-document.getElementById('session-song-title').textContent='—';
-document.getElementById('session-song-meta').textContent='—';
+document.getElementById('session-song-title').textContent='â€”';
+document.getElementById('session-song-meta').textContent='â€”';
 currentSessionSongId=null;
 }
 
 async function saveLog(){
   const songId=document.getElementById('log-song').value;
-  if(!songId){alert('Sélectionne un morceau');return;}
+  if(!songId){alert('SÃ©lectionne un morceau');return;}
   const mins=Math.round(timerSeconds/60);
   const today=new Date().toISOString().split('T')[0];
   const log={
@@ -1283,7 +1283,7 @@ async function saveLog(){
   await supabaseClient.from('tempo_sessions').insert(sess);
   await loadData();
   closeLogModal();
-  alert('Session enregistrée !');
+  alert('Session enregistrÃ©e !');
 }
 
 function renderPlanning(){
@@ -1293,7 +1293,7 @@ function renderPlanning(){
   const dow=today.getDay()===0?6:today.getDay()-1;
   const monday=new Date(today);monday.setDate(today.getDate()-dow);
   const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-  if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
+  if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour gÃ©nÃ©rer un planning.</p>';return;}
   const sorted=[...mine].sort((a,b)=>{const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};return (o[a.statut]||0)-(o[b.statut]||0);});
   grid.innerHTML=days.map((day,i)=>{
     const d=new Date(monday);d.setDate(monday.getDate()+i);
@@ -1304,10 +1304,10 @@ function renderPlanning(){
     const done=p&&p.done;
     return `<div class="week-row">
 <div class="day-name${isToday?' today':''}">${day}</div>
-<div class="day-task${done?' done':''}">${song?song.titre+' — '+(song.artiste||''):'—'}</div>
+<div class="day-task${done?' done':''}">${song?song.titre+' â€” '+(song.artiste||''):'â€”'}</div>
 <div class="day-btns">
-${!done?`<button class="btn-done" onclick="markDone('${key}','${song?song.id:''}')">✓ Fait</button>
-<button class="btn-skip" onclick="markSkip('${key}','${song?song.id:''}')">Skip</button>`:'<span style="font-size:11px;color:var(--accent)">✓ Fait</span>'}
+${!done?`<button class="btn-done" onclick="markDone('${key}','${song?song.id:''}')">âœ“ Fait</button>
+<button class="btn-skip" onclick="markSkip('${key}','${song?song.id:''}')">Skip</button>`:'<span style="font-size:11px;color:var(--accent)">âœ“ Fait</span>'}
 </div>
 </div>`;
   }).join('');
@@ -1336,7 +1336,7 @@ function renderStatsPage(){
   const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
   document.getElementById('stats-sessions-month').textContent=monthLogs.length;
   const totalMin=monthLogs.reduce((sum,l)=>sum+l.duration,0);
-  document.getElementById('stats-time-month').textContent=totalMin+' min pratiquées';
+  document.getElementById('stats-time-month').textContent=totalMin+' min pratiquÃ©es';
   const bySong={};
   logs.filter(l=>l.user===currentUser).forEach(l=>{
     if(!bySong[l.songId])bySong[l.songId]={duration:0,count:0};
@@ -1352,7 +1352,7 @@ function renderStatsPage(){
 <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
 <div class="stat-val">${x.data.duration} min</div>
 </div>`;
-  }).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée</div>';
+  }).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnÃ©e</div>';
   const today=new Date().toISOString().split('T')[0];
   const risk=mine.filter(s=>{
     if(!s.lastPractice)return true;
@@ -1365,7 +1365,7 @@ function renderStatsPage(){
 <div class="stat-name">${s.titre}</div>
 <div class="risk-days">${days} jours</div>
 </div>`;
-  }).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucun morceau à risque</div>';
+  }).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucun morceau Ã  risque</div>';
   const bpmData={};
   logs.filter(l=>l.user===currentUser&&l.bpm).forEach(l=>{
     if(!bpmData[l.songId])bpmData[l.songId]=[];
@@ -1381,7 +1381,7 @@ function renderStatsPage(){
   document.getElementById('stats-bpm').innerHTML=bpmSorted.length?bpmSorted.slice(0,5).map(x=>`<div class="stat-row">
 <div class="stat-name">${x.song.titre}</div>
 <div class="stat-val">${x.last}/${x.target} (${x.pct}%)</div>
-</div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée BPM</div>';
+</div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnÃ©e BPM</div>';
 }
 
 loadData().then(()=>showPage('home'));
