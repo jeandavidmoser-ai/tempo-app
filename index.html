@@ -824,9 +824,8 @@ if(filterChantCoeur){
   list.innerHTML=mine.length?mine.map(s=>{
 const meta=[];
 
-if(s.artiste){
-  meta.push(`<span class="song-chip artist">${s.artiste}</span>`);
-}
+const artistText=s.artiste||'';
+const meta=[];
 
 if(currentUser==='jd'){
   meta.push(`<span class="song-chip inst">${s.inst||'Sans instrument'}</span>`);
@@ -856,8 +855,11 @@ if(s.playedByMe===false){
 return `<div>
   <div class="si" onclick="openModal('${s.id}')">
     <div>
-      <div class="stt">${s.titre}</div>
-      <div class="song-meta">${meta.join('')}</div>
+<div class="stt">
+  ${s.titre}
+  ${artistText ? `<span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px">${artistText}</span>` : ''}
+</div>
+<div class="song-meta">${meta.join('')}</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
