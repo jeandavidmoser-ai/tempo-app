@@ -743,15 +743,18 @@ async function campfireHandleFile(event){
   const status=document.getElementById('campfire-status');
   const empty=document.getElementById('campfire-empty');
   const canvas=document.getElementById('campfire-canvas');
+  const list=document.getElementById('campfire-list');
 
   status.style.display='block';
   status.textContent='Analyse du PDF en cours...';
   empty.style.display='block';
+  empty.textContent='Chargement du PDF...';
   canvas.style.display='none';
 
   campfireSongs=[];
   campfireFilteredSongs=[];
   campfireSelectedIndex=-1;
+  campfirePdfDoc=null;
   renderCampfireList();
 
   try{
@@ -761,9 +764,16 @@ async function campfireHandleFile(event){
     if(campfireObjectUrl) URL.revokeObjectURL(campfireObjectUrl);
     campfireObjectUrl=URL.createObjectURL(new Blob([buffer],{type:'application/pdf'}));
 
-    if(!window.pdfjsLib) throw new Error('PDF.js indisponible');
+    if(!window.pdfjsLib) throw new Error('PDF.js indisponible dans la page');
 
-    campfirePdfDoc=await pdfjsLib.getDocument({data:campfirePdfBytes}).promise;
+    const loadingTask=pdfjsLib.getDocument({
+      data: campfirePdfBytes,
+      useWorker: false,
+      isEvalSupported: true,
+      disableFontFace: false
+    });
+
+    campfirePdfDoc=await loadingTask.promise;
 
     for(let page=1; page<=campfirePdfDoc.numPages; page++){
       status.textContent='Analyse du PDF en cours... page '+page+' / '+campfirePdfDoc.numPages;
@@ -773,7 +783,11 @@ async function campfireHandleFile(event){
         const content=await pdfPage.getTextContent();
         const raw=content.items.map(item=>item.str||'').join('\n');
         const parsed=campfireParseHeader(raw,page);
-        campfireSongs.push(parsed);
+        campfireSongs.push(parsed.title || parsed.artist ? parsed : {
+          title:'Page '+page,
+          artist:'Titre non détecté',
+          page:page
+        });
       }catch(pageErr){
         console.warn('Campfire page skipped',page,pageErr);
         campfireSongs.push({
@@ -782,25 +796,33 @@ async function campfireHandleFile(event){
           page:page
         });
       }
-
-      renderCampfireList();
     }
 
     status.style.display='none';
 
     if(campfireSongs.length){
+      renderCampfireList();
       await selectCampfireSong(0);
     }else{
       empty.style.display='block';
       empty.textContent='Aucune page exploitable trouvée dans ce PDF.';
+      list.innerHTML='<div class="campfire-empty">Aucune chanson détectée.</div>';
     }
 
   }catch(err){
     console.error('Campfire PDF error',err);
     campfirePdfDoc=null;
+    campfireSongs=[];
+    campfireFilteredSongs=[];
+    campfireSelectedIndex=-1;
+
     status.style.display='block';
     status.textContent='Impossible de charger ce PDF.';
-    document.getElementById('campfire-list').innerHTML='<div class="campfire-empty">Le PDF n’a pas pu être lu.</div>';
+    empty.style.display='block';
+    empty.textContent='Erreur : '+(err && err.message ? err.message : 'cause inconnue');
+    canvas.style.display='none';
+    list.innerHTML='<div class="campfire-empty">Le PDF n’a pas pu être lu.<br><br><span style="color:var(--gold)">'+campfireEscapeHtml(err && err.message ? err.message : 'Aucun détail disponible')+'</span></div>';
+    document.getElementById('campfire-count').textContent='0 chanson';
   }
 }
 function renderCampfireList(){
@@ -992,13 +1014,21 @@ function switchUser(u){
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  const idx={home:0,repertoire:1,planning:2,stats:3,concerts:4}[id];
-  document.querySelectorAll('nav button')[idx].classList.add('active');
-  if(id==='repertoire')renderSongs();
-  if(id==='planning')renderPlanning();
-  if(id==='home')renderStats();
-  if(id==='stats')renderStatsPage();
+
+  const page=document.getElementById('page-'+id);
+  if(page) page.classList.add('active');
+
+  const idx={home:0,repertoire:1,planning:2,stats:3,concerts:4,'feu-de-camp':5}[id];
+  const navButtons=document.querySelectorAll('nav button');
+  if(idx!==undefined && navButtons[idx]) navButtons[idx].classList.add('active');
+
+  if(id==='repertoire') renderSongs();
+  if(id==='planning') renderPlanning();
+  if(id==='home') renderStats();
+  if(id==='stats') renderStatsPage();
+  if(id==='feu-de-camp' && campfireSelectedIndex>=0) {
+    renderCampfirePage(campfireSongs[campfireSelectedIndex].page);
+  }
 }
 
 function renderStats(){
