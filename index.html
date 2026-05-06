@@ -198,8 +198,36 @@ textarea{resize:vertical;min-height:72px}
 .filter-row{padding:8px 14px;background:var(--bg3);border-radius:6px;margin-bottom:10px;display:flex;align-items:center;gap:10px;font-size:11px}
 .tags-row{display:flex;gap:10px;align-items:center}
 .tags-row label span{white-space:nowrap}
+
+
+/* FEU DE CAMP */
+.campfire-wrap{display:grid;grid-template-columns:320px 1fr;gap:18px;min-height:70vh}
+.campfire-side{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+.campfire-head{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.campfire-search{width:100%}
+.campfire-meta{font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.campfire-list{padding:8px;overflow:auto;display:flex;flex-direction:column;gap:6px;max-height:calc(70vh - 76px)}
+.campfire-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;cursor:pointer;transition:all .15s;text-align:left}
+.campfire-item:hover{border-color:var(--accent);background:#202020}
+.campfire-item.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.campfire-title{font-family:Oswald,sans-serif;font-size:14px;color:var(--text);letter-spacing:.02em}
+.campfire-artist{font-size:11px;color:var(--dim);margin-top:2px}
+.campfire-page{font-size:10px;color:var(--gold);margin-top:6px;text-transform:uppercase;letter-spacing:.08em}
+.campfire-viewer{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+.campfire-toolbar{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.campfire-current{display:flex;flex-direction:column;gap:2px;min-width:0}
+.campfire-current-title{font-family:Oswald,sans-serif;font-size:18px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.campfire-current-meta{font-size:11px;color:var(--dim)}
+.campfire-actions{display:flex;gap:8px;flex-wrap:wrap}
+.campfire-stage{padding:14px;display:flex;align-items:center;justify-content:center;background:#0a0a0a;min-height:calc(70vh - 70px)}
+.campfire-canvas{max-width:100%;max-height:100%;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.35);background:white}
+.campfire-empty{padding:28px;text-align:center;color:var(--muted);font-size:12px}
+.campfire-loading{padding:18px 14px;color:var(--gold);font-size:12px}
+@media (max-width: 980px){.campfire-wrap{grid-template-columns:1fr}.campfire-list{max-height:280px}.campfire-stage{min-height:55vh}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
 </head>
 <body>
 <header>
@@ -218,6 +246,7 @@ textarea{resize:vertical;min-height:72px}
 <button onclick="showPage('planning')">Planning</button>
 <button onclick="showPage('stats')">Stats</button>
 <button onclick="showPage('concerts')">Concerts</button>
+  <button onclick="showPage('feu-de-camp')">Feu de camp</button>
 </nav>
 
 <div id="page-home" class="page active">
@@ -385,6 +414,51 @@ textarea{resize:vertical;min-height:72px}
 </div>
 <div style="padding:20px;text-align:center;color:var(--muted)">À venir</div>
 </div>
+</div>
+
+
+<div id="page-feu-de-camp" class="page">
+  <div class="card">
+    <div class="ch">
+      <div class="cl">Feu de camp</div>
+      <div style="font-size:10px;color:var(--dim)">PDF autonome + sommaire dynamique</div>
+    </div>
+    <div style="padding:14px">
+      <div class="campfire-wrap">
+        <div class="campfire-side">
+          <div class="campfire-head">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="br" onclick="document.getElementById('campfire-file').click()">Charger le PDF</button>
+              <input id="campfire-file" type="file" accept="application/pdf" style="display:none" onchange="campfireHandleFile(event)">
+            </div>
+            <input id="campfire-search" class="campfire-search" type="text" placeholder="Rechercher un titre ou un artiste" oninput="renderCampfireList()">
+            <div class="campfire-meta">
+              <span id="campfire-count">0 chanson</span>
+              <span id="campfire-file-name">Aucun PDF chargé</span>
+            </div>
+          </div>
+          <div id="campfire-status" class="campfire-loading" style="display:none">Analyse du PDF en cours...</div>
+          <div id="campfire-list" class="campfire-list"></div>
+        </div>
+        <div class="campfire-viewer">
+          <div class="campfire-toolbar">
+            <div class="campfire-current">
+              <div id="campfire-current-title" class="campfire-current-title">Aucune chanson sélectionnée</div>
+              <div id="campfire-current-meta" class="campfire-current-meta">Charge un PDF, puis clique sur un morceau.</div>
+            </div>
+            <div class="campfire-actions">
+              <button class="bo" type="button" onclick="campfireOpenNativePage()">Ouvrir le PDF</button>
+              <button class="bo" type="button" onclick="campfireFullscreen()">Plein écran</button>
+            </div>
+          </div>
+          <div id="campfire-stage" class="campfire-stage">
+            <div id="campfire-empty" class="campfire-empty">Charge ton recueil PDF pour générer automatiquement le sommaire Feu de camp.</div>
+            <canvas id="campfire-canvas" class="campfire-canvas" style="display:none"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="ov" class="ov">
@@ -629,7 +703,136 @@ const { createClient } = supabase;
 const supabaseClient=createClient(supabaseUrl,supabaseKey);
 
 let songs=[],sessions=[],logs=[],planning={};
-let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null;
+let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null
+let campfirePdfBytes=null,campfirePdfName='',campfirePdfDoc=null,campfireSongs=[],campfireFilteredSongs=[],campfireSelectedIndex=-1,campfireObjectUrl=null
+if(window.pdfjsLib&&window.pdfjsLib.GlobalWorkerOptions){window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js';}
+const CAMPFIRE_FALLBACK_SONGS=[
+  {title:'Sarbacane',artist:'Francis Cabrel',page:1},
+  {title:'Corrida',artist:'Francis Cabrel',page:2},
+  {title:'Encore et encore',artist:'Francis Cabrel',page:3},
+  {title:'Creep',artist:'Radiohead',page:4}
+]
+function campfireNormalize(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+function campfireEscapeHtml(s){return (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function campfireLooksLikeChordLine(line){return /^([A-G](#|b)?(m|maj|min|sus|dim|aug|add)?\d*(\/[A-G](#|b)?)?\s+){2,}[A-G](#|b)?/.test(line);}
+function campfireParseHeader(text,pageNumber){
+  const lines=(text||'').split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,12);
+  let clean=lines.filter(line=>line.length>1&&!/^capo\b/i.test(line)&&!/^tonalit/i.test(line)&&!/^intro\b/i.test(line)&&!campfireLooksLikeChordLine(line));
+  let chosen=clean[0]||('Page '+pageNumber);
+  let title='',artist='';
+  if(/\s[-–—]\s/.test(chosen)){
+    const parts=chosen.split(/\s[-–—]\s/).map(x=>x.trim()).filter(Boolean);
+    title=parts[0]||('Page '+pageNumber);
+    artist=parts.slice(1).join(' - ');
+  }else if(clean[1]&&clean[1].length<50&&!campfireLooksLikeChordLine(clean[1])){
+    title=chosen;
+    artist=clean[1];
+  }else{
+    title=chosen;
+    artist='';
+  }
+  return {title:title||('Page '+pageNumber),artist,page:pageNumber};
+}
+async function campfireHandleFile(event){
+  const file=event.target.files&&event.target.files[0];
+  if(!file)return;
+  campfirePdfName=file.name;
+  document.getElementById('campfire-file-name').textContent=file.name;
+  const status=document.getElementById('campfire-status');
+  status.style.display='block';
+  status.textContent='Analyse du PDF en cours...';
+  try{
+    const buffer=await file.arrayBuffer();
+    campfirePdfBytes=new Uint8Array(buffer);
+    if(campfireObjectUrl) URL.revokeObjectURL(campfireObjectUrl);
+    campfireObjectUrl=URL.createObjectURL(new Blob([buffer],{type:'application/pdf'}));
+    if(!window.pdfjsLib) throw new Error('PDF.js indisponible');
+    campfirePdfDoc=await pdfjsLib.getDocument({data:campfirePdfBytes}).promise;
+    campfireSongs=[];
+    for(let page=1; page<=campfirePdfDoc.numPages; page++){
+      status.textContent='Analyse du PDF en cours... page '+page+' / '+campfirePdfDoc.numPages;
+      const pdfPage=await campfirePdfDoc.getPage(page);
+      const content=await pdfPage.getTextContent();
+      const raw=content.items.map(item=>item.str||'').join('\n');
+      campfireSongs.push(campfireParseHeader(raw,page));
+    }
+    const hasRealTitles=campfireSongs.some(s=>s.title&& !/^Page\s\d+$/i.test(s.title));
+    if(!hasRealTitles){
+      campfireSongs=CAMPFIRE_FALLBACK_SONGS.map(x=>({...x}));
+    }
+    campfireSelectedIndex=-1;
+    renderCampfireList();
+    if(campfireSongs.length) selectCampfireSong(0);
+    status.style.display='none';
+  }catch(err){
+    console.error('Campfire PDF error',err);
+    status.style.display='block';
+    status.textContent='Impossible d’analyser ce PDF automatiquement.';
+    campfireSongs=CAMPFIRE_FALLBACK_SONGS.map(x=>({...x}));
+    renderCampfireList();
+  }
+}
+function renderCampfireList(){
+  const q=campfireNormalize(document.getElementById('campfire-search')?.value||'');
+  campfireFilteredSongs=campfireSongs.filter(song=>!q||campfireNormalize(song.title).includes(q)||campfireNormalize(song.artist).includes(q));
+  const list=document.getElementById('campfire-list');
+  const count=document.getElementById('campfire-count');
+  count.textContent=campfireFilteredSongs.length+' chanson'+(campfireFilteredSongs.length>1?'s':'');
+  if(!campfireFilteredSongs.length){
+    list.innerHTML='<div class="campfire-empty">Aucun résultat.</div>';
+    return;
+  }
+  list.innerHTML=campfireFilteredSongs.map((song,index)=>{
+    const originalIndex=campfireSongs.findIndex(x=>x.page===song.page&&x.title===song.title&&x.artist===song.artist);
+    return '<button type="button" class="campfire-item '+(originalIndex===campfireSelectedIndex?'active':'')+'" onclick="selectCampfireSong('+originalIndex+')">'
+      +'<div class="campfire-title">'+campfireEscapeHtml(song.title||('Page '+song.page))+'</div>'
+      +'<div class="campfire-artist">'+campfireEscapeHtml(song.artist||'Artiste non détecté')+'</div>'
+      +'<div class="campfire-page">Page '+song.page+'</div>'
+      +'</button>';
+  }).join('');
+}
+async function selectCampfireSong(index){
+  if(index<0||index>=campfireSongs.length)return;
+  campfireSelectedIndex=index;
+  renderCampfireList();
+  const song=campfireSongs[index];
+  document.getElementById('campfire-current-title').textContent=song.title||('Page '+song.page);
+  document.getElementById('campfire-current-meta').textContent=(song.artist? song.artist+' · ' : '')+'Page '+song.page;
+  await renderCampfirePage(song.page);
+}
+async function renderCampfirePage(pageNumber){
+  if(!campfirePdfDoc)return;
+  const canvas=document.getElementById('campfire-canvas');
+  const empty=document.getElementById('campfire-empty');
+  empty.style.display='none';
+  canvas.style.display='block';
+  const page=await campfirePdfDoc.getPage(pageNumber);
+  const stage=document.getElementById('campfire-stage');
+  const viewport=page.getViewport({scale:1});
+  const maxWidth=Math.max(320,stage.clientWidth-28);
+  const maxHeight=Math.max(420,stage.clientHeight-28);
+  const scale=Math.min(maxWidth/viewport.width,maxHeight/viewport.height);
+  const scaled=page.getViewport({scale:scale});
+  const ctx=canvas.getContext('2d');
+  canvas.width=scaled.width;
+  canvas.height=scaled.height;
+  await page.render({canvasContext:ctx,viewport:scaled}).promise;
+}
+function campfireOpenNativePage(){
+  if(campfireObjectUrl&&campfireSelectedIndex>=0){
+    const song=campfireSongs[campfireSelectedIndex];
+    window.open(campfireObjectUrl+'#page='+song.page,'_blank');
+  }else if(campfireObjectUrl){
+    window.open(campfireObjectUrl,'_blank');
+  }
+}
+function campfireFullscreen(){
+  const stage=document.getElementById('campfire-stage');
+  if(!stage)return;
+  if(document.fullscreenElement){document.exitFullscreen();return;}
+  if(stage.requestFullscreen)stage.requestFullscreen();
+}
+window.addEventListener('resize',()=>{if(campfireSelectedIndex>=0&&document.getElementById('page-feu-de-camp')?.classList.contains('active')){renderCampfirePage(campfireSongs[campfireSelectedIndex].page);}});
 
 function parseDurationToSeconds(value){
   if(!value) return null;
