@@ -736,40 +736,71 @@ function campfireParseHeader(text,pageNumber){
 async function campfireHandleFile(event){
   const file=event.target.files&&event.target.files[0];
   if(!file)return;
+
   campfirePdfName=file.name;
   document.getElementById('campfire-file-name').textContent=file.name;
+
   const status=document.getElementById('campfire-status');
+  const empty=document.getElementById('campfire-empty');
+  const canvas=document.getElementById('campfire-canvas');
+
   status.style.display='block';
   status.textContent='Analyse du PDF en cours...';
+  empty.style.display='block';
+  canvas.style.display='none';
+
+  campfireSongs=[];
+  campfireFilteredSongs=[];
+  campfireSelectedIndex=-1;
+  renderCampfireList();
+
   try{
     const buffer=await file.arrayBuffer();
     campfirePdfBytes=new Uint8Array(buffer);
+
     if(campfireObjectUrl) URL.revokeObjectURL(campfireObjectUrl);
     campfireObjectUrl=URL.createObjectURL(new Blob([buffer],{type:'application/pdf'}));
+
     if(!window.pdfjsLib) throw new Error('PDF.js indisponible');
+
     campfirePdfDoc=await pdfjsLib.getDocument({data:campfirePdfBytes}).promise;
-    campfireSongs=[];
+
     for(let page=1; page<=campfirePdfDoc.numPages; page++){
       status.textContent='Analyse du PDF en cours... page '+page+' / '+campfirePdfDoc.numPages;
-      const pdfPage=await campfirePdfDoc.getPage(page);
-      const content=await pdfPage.getTextContent();
-      const raw=content.items.map(item=>item.str||'').join('\n');
-      campfireSongs.push(campfireParseHeader(raw,page));
+
+      try{
+        const pdfPage=await campfirePdfDoc.getPage(page);
+        const content=await pdfPage.getTextContent();
+        const raw=content.items.map(item=>item.str||'').join('\n');
+        const parsed=campfireParseHeader(raw,page);
+        campfireSongs.push(parsed);
+      }catch(pageErr){
+        console.warn('Campfire page skipped',page,pageErr);
+        campfireSongs.push({
+          title:'Page '+page,
+          artist:'Lecture partielle',
+          page:page
+        });
+      }
+
+      renderCampfireList();
     }
-    const hasRealTitles=campfireSongs.some(s=>s.title&& !/^Page\s\d+$/i.test(s.title));
-    if(!hasRealTitles){
-      campfireSongs=CAMPFIRE_FALLBACK_SONGS.map(x=>({...x}));
-    }
-    campfireSelectedIndex=-1;
-    renderCampfireList();
-    if(campfireSongs.length) selectCampfireSong(0);
+
     status.style.display='none';
+
+    if(campfireSongs.length){
+      await selectCampfireSong(0);
+    }else{
+      empty.style.display='block';
+      empty.textContent='Aucune page exploitable trouvée dans ce PDF.';
+    }
+
   }catch(err){
     console.error('Campfire PDF error',err);
+    campfirePdfDoc=null;
     status.style.display='block';
-    status.textContent='Impossible d’analyser ce PDF automatiquement.';
-    campfireSongs=CAMPFIRE_FALLBACK_SONGS.map(x=>({...x}));
-    renderCampfireList();
+    status.textContent='Impossible de charger ce PDF.';
+    document.getElementById('campfire-list').innerHTML='<div class="campfire-empty">Le PDF n’a pas pu être lu.</div>';
   }
 }
 function renderCampfireList(){
