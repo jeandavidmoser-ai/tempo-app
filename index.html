@@ -1286,13 +1286,19 @@ function renderConcertSetlist(concertId){
 }
 
 function openConcertSetlistPicker(){
-  const concertId=document.getElementById('concert-id')?.value || '';
-  if(!concertId){
+  const concertId = document.getElementById('concert-id')?.value || '';
+  if (!concertId) {
     alert("Sauvegarde d'abord le concert pour ajouter une setlist.");
     return;
   }
-  document.getElementById('concert-setlist-search').value='';
-  document.getElementById('ov-concert-setlist').classList.add('open');
+  const searchInput = document.getElementById('concert-setlist-search');
+  if (searchInput) {
+    searchInput.value = '';
+  }
+  const ov = document.getElementById('ov-concert-setlist');
+  if (ov) {
+    ov.classList.add('open');
+  }
   renderConcertSetlistPicker();
 }
 
