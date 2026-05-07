@@ -1034,9 +1034,9 @@ async function loadData(){
   if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
   const { data: p } = await supabaseClient.from('tempo_planning').select('*');
   if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
-  const { data: c, error: concertsError } = await supabaseClient.from('tempo_concerts').select('*').order('date',{ascending:true}).order('heure_debut',{ascending:true});
+  const { data: c, error: concertsError } = await supabaseClient.from('concerts').select('*').order('date',{ascending:true}).order('heure_debut',{ascending:true});
   if(concertsError){
-    console.error('Erreur Supabase (tempo_concerts.select):',concertsError);
+    console.error('Erreur Supabase (concerts.select):',concertsError);
     concerts=[];
   }else if(c){
     concerts=c.map(r=>({
@@ -1273,9 +1273,9 @@ async function saveConcert(e){
     statut:document.getElementById('concert-statut').value||'a venir'
   };
 
-  const { error } = await supabaseClient.from('tempo_concerts').upsert(payload);
+  const { error } = await supabaseClient.from('concerts').upsert(payload);
   if(error){
-    console.error('Erreur Supabase (tempo_concerts.upsert):',error);
+    console.error('Erreur Supabase (concerts.upsert):',error);
     alert('Erreur lors de la sauvegarde du concert.\nDétail dans la console.');
     return;
   }
@@ -1289,9 +1289,9 @@ async function deleteConcert(){
   if(!id) return;
   if(!confirm('Supprimer ce concert ?')) return;
 
-  const { error } = await supabaseClient.from('tempo_concerts').delete().eq('id',id);
+  const { error } = await supabaseClient.from('concerts').delete().eq('id',id);
   if(error){
-    console.error('Erreur Supabase (tempo_concerts.delete):',error);
+    console.error('Erreur Supabase (concerts.delete):',error);
     alert('Erreur lors de la suppression du concert.\nDétail dans la console.');
     return;
   }
