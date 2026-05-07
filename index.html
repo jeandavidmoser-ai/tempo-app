@@ -575,6 +575,27 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<div id="ov-concert-setlist" class="ov">
+  <div class="modal" style="max-width:620px">
+    <div class="mh">
+      <div class="mt">Ajouter à la setlist</div>
+      <button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeConcertSetlistPicker()">✕</button>
+    </div>
+    <div class="mb">
+      <div class="fg full">
+        <label>Rechercher un morceau</label>
+        <input type="text" id="concert-setlist-search"
+               placeholder="Titre ou artiste"
+               oninput="renderConcertSetlistPicker()">
+      </div>
+      <div id="concert-setlist-picker" class="concert-picker"></div>
+    </div>
+    <div class="mfoot">
+      <button type="button" class="bo" onclick="closeConcertSetlistPicker()">Fermer</button>
+    </div>
+  </div>
+</div>
+  
 <div id="ov" class="ov">
 <div class="modal">
 <div class="mh">
