@@ -1471,6 +1471,8 @@ function openConcertModal(id){
   document.getElementById('concert-mt').textContent='Nouveau concert';
   document.getElementById('concert-statut').value='a venir';
 
+  let concertId = '';
+
   if(id!=='new'){
     const c=concerts.find(x=>x.id===id);
     if(!c) return;
@@ -1485,9 +1487,14 @@ function openConcertModal(id){
     document.getElementById('concert-statut').value=c.statut||'a venir';
     document.getElementById('concert-del').style.display='inline-block';
     document.getElementById('concert-mt').textContent='Modifier le concert';
+    concertId = c.id;
   }else{
     document.getElementById('concert-date').value=new Date().toISOString().split('T')[0];
+    concertId = ''; // pas encore créé
   }
+
+  // Afficher / cacher la zone setlist en fonction de l'ID
+  renderConcertSetlist(concertId);
 }
 
 function closeConcertModal(){
