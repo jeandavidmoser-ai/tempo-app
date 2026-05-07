@@ -210,6 +210,27 @@ textarea{resize:vertical;min-height:72px}
 .concert-empty{padding:24px;border:1px dashed var(--border);border-radius:6px;text-align:center;color:var(--muted)}
 .concert-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .concert-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;line-height:1;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.28);color:var(--gold)}
+.concert-setlist-wrap{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding-top:14px;border-top:1px solid var(--border)}
+.concert-setlist-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.concert-setlist-title{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.concert-setlist-total{font-size:11px;color:var(--gold)}
+.concert-setlist-list{display:flex;flex-direction:column;gap:8px}
+.concert-set-item{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.concert-set-main{display:flex;flex-direction:column;gap:4px;min-width:0}
+.concert-set-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.concert-set-order{font-family:'Oswald',sans-serif;font-size:11px;color:var(--gold);min-width:34px}
+.concert-set-name{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text)}
+.concert-set-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--dim)}
+.concert-set-actions{display:flex;gap:4px;align-items:center}
+.concert-set-move{background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 7px;border-radius:4px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:0.08em}
+.concert-set-move:hover{border-color:var(--accent);color:var(--text)}
+.concert-set-move:disabled{opacity:0.3;cursor:not-allowed}
+.concert-set-empty{padding:16px;border:1px dashed var(--border);border-radius:6px;text-align:center;color:var(--muted);font-size:12px}
+.concert-picker{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;padding-right:2px}
+.concert-picker-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.concert-picker-main{min-width:0}
+.concert-picker-title{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text)}
+.concert-picker-meta{font-size:11px;color:var(--dim);margin-top:3px}
 
 /* FEU DE CAMP */
 .campfire-wrap{display:grid;grid-template-columns:320px 1fr;gap:18px;min-height:70vh}
@@ -488,6 +509,16 @@ textarea{resize:vertical;min-height:72px}
 <div class="fg full">
 <label>Notes</label>
 <textarea id="concert-notes" placeholder="set, matos, arrivée, cachet, parking..."></textarea>
+</div>
+<div id="concert-setlist-box" class="concert-setlist-wrap" style="display:none">
+  <div class="concert-setlist-head">
+    <div>
+      <div class="concert-setlist-title">Setlist</div>
+      <div id="concert-setlist-total" class="concert-setlist-total">0 morceau · 0 heure, 0 minute, 0 seconde</div>
+    </div>
+    <button type="button" class="bo" onclick="openConcertSetlistPicker()">+ Ajouter un morceau</button>
+  </div>
+  <div id="concert-setlist-list" class="concert-setlist-list"></div>
 </div>
 </div>
 <div class="mfoot">
@@ -785,7 +816,7 @@ const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
 const { createClient } = supabase;
 const supabaseClient=createClient(supabaseUrl,supabaseKey);
 
-let songs=[],sessions=[],logs=[],planning={},concerts=[];
+let songs=[],sessions=[],logs=[],planning={},concerts=[],concertSetlist=[];
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null
 let campfirePdfBytes=null,campfirePdfName='',campfirePdfDoc=null,campfireSongs=[],campfireFilteredSongs=[],campfireSelectedIndex=-1,campfireObjectUrl=null
 const CAMPFIRE_FALLBACK_SONGS=[
@@ -1052,6 +1083,27 @@ async function loadData(){
       created_at:r.created_at||null
     }));
   }
+  const { data: cs, error: concertSetlistError } = await supabaseClient
+    .from('concert_setlist')
+    .select('*')
+    .order('ordre',{ascending:true})
+    .order('created_at',{ascending:true});
+  if(concertSetlistError){
+    console.error('Erreur Supabase (concert_setlist.select):',concertSetlistError);
+    concertSetlist=[];
+  }else if(cs){
+    concertSetlist=cs.map(r=>({
+      id:r.id,
+      concert_id:r.concert_id,
+      song_id:r.song_id,
+      ordre:r.ordre ?? 0,
+      titre:r.titre || '',
+      artiste:r.artiste || '',
+      accordage:r.accordage || '',
+      duree:r.duree,
+      created_at:r.created_at || null
+    }));
+  }
   renderStats();
   renderSongs();
   renderPlanning();
@@ -1188,6 +1240,193 @@ function formatConcertDuration(mins){
   return m+' min';
 }
 
+function getConcertSetlist(concertId){
+  return concertSetlist
+    .filter(item => item.concert_id === concertId)
+    .sort((a,b)=>(parseInt(a.ordre,10)||0)-(parseInt(b.ordre,10)||0) || (a.created_at||'').localeCompare(b.created_at||''));
+}
+
+function renderConcertSetlist(concertId){
+  const box=document.getElementById('concert-setlist-box');
+  const list=document.getElementById('concert-setlist-list');
+  const total=document.getElementById('concert-setlist-total');
+  if(!box || !list || !total) return;
+
+  if(!concertId){
+    box.style.display='none';
+    list.innerHTML='';
+    total.textContent='0 morceau · 0 heure, 0 minute, 0 seconde';
+    return;
+  }
+
+  box.style.display='flex';
+  const items=getConcertSetlist(concertId);
+  const totalDuration=items.reduce((sum,item)=>sum + (parseInt(item.duree,10)||0),0);
+  total.textContent=items.length+' morceau'+(items.length>1?'x':'')+' · '+formatDurationLong(totalDuration);
+
+  if(!items.length){
+    list.innerHTML='<div class="concert-set-empty">Aucun morceau dans cette setlist.</div>';
+    return;
+  }
+
+  list.innerHTML=items.map((item,idx)=>`<div class="concert-set-item">
+    <div class="concert-set-main">
+      <div class="concert-set-top">
+        <span class="concert-set-order">#${parseInt(item.ordre,10)||0}</span>
+        <span class="concert-set-name">${escapeHtml(item.titre || 'Sans titre')}</span>
+      </div>
+      <div class="concert-set-meta">${[item.artiste,item.accordage,item.duree?formatDuration(item.duree):''].filter(Boolean).map(x=>`<span class="concert-badge">${escapeHtml(x)}</span>`).join('')}</div>
+    </div>
+    <div class="concert-set-actions">
+      <button class="concert-set-move" type="button" onclick="moveConcertSong('${item.id}',-1)" ${idx===0?'disabled':''}>↑</button>
+      <button class="concert-set-move" type="button" onclick="moveConcertSong('${item.id}',1)" ${idx===items.length-1?'disabled':''}>↓</button>
+      <button class="bo" type="button" onclick="removeSongFromConcert('${item.id}')">Retirer</button>
+    </div>
+  </div>`).join('');
+}
+
+function openConcertSetlistPicker(){
+  const concertId=document.getElementById('concert-id')?.value || '';
+  if(!concertId){
+    alert("Sauvegarde d'abord le concert pour ajouter une setlist.");
+    return;
+  }
+  document.getElementById('concert-setlist-search').value='';
+  document.getElementById('ov-concert-setlist').classList.add('open');
+  renderConcertSetlistPicker();
+}
+
+function closeConcertSetlistPicker(){
+  document.getElementById('ov-concert-setlist').classList.remove('open');
+}
+
+function renderConcertSetlistPicker(){
+  const wrap=document.getElementById('concert-setlist-picker');
+  const concertId=document.getElementById('concert-id')?.value || '';
+  if(!wrap || !concertId) return;
+
+  const q=(document.getElementById('concert-setlist-search')?.value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'');
+
+  const existing=new Set(getConcertSetlist(concertId).map(item=>String(item.song_id || '')));
+
+  const pool=songs
+    .filter(s=>s.user===currentUser)
+    .filter(s=>!existing.has(String(s.id)))
+    .filter(s=>{
+      if(!q) return true;
+      const txt=((s.titre||'')+' '+(s.artiste||''))
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'');
+      return txt.includes(q);
+    })
+    .sort((a,b)=>(a.titre||'').localeCompare(b.titre||'','fr'));
+
+  if(!pool.length){
+    wrap.innerHTML='<div class="concert-set-empty">Aucun morceau disponible à ajouter.</div>';
+    return;
+  }
+
+  wrap.innerHTML=pool.map(song=>`<div class="concert-picker-item">
+    <div class="concert-picker-main">
+      <div class="concert-picker-title">${escapeHtml(song.titre || 'Sans titre')}</div>
+      <div class="concert-picker-meta">${escapeHtml([song.artiste,song.inst,song.duree?formatDuration(song.duree):''].filter(Boolean).join(' · '))}</div>
+    </div>
+    <button type="button" class="br" onclick="addSongToConcert('${song.id}')">Ajouter</button>
+  </div>`).join('');
+}
+
+async function addSongToConcert(songId){
+  const concertId=document.getElementById('concert-id')?.value || '';
+  if(!concertId) return;
+
+  const song=songs.find(s=>String(s.id)===String(songId));
+  if(!song){
+    alert('Morceau introuvable.');
+    return;
+  }
+
+  const nextOrder=getConcertSetlist(concertId).reduce((max,item)=>Math.max(max,parseInt(item.ordre,10)||0),0)+1;
+
+  const payload={
+    id:crypto.randomUUID(),
+    concert_id:concertId,
+    song_id:String(song.id),
+    ordre:nextOrder,
+    titre:song.titre || null,
+    artiste:song.artiste || null,
+    accordage:song.ton || null,
+    duree:song.duree ? parseInt(song.duree,10) : null
+  };
+
+  const { error } = await supabaseClient.from('concert_setlist').insert(payload);
+  if(error){
+    console.error('Erreur Supabase (concert_setlist.insert):',error);
+    alert("Erreur lors de l'ajout à la setlist.");
+    return;
+  }
+
+  await loadData();
+  renderConcertSetlist(concertId);
+  renderConcertSetlistPicker();
+}
+
+async function moveConcertSong(setlistId,direction){
+  const concertId=document.getElementById('concert-id')?.value || '';
+  if(!concertId) return;
+
+  const items=getConcertSetlist(concertId);
+  const idx=items.findIndex(item=>item.id===setlistId);
+  if(idx===-1) return;
+
+  const targetIdx=idx+direction;
+  if(targetIdx<0 || targetIdx>=items.length) return;
+
+  const currentItem=items[idx];
+  const targetItem=items[targetIdx];
+
+  const currentOrder=parseInt(currentItem.ordre,10)||0;
+  const targetOrder=parseInt(targetItem.ordre,10)||0;
+
+  const { error: err1 } = await supabaseClient
+    .from('concert_setlist')
+    .update({ordre:targetOrder})
+    .eq('id',currentItem.id);
+
+  const { error: err2 } = await supabaseClient
+    .from('concert_setlist')
+    .update({ordre:currentOrder})
+    .eq('id',targetItem.id);
+
+  if(err1 || err2){
+    console.error('Erreur Supabase (concert_setlist.update ordre):',err1,err2);
+    alert('Erreur lors du déplacement du morceau.');
+    return;
+  }
+
+  await loadData();
+  renderConcertSetlist(concertId);
+}
+
+async function removeSongFromConcert(setlistId){
+  if(!confirm('Retirer ce morceau de la setlist ?')) return;
+
+  const concertId=document.getElementById('concert-id')?.value || '';
+  const { error } = await supabaseClient.from('concert_setlist').delete().eq('id',setlistId);
+
+  if(error){
+    console.error('Erreur Supabase (concert_setlist.delete):',error);
+    alert('Erreur lors de la suppression du morceau.');
+    return;
+  }
+
+  await loadData();
+  renderConcertSetlist(concertId);
+}
+
 function renderConcerts(){
   const list=document.getElementById('concerts-list');
   const count=document.getElementById('concerts-count');
@@ -1288,6 +1527,13 @@ async function deleteConcert(){
   const id=document.getElementById('concert-id').value;
   if(!id) return;
   if(!confirm('Supprimer ce concert ?')) return;
+
+  const { error: setlistError } = await supabaseClient.from('concert_setlist').delete().eq('concert_id',id);
+  if(setlistError){
+    console.error('Erreur Supabase (concert_setlist.delete):',setlistError);
+    alert('Erreur lors de la suppression de la setlist du concert.\nDétail dans la console.');
+    return;
+  }
 
   const { error } = await supabaseClient.from('concerts').delete().eq('id',id);
   if(error){
