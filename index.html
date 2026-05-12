@@ -299,6 +299,7 @@ textarea{resize:vertical;min-height:72px}
 <button id="bu2" onclick="switchUser('stephanie')">Stéphanie</button>
 </div>
 <div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Mode local</div>
+<button id="view-as-toggle" class="bo" onclick="toggleViewAs()" data-admin-only style="display:none;margin-left:12px;font-size:10px">👁️ Voir comme membre</button>
 </header>
 <nav>
 <button onclick="showPage('home')">Tableau de bord</button>
@@ -890,8 +891,8 @@ let viewAsMode = false;
 let realRole = 'admin';
 
 async function initAuth() {
-  // Show login modal on startup
   document.getElementById('ov-login').style.display = 'flex';
+  setEditabilityState();
 }
 
 async function handleLogin(event) {
@@ -900,25 +901,26 @@ async function handleLogin(event) {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errorDiv = document.getElementById('login-error');
+  const loginModal = document.getElementById('ov-login');
 
   errorDiv.style.display = 'none';
 
   try {
     const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password
+      email,
+      password
     });
 
     if (error) throw error;
+    if (!data?.session?.user) throw new Error('Session introuvable');
 
-    if (data?.session?.user) {
-      await hydrateProfileFromSession(data.session.user);
-      authMode = 'supabase';
-      realRole = currentRole;
-      document.getElementById('ov-login').style.display = 'none';
-      setEditabilityState();
-      await loadAll();
-    }
+    await hydrateProfileFromSession(data.session.user);
+    authMode = 'supabase';
+    realRole = currentRole;
+    viewAsMode = false;
+    loginModal.classList.remove('open');
+    loginModal.style.display = 'none';
+    setEditabilityState();
   } catch(err) {
     console.warn('Login failed:', err);
     errorDiv.textContent = 'Email ou mot de passe incorrect';
@@ -1286,6 +1288,16 @@ function formatDurationLong(value){
 
 async function loadData(){
   await initAuth();
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(session?.user){
+    await hydrateProfileFromSession(session.user);
+    authMode='supabase';
+    realRole=currentRole;
+    document.getElementById('ov-login').style.display='none';
+    setEditabilityState();
+  } else {
+    return;
+  }
   await Promise.all([loadBandMembers(), loadSongAssignments()]);
   const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
