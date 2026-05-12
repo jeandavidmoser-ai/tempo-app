@@ -857,8 +857,21 @@ function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée 
 async function initAuth(){ try{ const { data: { session } } = await supabaseClient.auth.getSession(); if(session?.user){ await hydrateProfileFromSession(session.user); authMode='supabase'; } else { authMode='local'; currentRole=(currentUser==='jd'||currentUser==='stephanie')?'admin':'band_member'; } }catch(err){ console.warn('Auth init fallback:',err); lastAuthError=err?.message||String(err); authMode='local'; currentRole='admin'; } setEditabilityState(); }
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); let guessed='band_member'; if(email.includes('jd')||email.includes('jer')||email.includes('steph')) guessed='admin'; try{ const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(data){ currentRole=data.role||guessed; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); } else { currentRole=guessed; currentUser=email||'user'; } }catch(err){ console.warn('Profile fallback:',err); currentRole=guessed; currentUser=email||'user'; } }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
-async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, notes:r.notes||'' })); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
-function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
+async function loadSongAssignments(){
+  try{
+    const { data, error } = await supabaseClient.from('song_assignments').select('*');
+    if(error) throw error;
+    songAssignments = (data || []).map(r => ({
+      id: r.id,
+      song_id: r.song_id,
+      band_member_id: r.band_member_id,
+      role: r.role
+    }));
+  }catch(err){
+    console.warn('song_assignments unavailable', err);
+    songAssignments = [];
+  }
+}function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
 function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>`${a.member_name} · ${a.role||'rôle'}`).join(' • '); }
 function buildAssignmentsForAllMembers(songId=null){ const existing=songId?getAssignmentsForSong(songId):[]; activeSongAssignments=bandMembers.map(member=>{ const found=existing.find(x=>String(x.band_member_id)===String(member.id)); return { band_member_id:member.id, role:found?.role||'' }; }); }
 function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml(member?.name||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(role=>`<option value="${escapeHtml(role)}" ${row.role===role?'selected':''}>${escapeHtml(role)}</option>`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
