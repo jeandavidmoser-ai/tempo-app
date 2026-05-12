@@ -1976,7 +1976,7 @@ async function del(){ if(!ensureAdminAction()) return;
   closeModal();
 }
 
-document.addEventListener('DOMContentLoaded',()=>{loadData();renderCampfireList();setEditabilityState();});
+document.addEventListener('DOMContentLoaded',()=>{loadData();renderCampfireList();setEditabilityState(); supabaseClient.auth.onAuthStateChange(async (event, session)=>{ if(event==='SIGNED_IN' && session?.user){ await hydrateProfileFromSession(session.user); setEditabilityState(); setAppVisibility(true); await loadData(); showPage('home'); } if(event==='SIGNED_OUT'){ currentProfile=null; currentUser=''; currentRole='band_member'; canEdit=false; bandMembers=[]; songAssignments=[]; setEditabilityState(); setAppVisibility(false); } });});
 
 function askCoach(){
   const q=document.getElementById('agent-in').value.trim();
