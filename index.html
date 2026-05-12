@@ -846,7 +846,7 @@ async function loadSongAssignments(){ try{ const { data, error } = await supabas
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
 function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>`${a.member_name} · ${a.role||'rôle'}`).join(' • '); }
 function buildAssignmentsForAllMembers(songId=null){ const existing=songId?getAssignmentsForSong(songId):[]; activeSongAssignments=bandMembers.map(member=>{ const found=existing.find(x=>String(x.band_member_id)===String(member.id)); return { band_member_id:member.id, role:found?.role||'' }; }); }
-function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml(member?.name||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(role=>`<option value="${escapeHtml(role)}" ${row.role===role?'selected':''}>${escapeHtml(role)}</option>`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
+function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml(member?.name||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(option=>`<option value="${escapeHtml(option.value)}" ${row.role===option.value?'selected':''}>${escapeHtml(option.label)}</option>`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
 function addAssignmentRow(){ renderAssignmentsEditor(); }
 function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
 function removeAssignmentRow(idx){ renderAssignmentsEditor(); }
@@ -1241,9 +1241,9 @@ function showPage(id){
 }
 
 function renderStats(){
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=getPlayableSongsForCurrentUser();
   document.getElementById('stat-count').textContent=mine.length;
-  const prio=mine.filter(s=>s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
+  const prio=mine.filter(s=>normalizeSongStatut(s.statut)==='encours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
   document.getElementById('stat-p').textContent=prio?prio.titre:'—';
   const streak=calcStreak();
   document.getElementById('stat-streak').textContent=streak+'🔥';
@@ -1256,7 +1256,7 @@ function renderStats(){
 }
 
 function renderPriorityList(){
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1).slice(0,5);
+  const mine=getPlayableSongsForCurrentUser().filter(s=>normalizeSongStatut(s.statut)==='encours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1).slice(0,5);
   const html=mine.length?mine.map(s=>{
     const hasVideos=!!(s.urlS||s.urlL||s.urlT);
     return `<div class="prio-item" onclick="openModal('${s.id}')">
@@ -1894,16 +1894,15 @@ document.addEventListener('DOMContentLoaded',()=>{loadData();renderCampfireList(
 function askCoach(){
   const q=document.getElementById('agent-in').value.trim();
   if(!q)return;
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
-  const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
+  const mine=getPlayableSongsForCurrentUser();
+  const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${normalizeSongStatut(s.statut) || 'sans statut'})`).join(', ')}. `:'';
   window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
   document.getElementById('agent-in').value='';
 }
 
 function startSession(){
   const select=document.getElementById('start-song');
-  const mine=songs
-    .filter(s=>s.user===currentUser&&s.playedByMe!==false)
+  const mine=getPlayableSongsForCurrentUser()
     .sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
 
   select.innerHTML='<option value="">— Sélectionner —</option>' + 
@@ -2009,7 +2008,7 @@ function openStopModal(){
   const mins=Math.round(timerSeconds/60);
   document.getElementById('log-duration-info').textContent=`Durée totale: ${mins} min (${timerBlocks} blocs)`;
   const select=document.getElementById('log-song');
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=getPlayableSongsForCurrentUser();
   select.innerHTML='<option value="">— Sélectionner —</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
 select.value=currentSessionSongId||'';
   document.getElementById('ov-log').classList.add('open');
@@ -2063,9 +2062,9 @@ function renderPlanning(){
   const today=new Date();
   const dow=today.getDay()===0?6:today.getDay()-1;
   const monday=new Date(today);monday.setDate(today.getDate()-dow);
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=getPlayableSongsForCurrentUser();
   if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
-  const sorted=[...mine].sort((a,b)=>{const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};return (o[a.statut]||0)-(o[b.statut]||0);});
+  const sorted=[...mine].sort((a,b)=>{const o={encours:0,adecouvrir:1,acquis:2,maitrise:3};return (o[normalizeSongStatut(a.statut)]||0)-(o[normalizeSongStatut(b.statut)]||0);});
   grid.innerHTML=days.map((day,i)=>{
     const d=new Date(monday);d.setDate(monday.getDate()+i);
     const key=d.toISOString().split('T')[0];
@@ -2101,7 +2100,7 @@ async function markSkip(key,songId){
 }
 
 function renderStatsPage(){
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=getPlayableSongsForCurrentUser();
   const now=new Date();
   const month=now.toISOString().substring(0,7);
   const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
