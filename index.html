@@ -925,13 +925,13 @@ async function persistSongAssignments(songId){
       .eq('song_id', songId);
 
     if(activeSongAssignments.length){
-      const payload = activeSongAssignments
-        .filter(x => x.band_member_id)
-        .map(x => ({
-          song_id: songId,
-          band_member_id: x.band_member_id,
-          role: x.role || null
-        }));
+        const payload = activeSongAssignments
+          .filter(x => x.band_member_id && x.role)
+          .map(x => ({
+            song_id: songId,
+            band_member_id: x.band_member_id,
+            role: x.role
+          }));
 
       const { error } = await supabaseClient
         .from('song_assignments')
