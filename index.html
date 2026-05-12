@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEMPO</title>
+<title>BROKEN ARMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -269,13 +269,14 @@ textarea{resize:vertical;min-height:72px}
 <body>
 <header>
 <div class="logo-wrap" onclick="showPage('home')">
-<div id="logo" class="logo">💀 TEMPO<span>.</span></div>
-<div class="logo-sub">Travail · Entraînement · Maîtrise · Progression · Objectif</div>
+<div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
+<div class="logo-sub">Coach · Répétitions · Concerts · Setlists · Feu de camp</div>
 </div>
-<div class="usw">
+<div class="usw" id="user-switcher">
 <button id="bu1" class="on" onclick="switchUser('jd')">JD</button>
 <button id="bu2" onclick="switchUser('stephanie')">Stéphanie</button>
 </div>
+<div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Mode local</div>
 </header>
 <nav>
 <button onclick="showPage('home')">Tableau de bord</button>
@@ -290,7 +291,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="grid">
 <div>
 <div class="card">
-<div class="ch"><div class="cl">Coach Tempo</div></div>
+<div class="ch"><div class="cl">Coach Broken Arms</div></div>
 <div style="padding:20px">
 <p style="font-size:13px;color:var(--dim);margin-bottom:14px">Salut. Prêt à bosser ? Pose-moi une question ou demande-moi ce que tu dois travailler aujourd'hui.</p>
 <div class="ai-row">
@@ -350,7 +351,7 @@ textarea{resize:vertical;min-height:72px}
   <div class="card">
     <div class="ch">
       <div class="cl">Ton répertoire</div>
-      <button class="br" onclick="openModal('new')">+ Ajouter</button>
+      <button class="br" data-admin-only onclick="openModal('new')">+ Ajouter</button>
     </div>
     <div style="padding:14px">
 <div class="filter-row" style="justify-content:space-between;flex-wrap:wrap">
@@ -447,7 +448,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="card">
 <div class="ch">
 <div class="cl">Concerts</div>
-<button class="br" onclick="openConcertModal('new')">+ Nouveau</button>
+<button class="br" data-admin-only onclick="openConcertModal('new')">+ Nouveau</button>
 </div>
 <div style="padding:14px">
 <div class="concert-toolbar">
@@ -516,13 +517,13 @@ textarea{resize:vertical;min-height:72px}
       <div class="concert-setlist-title">Setlist</div>
       <div id="concert-setlist-total" class="concert-setlist-total">0 morceau · 0 heure, 0 minute, 0 seconde</div>
     </div>
-    <button type="button" class="bo" onclick="openConcertSetlistPicker()">+ Ajouter un morceau</button>
+    <button type="button" class="bo" data-admin-only onclick="openConcertSetlistPicker()">+ Ajouter un morceau</button>
   </div>
   <div id="concert-setlist-list" class="concert-setlist-list"></div>
 </div>
 </div>
 <div class="mfoot">
-<button type="button" id="concert-del" class="bdd" onclick="deleteConcert()" style="display:none">Supprimer</button>
+<button type="button" id="concert-del" class="bdd" data-admin-only onclick="deleteConcert()" style="display:none">Supprimer</button>
 <button type="button" class="bo" onclick="closeConcertModal()">Annuler</button>
 <button type="submit" class="br">Sauvegarder</button>
 </div>
@@ -721,6 +722,7 @@ textarea{resize:vertical;min-height:72px}
 <label>Notes</label>
 <textarea id="f-notes"></textarea>
 </div>
+<div class="fg full" id="song-assignments-box"></div>
 </div>
 <div id="form-minimal" style="display:none">
   <div class="fg full">
@@ -761,7 +763,7 @@ textarea{resize:vertical;min-height:72px}
 <div id="video-content"></div>
 </div>
 <div class="mfoot">
-<button type="button" id="btn-del" class="bdd" onclick="del()" style="display:none">Supprimer</button>
+<button type="button" id="btn-del" class="bdd" data-admin-only onclick="del()" style="display:none">Supprimer</button>
 <button type="button" class="bo" onclick="closeModal()">Annuler</button>
 <button type="submit" id="btn-save" class="br">Sauvegarder</button>
 </div>
@@ -831,11 +833,37 @@ textarea{resize:vertical;min-height:72px}
 </div>
 <script>
 var currentUser='jd';
+let currentProfile=null;
+let currentRole='admin';
+let canEdit=true;
+let authMode='local';
+let bandMembers=[];
+let songAssignments=[];
+let activeSongAssignments=[];
+let lastAuthError='';
 
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
 const { createClient } = supabase;
 const supabaseClient=createClient(supabaseUrl,supabaseKey);
+
+function escapeHtml(s){return (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function normalizeText(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+function roleLabel(role){return role==='admin'?'admin':'lecture seule';}
+function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Mode local', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
+function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display=authMode==='local'?'flex':'none'; updateUserBadge();}
+function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
+async function initAuth(){ try{ const { data: { session } } = await supabaseClient.auth.getSession(); if(session?.user){ await hydrateProfileFromSession(session.user); authMode='supabase'; } else { authMode='local'; currentRole=(currentUser==='jd'||currentUser==='stephanie')?'admin':'band_member'; } }catch(err){ console.warn('Auth init fallback:',err); lastAuthError=err?.message||String(err); authMode='local'; currentRole='admin'; } setEditabilityState(); }
+async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); let guessed='band_member'; if(email.includes('jd')||email.includes('jer')||email.includes('steph')) guessed='admin'; try{ const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(data){ currentRole=data.role||guessed; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); } else { currentRole=guessed; currentUser=email||'user'; } }catch(err){ console.warn('Profile fallback:',err); currentRole=guessed; currentUser=email||'user'; } }
+async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
+async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, notes:r.notes||'' })); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
+function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
+function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>`${a.member_name} · ${a.role||'rôle'}`).join(' • '); }
+function renderAssignmentsEditor(songId){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } const rows=activeSongAssignments.map((row,idx)=>`<div class="fr2" style="margin-bottom:8px"><div class="fg"><label>Membre</label><select onchange="updateAssignmentRow(${idx},'band_member_id',this.value)">${bandMembers.map(m=>`<option value="${m.id}" ${m.id===row.band_member_id?'selected':''}>${escapeHtml(m.name)}</option>`).join('')}</select></div><div class="fg"><label>Rôle</label><input type="text" value="${escapeHtml(row.role||'')}" onchange="updateAssignmentRow(${idx},'role',this.value)"></div></div><div class="fg full" style="margin-bottom:10px"><label>Notes</label><textarea onchange="updateAssignmentRow(${idx},'notes',this.value)">${escapeHtml(row.notes||'')}</textarea><div style="display:flex;justify-content:flex-end;margin-top:6px"><button type="button" class="bo" onclick="removeAssignmentRow(${idx})">Supprimer l'affectation</button></div></div>`).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label>${rows||'<div class="empty-hist">Aucune affectation pour ce morceau.</div>'}<button type="button" class="bo" onclick="addAssignmentRow()">+ Ajouter une affectation</button></div>`; }
+function addAssignmentRow(){ if(!bandMembers.length) return; activeSongAssignments.push({ band_member_id: bandMembers[0].id, role:'', notes:'' }); renderAssignmentsEditor(); }
+function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
+function removeAssignmentRow(idx){ activeSongAssignments.splice(idx,1); renderAssignmentsEditor(); }
+async function persistSongAssignments(songId){ if(!canEdit) return; try{ await supabaseClient.from('song_assignments').delete().eq('song_id',songId); if(activeSongAssignments.length){ const payload=activeSongAssignments.filter(x=>x.band_member_id).map(x=>({ song_id:songId, band_member_id:x.band_member_id, role:x.role||null, notes:x.notes||null })); const { error } = await supabaseClient.from('song_assignments').insert(payload); if(error) throw error; } await loadSongAssignments(); }catch(err){ console.error('persistSongAssignments',err); alert('Affectations non sauvegardées : '+(err?.message||err)); } }
 
 let songs=[],sessions=[],logs=[],planning={},concerts=[],concertSetlist=[];
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null
@@ -1056,7 +1084,10 @@ function formatDurationLong(value){
 }
 
 async function loadData(){
-  const { data: s } = await supabaseClient.from('songs').select('*');
+  await initAuth();
+  await Promise.all([loadBandMembers(), loadSongAssignments()]);
+  const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
+  if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
   if(s)songs=s.map(r=>({
     id:r.id,
     user:r.user||'jd',
@@ -1078,8 +1109,10 @@ async function loadData(){
     notes:r.notes,
     tagBA:r.tag_ba,
     tagMasch:r.tag_masch,
-    lastPractice:r.last_practice
+    lastPractice:r.last_practice,
+    assignmentSummary:''
   }));
+  songs=songs.map(song=>({ ...song, assignmentSummary: assignmentsSummary(song.id) }));
   const { data: ss } = await supabaseClient.from('tempo_sessions').select('*');
   if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
   const { data: l } = await supabaseClient.from('tempo_logs').select('*');
@@ -1170,7 +1203,7 @@ function setPlayedBy(played){
   }
 }
 
-function switchUser(u){
+function switchUser(u){ if(authMode==='supabase') return; 
   currentUser=u;
   document.getElementById('bu1').className=u==='jd'?'on':'';
   document.getElementById('bu2').className=u==='stephanie'?'on':'';
@@ -1306,7 +1339,7 @@ function renderConcertSetlist(concertId){
   </div>`).join('');
 }
 
-function openConcertSetlistPicker(){
+function openConcertSetlistPicker(){ if(!ensureAdminAction()) return; 
   const concertId = document.getElementById('concert-id')?.value || '';
   if (!concertId) {
     alert("Sauvegarde d'abord le concert pour ajouter une setlist.");
@@ -1528,7 +1561,7 @@ function closeConcertModal(){
   document.getElementById('ov-concert').classList.remove('open');
 }
 
-async function saveConcert(e){
+async async function saveConcert(e){ if(!ensureAdminAction()) return; 
   e.preventDefault();
   const id=document.getElementById('concert-id').value||crypto.randomUUID();
   const payload={
@@ -1557,7 +1590,7 @@ async function saveConcert(e){
   closeConcertModal();
 }
 
-async function deleteConcert(){
+async async function deleteConcert(){ if(!ensureAdminAction()) return; 
   const id=document.getElementById('concert-id').value;
   if(!id) return;
   if(!confirm('Supprimer ce concert ?')) return;
@@ -1743,6 +1776,8 @@ function openModal(id){
   document.getElementById('btn-del').style.display='none';
   switchModalTab('fiche');
   setPlayedBy(true);
+  activeSongAssignments=[];
+  renderAssignmentsEditor();
   if(document.getElementById('fg-inst'))document.getElementById('fg-inst').style.display=currentUser==='stephanie'?'none':'flex';
   if(id!=='new'){
     const s=songs.find(x=>x.id===id);
@@ -1765,6 +1800,8 @@ function openModal(id){
       document.getElementById('f-url-t').value=s.urlT||'';
       document.getElementById('f-url-audio').value=s.urlAudio||'';
       document.getElementById('f-notes').value=s.notes||'';
+  activeSongAssignments=getAssignmentsForSong(s.id).map(x=>({ band_member_id:x.band_member_id, role:x.role||'', notes:x.notes||'' }));
+  renderAssignmentsEditor(s.id);
       document.getElementById('f-tag-ba').checked=s.tagBA||false;
       document.getElementById('f-tag-masch').checked=s.tagMasch||false;
 }else{
@@ -1842,7 +1879,7 @@ ${videoId?`<div class="video-wrap">
   document.getElementById('video-content').innerHTML=html;
 }
 
-async function save(e){
+async async function save(e){ if(!ensureAdminAction()) return; 
   e.preventDefault();
   const id=document.getElementById('f-id').value||crypto.randomUUID();
   let song;
@@ -1896,6 +1933,7 @@ async function save(e){
   };
 }
   const { error } = await supabaseClient.from('songs').upsert(song);
+  await persistSongAssignments(id);
   if(error){
     console.error('Erreur Supabase (songs.upsert):',error);
     alert('Erreur lors de la sauvegarde du morceau.\nDétail dans la console.');
@@ -1905,7 +1943,7 @@ async function save(e){
   closeModal();
 }
 
-async function del(){
+async async function del(){ if(!ensureAdminAction()) return; 
   if(!confirm('Supprimer ce morceau ?'))return;
   const id=document.getElementById('f-id').value;
   await supabaseClient.from('songs').delete().eq('id',id);
@@ -2052,7 +2090,7 @@ document.getElementById('session-song-meta').textContent='—';
 currentSessionSongId=null;
 }
 
-async function saveLog(){
+async async function saveLog(){ if(!ensureAdminAction()) return; 
   const songId=document.getElementById('log-song').value;
   if(!songId){alert('Sélectionne un morceau');return;}
   const mins=Math.round(timerSeconds/60);
