@@ -291,26 +291,6 @@ body.member-view .page {
 #ov-login{display:none;}
 #ov-login.open{display:flex !important;}
 
-body.member-view [data-nav-page="home"],
-body.member-view [data-nav-page="planning"],
-body.member-view [data-nav-page="stats"],
-body.member-view [data-nav-page="feu-de-camp"]{display:none;}
-
-body.member-view #repertoire-filters .check-row:has(#filter-ba),
-body.member-view #repertoire-filters .check-row:has(#filter-masch),
-body.member-view #repertoire-filters .check-row:has(#filter-priority),
-body.member-view #repertoire-filters .check-row:has(#filter-inst-guitare),
-body.member-view #repertoire-filters .check-row:has(#filter-inst-basse),
-body.member-view #repertoire-filters .check-row:has(#filter-inst-sans),
-body.member-view #repertoire-filters .check-row:has(#filter-chant-lead),
-body.member-view #repertoire-filters .check-row:has(#filter-chant-coeur){display:none !important;}
-
-body.member-view #played-toggle-row,
-body.member-view #song-tags-row,
-body.member-view #song-inst-chant-row,
-body.member-view #song-status-diff-row,
-body.member-view #tab-historique,
-body.member-view #panel-historique{display:none !important;}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
@@ -920,39 +900,77 @@ function roleLabel(role){return role==='admin'?'admin':'lecture seule';}
 function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Mode local', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
 function setEditabilityState(){
   canEdit = currentRole==='admin';
+  document.body.classList.toggle('member-view', !canEdit);
   document.querySelectorAll('[data-admin-only]').forEach(el=>{ el.style.display = canEdit ? '' : 'none'; });
   document.querySelectorAll('[data-readonly-lock]').forEach(el=>{ el.disabled = !canEdit; });
   const sw=document.getElementById('user-switcher');
   if(sw) sw.style.display=authMode==='local'?'flex':'none';
   const btn=document.getElementById('view-as-toggle');
   if(btn){
-    if(realRole==='admin' && authMode==='supabase'){
-      btn.style.display='';
-      btn.textContent=viewAsMode?'👁️ Voir comme admin':'👁️ Voir comme membre';
-      btn.style.background=viewAsMode?'var(--accent)':'';
-      btn.style.color=viewAsMode?'#fff':'';
-    }else{
-      btn.style.display='none';
+    const visible = authMode==='supabase' && realRole==='admin';
+    btn.style.display = visible ? '' : 'none';
+    if(visible){
+      btn.textContent = viewAsMode ? '👁️ Voir comme admin' : '👁️ Voir comme membre';
+      btn.style.background = viewAsMode ? 'var(--accent)' : '';
+      btn.style.color = viewAsMode ? '#fff' : '';
     }
   }
-  document.body.classList.toggle('member-view', !canEdit);
   updateUserBadge();
   applyMemberVisibility();
 }
+
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
 
 function applyMemberVisibility(){
   const memberView = currentRole !== 'admin';
+
+  const navVisibility = {
+    home: !memberView,
+    repertoire: true,
+    planning: !memberView,
+    stats: !memberView,
+    concerts: true,
+    'feu-de-camp': !memberView
+  };
+  Object.entries(navVisibility).forEach(([key, visible])=>{
+    const btn = document.querySelector(`[data-nav-page="${key}"]`);
+    if(btn) btn.style.display = visible ? '' : 'none';
+  });
+
   const activePage = document.querySelector('.page.active');
   if(memberView && activePage){
     const allowed = ['page-repertoire','page-concerts'];
-    if(!allowed.includes(activePage.id)) showPage('repertoire');
+    if(!allowed.includes(activePage.id)){
+      showPage('repertoire');
+      return;
+    }
   }
-  const histTab = document.getElementById('tab-historique');
+
+  const idsToHideForMember = [
+    'repertoire-filters',
+    'played-toggle-row',
+    'song-tags-row',
+    'song-inst-chant-row',
+    'song-status-diff-row',
+    'tab-historique'
+  ];
+  idsToHideForMember.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = memberView ? 'none' : '';
+  });
+
   const histPanel = document.getElementById('panel-historique');
-  if(memberView && histPanel && histPanel.classList.contains('active')) switchModalTab('fiche');
-  if(histTab) histTab.style.display = memberView ? 'none' : '';
-  if(histPanel) histPanel.style.display = memberView ? 'none' : '';
+  if(histPanel){
+    histPanel.style.display = memberView ? 'none' : '';
+    if(memberView && histPanel.classList.contains('active')) switchModalTab('fiche');
+  }
+
+  const formFull = document.getElementById('form-full');
+  const formMinimal = document.getElementById('form-minimal');
+  if(memberView){
+    if(formFull) formFull.style.display = '';
+    if(formMinimal) formMinimal.style.display = 'none';
+  }
 }
 
 let viewAsMode = false;
@@ -960,65 +978,72 @@ let realRole = 'admin';
 
 async function initAuth() {
   const loginModal = document.getElementById('ov-login');
+  const errorDiv = document.getElementById('login-error');
+  if(errorDiv){ errorDiv.style.display = 'none'; errorDiv.textContent = ''; }
   loginModal.classList.remove('open');
   try {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    const { data, error } = await supabaseClient.auth.getSession();
     if (error) throw error;
+    const session = data?.session || null;
     if(session?.user){
       await hydrateProfileFromSession(session.user);
-      authMode='supabase';
-      realRole=currentRole;
-      viewAsMode=false;
+      authMode = 'supabase';
+      realRole = currentRole;
+      viewAsMode = false;
       setEditabilityState();
       return true;
     }
-    authMode='supabase';
-    currentRole='band_member';
-    realRole='band_member';
-    setEditabilityState();
-    loginModal.classList.add('open');
-    return false;
   } catch(err) {
     console.warn('initAuth failed:', err);
-    authMode='supabase';
-    currentRole='band_member';
-    realRole='band_member';
-    setEditabilityState();
-    loginModal.classList.add('open');
-    return false;
   }
+  authMode = 'supabase';
+  currentRole = 'band_member';
+  realRole = 'band_member';
+  viewAsMode = false;
+  setEditabilityState();
+  loginModal.classList.add('open');
+  return false;
 }
 
-
 async function handleLogin(event) {
-  event.preventDefault();
+  if(event) event.preventDefault();
 
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
+  const email = (document.getElementById('login-email')?.value || '').trim();
+  const password = document.getElementById('login-password')?.value || '';
   const errorDiv = document.getElementById('login-error');
   const loginModal = document.getElementById('ov-login');
 
-  errorDiv.style.display = 'none';
+  if(errorDiv){ errorDiv.style.display = 'none'; errorDiv.textContent = ''; }
+  if(!email || !password){
+    if(errorDiv){
+      errorDiv.textContent = 'Renseigne email et mot de passe.';
+      errorDiv.style.display = 'block';
+    }
+    return false;
+  }
 
   try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    if (!data?.session?.user) throw new Error('Session introuvable');
-
-    await hydrateProfileFromSession(data.session.user);
+    const user = data?.session?.user;
+    if (!user) throw new Error('Session introuvable');
+    await hydrateProfileFromSession(user);
     authMode = 'supabase';
     realRole = currentRole;
     viewAsMode = false;
     loginModal.classList.remove('open');
     setEditabilityState();
+    await bootAppData();
+    showPage(currentRole === 'admin' ? 'home' : 'repertoire');
+    return false;
   } catch(err) {
     console.warn('Login failed:', err);
-    errorDiv.textContent = 'Email ou mot de passe incorrect';
-    errorDiv.style.display = 'block';
+    if(errorDiv){
+      errorDiv.textContent = err?.message || 'Email ou mot de passe incorrect';
+      errorDiv.style.display = 'block';
+    }
+    loginModal.classList.add('open');
+    return false;
   }
 }
 
@@ -1937,15 +1962,15 @@ if(participationMode==='mine'){
   mine=mine.filter(s=>s.playedByMe===false);
 }
 const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
-const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;
-const filterMasch=document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;
+const filterBA=!memberView && document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;
+const filterMasch=!memberView && document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;
 
-const filterInstGuitare=document.getElementById('filter-inst-guitare')&&document.getElementById('filter-inst-guitare').checked;
-const filterInstBasse=document.getElementById('filter-inst-basse')&&document.getElementById('filter-inst-basse').checked;
-const filterInstSans=document.getElementById('filter-inst-sans')&&document.getElementById('filter-inst-sans').checked;
+const filterInstGuitare=!memberView && document.getElementById('filter-inst-guitare')&&document.getElementById('filter-inst-guitare').checked;
+const filterInstBasse=!memberView && document.getElementById('filter-inst-basse')&&document.getElementById('filter-inst-basse').checked;
+const filterInstSans=!memberView && document.getElementById('filter-inst-sans')&&document.getElementById('filter-inst-sans').checked;
 
-const filterChantLead=document.getElementById('filter-chant-lead')&&document.getElementById('filter-chant-lead').checked;
-const filterChantCoeur=document.getElementById('filter-chant-coeur')&&document.getElementById('filter-chant-coeur').checked;
+const filterChantLead=!memberView && document.getElementById('filter-chant-lead')&&document.getElementById('filter-chant-lead').checked;
+const filterChantCoeur=!memberView && document.getElementById('filter-chant-coeur')&&document.getElementById('filter-chant-coeur').checked;
 if(filterPrio){
   mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');
 }
@@ -2243,7 +2268,6 @@ async function del(){ if(!ensureAdminAction()) return;
   closeModal();
 }
 
-document.addEventListener('DOMContentLoaded',()=>{loadData();renderCampfireList();setEditabilityState();});
 
 function askCoach(){
   const q=document.getElementById('agent-in').value.trim();
@@ -2509,7 +2533,34 @@ function renderStatsPage(){
 </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée BPM</div>';
 }
 
-loadData().then(()=>showPage('home'));
+
+async function bootAppData(){
+  await loadData();
+  applyMemberVisibility();
+}
+
+document.addEventListener('DOMContentLoaded', async ()=>{
+  const loginForm = document.getElementById('login-form');
+  if(loginForm && !loginForm.dataset.bound){
+    loginForm.dataset.bound='1';
+    loginForm.addEventListener('submit', handleLogin);
+  }
+  const loginButton = document.querySelector('#login-form button[type="submit"]');
+  if(loginButton && !loginButton.dataset.bound){
+    loginButton.dataset.bound='1';
+    loginButton.addEventListener('click', handleLogin);
+  }
+
+  const ok = await initAuth();
+  supabaseClient.auth.onAuthStateChange((event)=>{
+    const loginModal = document.getElementById('ov-login');
+    if(event==='SIGNED_OUT') loginModal.classList.add('open');
+  });
+
+  if(!ok) return;
+  await bootAppData();
+  showPage(currentRole==='admin' ? 'home' : 'repertoire');
+});
 </script>
 
 <!-- Modal de connexion -->
