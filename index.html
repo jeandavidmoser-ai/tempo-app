@@ -816,8 +816,17 @@ let authMode='local';
 let bandMembers=[];
 let songAssignments=[];
 let activeSongAssignments=[];
-const BAND_ROLE_OPTIONS=['Chant lead','Cœur 1','Cœur 2','Guitare 1','Guitare 2','Guitare acoustique','Basse','Accordéon','Batterie'];
-let lastAuthError='';
+const BAND_ROLE_OPTIONS = [
+  {value:'chant_lead', label:'Chant lead'},
+  {value:'choeur_1', label:'Chœur 1'},
+  {value:'choeur_2', label:'Chœur 2'},
+  {value:'guitare_1', label:'Guitare 1'},
+  {value:'guitare_2', label:'Guitare 2'},
+  {value:'guitare_acoustique', label:'Guitare acoustique'},
+  {value:'basse', label:'Basse'},
+  {value:'accordeon', label:'Accordéon'},
+  {value:'batterie', label:'Batterie'}
+];let lastAuthError='';
 
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
@@ -833,7 +842,7 @@ function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée 
 async function initAuth(){ try{ const { data: { session } } = await supabaseClient.auth.getSession(); if(session?.user){ await hydrateProfileFromSession(session.user); authMode='supabase'; } else { authMode='local'; currentRole=(currentUser==='jd'||currentUser==='stephanie')?'admin':'band_member'; } }catch(err){ console.warn('Auth init fallback:',err); lastAuthError=err?.message||String(err); authMode='local'; currentRole='admin'; } setEditabilityState(); }
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); let guessed='band_member'; if(email.includes('jd')||email.includes('jer')||email.includes('steph')) guessed='admin'; try{ const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(data){ currentRole=data.role||guessed; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); } else { currentRole=guessed; currentUser=email||'user'; } }catch(err){ console.warn('Profile fallback:',err); currentRole=guessed; currentUser=email||'user'; } }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
-async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, notes:r.notes||'' })); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
+async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
 function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>`${a.member_name} · ${a.role||'rôle'}`).join(' • '); }
 function buildAssignmentsForAllMembers(songId=null){ const existing=songId?getAssignmentsForSong(songId):[]; activeSongAssignments=bandMembers.map(member=>{ const found=existing.find(x=>String(x.band_member_id)===String(member.id)); return { band_member_id:member.id, role:found?.role||'' }; }); }
@@ -1097,7 +1106,6 @@ async function loadData(){
   if(s)songs=s.map(r=>({
     id:r.id,
     user:r.user||'jd',
-    playedByMe:r.played_by_me,
     titre:r.titre,
     artiste:r.artiste,
     inst:r.inst,
@@ -1113,8 +1121,6 @@ async function loadData(){
     urlT:r.url_t,
     urlAudio:r.url_audio,
     notes:r.notes,
-    tagBA:r.tag_ba,
-    tagMasch:r.tag_masch,
     lastPractice:r.last_practice,
     assignmentSummary:''
   }));
@@ -1623,17 +1629,9 @@ function renderSongs(){
   const list=document.getElementById('sl');
   const count=document.getElementById('songs-count');
   const totalBox=document.getElementById('songs-duration-total');
-  const participationMode=(document.getElementById('filter-participation')&&document.getElementById('filter-participation').value)||'mine';
 let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
 
-if(participationMode==='mine'){
-  mine=mine.filter(s=>s.playedByMe!==false);
-}else if(participationMode==='not_played'){
-  mine=mine.filter(s=>s.playedByMe===false);
-}
 const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
-const filterBA=document.getElementById('filter-ba')&&document.getElementById('filter-ba').checked;
-const filterMasch=document.getElementById('filter-masch')&&document.getElementById('filter-masch').checked;
 
 const filterInstGuitare=document.getElementById('filter-inst-guitare')&&document.getElementById('filter-inst-guitare').checked;
 const filterInstBasse=document.getElementById('filter-inst-basse')&&document.getElementById('filter-inst-basse').checked;
@@ -1645,13 +1643,6 @@ if(filterPrio){
   mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');
 }
 
-if(filterBA&&!filterMasch){
-  mine=mine.filter(s=>s.tagBA);
-}else if(filterMasch&&!filterBA){
-  mine=mine.filter(s=>s.tagMasch);
-}else if(filterBA&&filterMasch){
-  mine=mine.filter(s=>s.tagBA||s.tagMasch);
-}
 
 const selectedInst=[];
 if(filterInstGuitare) selectedInst.push('Guitare','Guitare acoustique');
