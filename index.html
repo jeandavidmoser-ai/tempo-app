@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEMPO</title>
+<title>BROKEN ARMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -324,8 +324,8 @@ body.member-view #panel-historique{display:none !important;}
 <body>
 <header>
 <div class="logo-wrap" onclick="showPage('home')">
-<div id="logo" class="logo">💀 TEMPO | BROKEN ARMS<span>.</span></div>
-<div class="logo-sub"></div>
+<div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
+<div class="logo-sub">Coach · Répétitions · Concerts · Setlists · Feu de camp</div>
 </div>
 <div class="usw" id="user-switcher">
 <button id="bu1" class="on" onclick="switchUser('jd')">JD</button>
@@ -1362,6 +1362,11 @@ function formatDurationLong(value){
 }
 
 async function loadData(){
+  const loginForm = document.getElementById('login-form');
+  if(loginForm && !loginForm.dataset.bound){
+    loginForm.dataset.bound = '1';
+    loginForm.addEventListener('submit', handleLogin);
+  }
   const isAuthenticated = await initAuth();
   supabaseClient.auth.onAuthStateChange((event) => {
     const loginModal = document.getElementById('ov-login');
@@ -2508,7 +2513,7 @@ loadData().then(()=>showPage('home'));
 </script>
 
 <!-- Modal de connexion -->
-<div id="ov-login" class="ov" style="display:flex;z-index:300">
+<div id="ov-login" class="ov" style="z-index:300">
   <div class="modal" style="max-width:400px">
     <div class="mh">
       <div class="mt">Connexion</div>
