@@ -279,6 +279,15 @@ textarea{resize:vertical;min-height:72px}
   transition: all 0.2s;
 }
 
+body.member-view #user-badge::after {
+  content: ' · vue membre';
+  color: #ff9aa8;
+}
+
+body.member-view .page {
+  box-shadow: inset 0 0 0 1px rgba(196,30,58,.08);
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
@@ -885,14 +894,45 @@ function escapeHtml(s){return (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&a
 function normalizeText(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
 function roleLabel(role){return role==='admin'?'admin':'lecture seule';}
 function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Mode local', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
-function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display=authMode==='local'?'flex':'none'; updateUserBadge();}
+function setEditabilityState(){
+  canEdit = currentRole==='admin';
+  document.querySelectorAll('[data-admin-only]').forEach(el=>{ el.style.display = canEdit ? '' : 'none'; });
+  document.querySelectorAll('[data-readonly-lock]').forEach(el=>{ el.disabled = !canEdit; });
+  const sw=document.getElementById('user-switcher');
+  if(sw) sw.style.display=authMode==='local'?'flex':'none';
+  const btn=document.getElementById('view-as-toggle');
+  if(btn){
+    if(realRole==='admin' && authMode==='supabase'){
+      btn.style.display='';
+      btn.textContent=viewAsMode?'👁️ Voir comme admin':'👁️ Voir comme membre';
+      btn.style.background=viewAsMode?'var(--accent)':'';
+      btn.style.color=viewAsMode?'#fff':'';
+    }else{
+      btn.style.display='none';
+    }
+  }
+  document.body.classList.toggle('member-view', !canEdit);
+  updateUserBadge();
+}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
 let viewAsMode = false;
 let realRole = 'admin';
 
 async function initAuth() {
-  document.getElementById('ov-login').style.display = 'flex';
+  const loginModal = document.getElementById('ov-login');
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(session?.user){
+    await hydrateProfileFromSession(session.user);
+    authMode='supabase';
+    realRole=currentRole;
+    viewAsMode=false;
+    loginModal.style.display='none';
+  }else{
+    authMode='supabase';
+    loginModal.style.display='flex';
+  }
   setEditabilityState();
+  return !!session?.user;
 }
 
 async function handleLogin(event) {
@@ -930,32 +970,13 @@ async function handleLogin(event) {
 
 function toggleViewAs() {
   if (realRole !== 'admin') return;
-
   viewAsMode = !viewAsMode;
-  const btn = document.getElementById('view-as-toggle');
-
-  if (viewAsMode) {
-    currentRole = 'band_member';
-    btn.textContent = '👁️ Voir comme admin';
-    btn.style.background = 'var(--accent)';
-    btn.style.color = '#fff';
-  } else {
-    currentRole = realRole;
-    btn.textContent = '👁️ Voir comme membre';
-    btn.style.background = '';
-    btn.style.color = '';
-  }
-
+  currentRole = viewAsMode ? 'band_member' : realRole;
   setEditabilityState();
-
-  // Refresh current page view
   const activePage = document.querySelector('.page.active');
   if (activePage) {
     const pageId = activePage.id.replace('page-', '');
-    if (pageId === 'repertoire') renderSongs();
-    else if (pageId === 'planning') renderPlanning();
-    else if (pageId === 'stats') renderStats();
-    else if (pageId === 'concerts') renderConcerts();
+    showPage(pageId);
   }
 }
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); let guessed='band_member'; if(email.includes('jd')||email.includes('jer')||email.includes('steph')) guessed='admin'; try{ const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(data){ currentRole=data.role||guessed; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); } else { currentRole=guessed; currentUser=email||'user'; } }catch(err){ console.warn('Profile fallback:',err); currentRole=guessed; currentUser=email||'user'; } }
@@ -1287,17 +1308,8 @@ function formatDurationLong(value){
 }
 
 async function loadData(){
-  await initAuth();
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if(session?.user){
-    await hydrateProfileFromSession(session.user);
-    authMode='supabase';
-    realRole=currentRole;
-    document.getElementById('ov-login').style.display='none';
-    setEditabilityState();
-  } else {
-    return;
-  }
+  const isAuthenticated = await initAuth();
+  if(!isAuthenticated) return;
   await Promise.all([loadBandMembers(), loadSongAssignments()]);
   const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
