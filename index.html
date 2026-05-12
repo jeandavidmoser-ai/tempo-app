@@ -860,18 +860,21 @@ async function persistSongAssignments(songId){
 
     if(activeSongAssignments.length){
       const payload = activeSongAssignments
-        .filter(x => x.band_member_id)
+        .filter(x => x.band_member_id && x.role)
         .map(x => ({
           song_id: songId,
           band_member_id: x.band_member_id,
-          role: x.role || null
+          role: x.role
         }));
 
-      const { error } = await supabaseClient
-        .from('song_assignments')
-        .insert(payload);
+      if(payload.length){
+        const { error } = await supabaseClient
+          .from('song_assignments')
+          .insert(payload);
 
-      if(error) throw error;
+        if(error) throw error;
+      }
+
     }
 
     await loadSongAssignments();
