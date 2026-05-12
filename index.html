@@ -1561,7 +1561,7 @@ function closeConcertModal(){
   document.getElementById('ov-concert').classList.remove('open');
 }
 
-async async function saveConcert(e){ if(!ensureAdminAction()) return; 
+async function saveConcert(e){ if(!ensureAdminAction()) return; 
   e.preventDefault();
   const id=document.getElementById('concert-id').value||crypto.randomUUID();
   const payload={
@@ -1590,7 +1590,7 @@ async async function saveConcert(e){ if(!ensureAdminAction()) return;
   closeConcertModal();
 }
 
-async async function deleteConcert(){ if(!ensureAdminAction()) return; 
+async function deleteConcert(){ if(!ensureAdminAction()) return; 
   const id=document.getElementById('concert-id').value;
   if(!id) return;
   if(!confirm('Supprimer ce concert ?')) return;
@@ -1879,7 +1879,7 @@ ${videoId?`<div class="video-wrap">
   document.getElementById('video-content').innerHTML=html;
 }
 
-async async function save(e){ if(!ensureAdminAction()) return; 
+async function save(e){ if(!ensureAdminAction()) return; 
   e.preventDefault();
   const id=document.getElementById('f-id').value||crypto.randomUUID();
   let song;
@@ -1933,23 +1933,25 @@ async async function save(e){ if(!ensureAdminAction()) return;
   };
 }
   const { error } = await supabaseClient.from('songs').upsert(song);
-  await persistSongAssignments(id);
   if(error){
     console.error('Erreur Supabase (songs.upsert):',error);
     alert('Erreur lors de la sauvegarde du morceau.\nDétail dans la console.');
     return;
   }
+  await persistSongAssignments(id);
   await loadData();
   closeModal();
 }
 
-async async function del(){ if(!ensureAdminAction()) return; 
+async function del(){ if(!ensureAdminAction()) return; 
   if(!confirm('Supprimer ce morceau ?'))return;
   const id=document.getElementById('f-id').value;
   await supabaseClient.from('songs').delete().eq('id',id);
   await loadData();
   closeModal();
 }
+
+document.addEventListener('DOMContentLoaded',()=>{loadData();renderCampfireList();setEditabilityState();});
 
 function askCoach(){
   const q=document.getElementById('agent-in').value.trim();
@@ -2090,7 +2092,7 @@ document.getElementById('session-song-meta').textContent='—';
 currentSessionSongId=null;
 }
 
-async async function saveLog(){ if(!ensureAdminAction()) return; 
+async function saveLog(){ if(!ensureAdminAction()) return; 
   const songId=document.getElementById('log-song').value;
   if(!songId){alert('Sélectionne un morceau');return;}
   const mins=Math.round(timerSeconds/60);
