@@ -267,18 +267,39 @@ textarea{resize:vertical;min-height:72px}
 </script>
 </head>
 <body>
-<header>
+<div id="page-auth" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div style="width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.35)">
+    <div style="padding:22px 24px;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Oswald',sans-serif;font-size:24px;letter-spacing:.08em">BROKEN ARMS<span style="color:var(--accent)">.</span></div>
+      <div style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.14em;margin-top:6px">Connexion requise</div>
+    </div>
+    <form onsubmit="loginWithPassword(event)" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
+      <div class="fg full">
+        <label>Email</label>
+        <input type="email" id="auth-email" autocomplete="username" placeholder="ton@email.com" required>
+      </div>
+      <div class="fg full">
+        <label>Mot de passe</label>
+        <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      <div id="auth-error" style="display:none;font-size:12px;color:#ff9aaa;background:rgba(196,30,58,.08);border:1px solid rgba(196,30,58,.28);padding:10px 12px;border-radius:8px"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
+        <button type="submit" class="br" id="auth-submit">Se connecter</button>
+      </div>
+    </form>
+  </div>
+</div>
+<header id="app-header" style="display:none">
 <div class="logo-wrap" onclick="showPage('home')">
 <div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
 <div class="logo-sub">Coach · Répétitions · Concerts · Setlists · Feu de camp</div>
 </div>
-<div class="usw" id="user-switcher">
-<button id="bu1" class="on" onclick="switchUser('jd')">JD</button>
-<button id="bu2" onclick="switchUser('stephanie')">Stéphanie</button>
+<div style="display:flex;align-items:center;gap:10px">
+<div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Non connecté</div>
+<button class="bo" id="btn-logout" onclick="logout()" style="display:none">Déconnexion</button>
 </div>
-<div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Mode local</div>
 </header>
-<nav>
+<nav id="app-nav" style="display:none">
 <button onclick="showPage('home')">Tableau de bord</button>
 <button onclick="showPage('repertoire')">Répertoire</button>
 <button onclick="showPage('planning')">Planning</button>
@@ -832,11 +853,11 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
 <script>
-var currentUser='jd';
+var currentUser='';
 let currentProfile=null;
-let currentRole='admin';
-let canEdit=true;
-let authMode='local';
+let currentRole='band_member';
+let canEdit=false;
+let authMode='supabase';
 let bandMembers=[];
 let songAssignments=[];
 let activeSongAssignments=[];
@@ -850,9 +871,13 @@ const supabaseClient=createClient(supabaseUrl,supabaseKey);
 function escapeHtml(s){return (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function normalizeText(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
 function roleLabel(role){return role==='admin'?'admin':'lecture seule';}
-function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Mode local', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
-function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display=authMode==='local'?'flex':'none'; updateUserBadge();}
+function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=['Supabase', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
+function setAppVisibility(isLoggedIn){const auth=document.getElementById('page-auth'); const header=document.getElementById('app-header'); const nav=document.getElementById('app-nav'); if(auth) auth.style.display=isLoggedIn?'none':'flex'; if(header) header.style.display=isLoggedIn?'flex':'none'; if(nav) nav.style.display=isLoggedIn?'flex':'none'; document.querySelectorAll('.page').forEach(el=>{el.style.display=isLoggedIn?'':'none'; if(!isLoggedIn) el.classList.remove('active');});}
+function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const logoutBtn=document.getElementById('btn-logout'); if(logoutBtn) logoutBtn.style.display=currentUser?'inline-block':'none'; updateUserBadge();}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
+function setAuthError(msg){const el=document.getElementById('auth-error'); if(!el) return; if(msg){el.style.display='block'; el.textContent=msg;} else {el.style.display='none'; el.textContent='';}}
+async function loginWithPassword(e){ if(e) e.preventDefault(); const email=(document.getElementById('auth-email')?.value||'').trim(); const password=document.getElementById('auth-password')?.value||''; const btn=document.getElementById('auth-submit'); setAuthError(''); if(!email||!password){ setAuthError('Renseigne ton email et ton mot de passe.'); return; } try{ if(btn) btn.disabled=true; const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; if(!data?.session?.user) throw new Error('Connexion impossible.'); await hydrateProfileFromSession(data.session.user); setEditabilityState(); setAppVisibility(true); await loadData(); showPage('home'); }catch(err){ console.error('loginWithPassword', err); setAuthError(err?.message||'Connexion impossible.'); }finally{ if(btn) btn.disabled=false; }}
+async function logout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.warn('logout', err); } currentProfile=null; currentUser=''; currentRole='band_member'; canEdit=false; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; setEditabilityState(); setAppVisibility(false); setAuthError(''); const pwd=document.getElementById('auth-password'); if(pwd) pwd.value=''; }
 async function initAuth(){ try{ const { data: { session } } = await supabaseClient.auth.getSession(); if(session?.user){ await hydrateProfileFromSession(session.user); authMode='supabase'; } else { authMode='local'; currentRole=(currentUser==='jd'||currentUser==='stephanie')?'admin':'band_member'; } }catch(err){ console.warn('Auth init fallback:',err); lastAuthError=err?.message||String(err); authMode='local'; currentRole='admin'; } setEditabilityState(); }
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); let guessed='band_member'; if(email.includes('jd')||email.includes('jer')||email.includes('steph')) guessed='admin'; try{ const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(data){ currentRole=data.role||guessed; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); } else { currentRole=guessed; currentUser=email||'user'; } }catch(err){ console.warn('Profile fallback:',err); currentRole=guessed; currentUser=email||'user'; } }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
@@ -2217,7 +2242,7 @@ function renderStatsPage(){
 </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée BPM</div>';
 }
 
-loadData().then(()=>showPage('home'));
+initAuth().then(async (ok)=>{ if(ok){ await loadData(); showPage('home'); } });
 </script>
 </body>
 </html>
