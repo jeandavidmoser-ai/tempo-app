@@ -257,6 +257,28 @@ textarea{resize:vertical;min-height:72px}
 .campfire-loading{padding:18px 14px;color:var(--gold);font-size:12px}
 @media (max-width: 980px){.campfire-wrap{grid-template-columns:1fr}.campfire-list{max-height:280px}.campfire-stage{min-height:55vh}}
 
+
+/* Login modal specific styles */
+#ov-login {
+  align-items: center;
+  justify-content: center;
+}
+
+#ov-login .modal {
+  margin-top: 0;
+}
+
+#login-error {
+  padding: 8px 12px;
+  background: rgba(196, 30, 58, 0.12);
+  border: 1px solid rgba(196, 30, 58, 0.35);
+  border-radius: 6px;
+}
+
+#view-as-toggle {
+  transition: all 0.2s;
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
@@ -840,16 +862,16 @@ let authMode='local';
 let bandMembers=[];
 let songAssignments=[];
 let activeSongAssignments=[];
-const BAND_ROLE_OPTIONS=[
-  { value:'chant_lead', label:'Chant lead' },
-  { value:'choeur_1', label:'Chœur 1' },
-  { value:'choeur_2', label:'Chœur 2' },
-  { value:'guitare_1', label:'Guitare 1' },
-  { value:'guitare_2', label:'Guitare 2' },
-  { value:'guitare_acoustique', label:'Guitare acoustique' },
-  { value:'basse', label:'Basse' },
-  { value:'accordeon', label:'Accordéon' },
-  { value:'batterie', label:'Batterie' }
+const BAND_ROLE_OPTIONS = [
+  { value: 'chant_lead', label: 'Chant lead' },
+  { value: 'choeur_1', label: 'Chœur 1' },
+  { value: 'choeur_2', label: 'Chœur 2' },
+  { value: 'guitare_1', label: 'Guitare 1' },
+  { value: 'guitare_2', label: 'Guitare 2' },
+  { value: 'guitare_acoustique', label: 'Guitare acoustique' },
+  { value: 'basse', label: 'Basse' },
+  { value: 'accordeon', label: 'Accordéon' },
+  { value: 'batterie', label: 'Batterie' }
 ];
 let lastAuthError='';
 
@@ -864,74 +886,170 @@ function roleLabel(role){return role==='admin'?'admin':'lecture seule';}
 function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Mode local', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
 function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display=authMode==='local'?'flex':'none'; updateUserBadge();}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
-async function initAuth(){ try{ const { data: { session } } = await supabaseClient.auth.getSession(); if(session?.user){ await hydrateProfileFromSession(session.user); authMode='supabase'; } else { authMode='local'; currentRole=(currentUser==='jd'||currentUser==='stephanie')?'admin':'band_member'; } }catch(err){ console.warn('Auth init fallback:',err); lastAuthError=err?.message||String(err); authMode='local'; currentRole='admin'; } setEditabilityState(); }
+let viewAsMode = false;
+let realRole = 'admin';
+
+async function initAuth() {
+  // Show login modal on startup
+  document.getElementById('ov-login').style.display = 'flex';
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorDiv = document.getElementById('login-error');
+
+  errorDiv.style.display = 'none';
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) throw error;
+
+    if (data?.session?.user) {
+      await hydrateProfileFromSession(data.session.user);
+      authMode = 'supabase';
+      realRole = currentRole;
+      document.getElementById('ov-login').style.display = 'none';
+      setEditabilityState();
+      await loadAll();
+    }
+  } catch(err) {
+    console.warn('Login failed:', err);
+    errorDiv.textContent = 'Email ou mot de passe incorrect';
+    errorDiv.style.display = 'block';
+  }
+}
+
+function toggleViewAs() {
+  if (realRole !== 'admin') return;
+
+  viewAsMode = !viewAsMode;
+  const btn = document.getElementById('view-as-toggle');
+
+  if (viewAsMode) {
+    currentRole = 'band_member';
+    btn.textContent = '👁️ Voir comme admin';
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+  } else {
+    currentRole = realRole;
+    btn.textContent = '👁️ Voir comme membre';
+    btn.style.background = '';
+    btn.style.color = '';
+  }
+
+  setEditabilityState();
+
+  // Refresh current page view
+  const activePage = document.querySelector('.page.active');
+  if (activePage) {
+    const pageId = activePage.id.replace('page-', '');
+    if (pageId === 'repertoire') renderSongs();
+    else if (pageId === 'planning') renderPlanning();
+    else if (pageId === 'stats') renderStats();
+    else if (pageId === 'concerts') renderConcerts();
+  }
+}
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); let guessed='band_member'; if(email.includes('jd')||email.includes('jer')||email.includes('steph')) guessed='admin'; try{ const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(data){ currentRole=data.role||guessed; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); } else { currentRole=guessed; currentUser=email||'user'; } }catch(err){ console.warn('Profile fallback:',err); currentRole=guessed; currentUser=email||'user'; } }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
-async function loadSongAssignments(){
-  try{
+async function loadSongAssignments() {
+  try {
     const { data, error } = await supabaseClient.from('song_assignments').select('*');
-    if(error) throw error;
-    songAssignments=(data||[]).map(r=>({
-      id:r.id,
-      song_id:r.song_id,
-      band_member_id:r.band_member_id,
-      role:r.role
+    if (error) throw error;
+    songAssignments = (data || []).map(r => ({
+      id: r.id,
+      song_id: r.song_id,
+      band_member_id: r.band_member_id,
+      role: r.role
     }));
-  }catch(err){
-    console.warn('song_assignments unavailable:',err);
-    songAssignments=[];
+  } catch(err) {
+    console.warn('song_assignments unavailable:', err);
+    songAssignments = [];
   }
 }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
-function assignmentRoleLabel(role){
-  const found=BAND_ROLE_OPTIONS.find(x=>x.value===role);
-  return found?found.label:role;
+function assignmentRoleLabel(role) {
+  const found = BAND_ROLE_OPTIONS.find(x => x.value === role);
+  return found ? found.label : role;
 }
-function assignmentsSummary(songId){
-  const arr=getAssignmentsForSong(songId);
-  if(!arr.length) return '';
-  return arr.map(a=>`${a.member_name} · ${assignmentRoleLabel(a.role)||'rôle'}`).join(' • ');
+
+function assignmentsSummary(songId) {
+  const arr = getAssignmentsForSong(songId);
+  if (!arr.length) return '';
+  return arr.map(a => `${a.member_name} · ${assignmentRoleLabel(a.role) || 'rôle'}`).join(' • ');
 }
 function buildAssignmentsForAllMembers(songId=null){ const existing=songId?getAssignmentsForSong(songId):[]; activeSongAssignments=bandMembers.map(member=>{ const found=existing.find(x=>String(x.band_member_id)===String(member.id)); return { band_member_id:member.id, role:found?.role||'' }; }); }
-function renderAssignmentsEditor(){
-  const box=document.getElementById('song-assignments-box');
-  if(!box) return;
-  if(!canEdit){
-    box.innerHTML='<div class="empty-hist">Lecture seule.</div>';
+function renderAssignmentsEditor() {
+  const box = document.getElementById('song-assignments-box');
+  if (!box) return;
+
+  if (!canEdit) {
+    box.innerHTML = '<div class="empty-hist">Lecture seule.</div>';
     return;
   }
-  if(!bandMembers.length){
-    box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>';
+
+  if (!bandMembers.length) {
+    box.innerHTML = '<div class="empty-hist">Aucun membre chargé.</div>';
     return;
   }
-  if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){
+
+  if (!activeSongAssignments.length || activeSongAssignments.length !== bandMembers.length) {
     buildAssignmentsForAllMembers();
   }
-  const rows=activeSongAssignments.map((row,idx)=>{
-    const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id));
-    return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml(member?.name||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(opt=>`<option value="${escapeHtml(opt.value)}" ${row.role===opt.value?'selected':''}>${escapeHtml(opt.label)}</option>`).join('')}</select></div></div>`;
+
+  const rows = activeSongAssignments.map((row, idx) => {
+    const member = bandMembers.find(m => String(m.id) === String(row.band_member_id));
+    const options = BAND_ROLE_OPTIONS.map(opt => 
+      `<option value="${escapeHtml(opt.value)}" ${row.role === opt.value ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`
+    ).join('');
+
+    return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px">
+      <div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">
+        ${escapeHtml(member?.name || 'Membre')}
+      </div>
+      <div class="fg" style="gap:0">
+        <select onchange="updateAssignmentRow(${idx},'role',this.value)">
+          <option value="">—</option>
+          ${options}
+        </select>
+      </div>
+    </div>`;
   }).join('');
-  box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`;
+
+  box.innerHTML = `<div class="fg full">
+    <label>Affectations groupe</label>
+    <div style="font-size:10px;color:var(--dim);margin:2px 0 10px">
+      Tous les membres sont affichés. Laisse vide si non concerné.
+    </div>
+    ${rows}
+  </div>`;
 }
 function addAssignmentRow(){ renderAssignmentsEditor(); }
 function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
 function removeAssignmentRow(idx){ renderAssignmentsEditor(); }
-async function persistSongAssignments(songId){
-  if(!canEdit) return;
-  try{
+async function persistSongAssignments(songId) {
+  if (!canEdit) return;
+
+  try {
     await supabaseClient
       .from('song_assignments')
       .delete()
       .eq('song_id', songId);
 
-    if(activeSongAssignments.length){
-        const payload = activeSongAssignments
-          .filter(x => x.band_member_id && x.role)
-          .map(x => ({
-            song_id: songId,
-            band_member_id: x.band_member_id,
-            role: x.role
-          }));
+    if (activeSongAssignments.length) {
+      const payload = activeSongAssignments
+        .filter(x => x.band_member_id && x.role)
+        .map(x => ({
+          song_id: songId,
+          band_member_id: x.band_member_id,
+          role: x.role
+        }));
 
       const { error } = await supabaseClient
         .from('song_assignments')
@@ -943,7 +1061,7 @@ async function persistSongAssignments(songId){
     await loadSongAssignments();
     buildAssignmentsForAllMembers(songId);
     renderAssignmentsEditor();
-  }catch(err){
+  } catch(err) {
     console.error('persistSongAssignments', err);
     alert('Affectations non sauvegardées: ' + (err?.message || err));
   }
@@ -2302,5 +2420,31 @@ function renderStatsPage(){
 
 loadData().then(()=>showPage('home'));
 </script>
+
+<!-- Modal de connexion -->
+<div id="ov-login" class="ov" style="display:flex;z-index:300">
+  <div class="modal" style="max-width:400px">
+    <div class="mh">
+      <div class="mt">Connexion</div>
+    </div>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="mb">
+        <div class="fg full">
+          <label>Email</label>
+          <input type="email" id="login-email" required autocomplete="email">
+        </div>
+        <div class="fg full">
+          <label>Mot de passe</label>
+          <input type="password" id="login-password" required autocomplete="current-password">
+        </div>
+        <div id="login-error" style="display:none;color:var(--accent);font-size:12px;margin-top:8px"></div>
+      </div>
+      <div class="mfoot">
+        <button type="submit" class="br">Se connecter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
