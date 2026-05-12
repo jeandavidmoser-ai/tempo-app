@@ -865,8 +865,36 @@ function renderAssignmentsEditor(){ const box=document.getElementById('song-assi
 function addAssignmentRow(){ renderAssignmentsEditor(); }
 function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
 function removeAssignmentRow(idx){ renderAssignmentsEditor(); }
-async function persistSongAssignments(songId){ if(!canEdit) return; try{ await supabaseClient.from('song_assignments').delete().eq('song_id',songId); const payload=activeSongAssignments.filter(x=>x.band_member_id && x.role).map(x=>({ song_id:songId, band_member_id:x.band_member_id, role:x.role||null })); if(payload.length){ const { error } = await supabaseClient.from('song_assignments').insert(payload); if(error) throw error; } await loadSongAssignments(); }catch(err){ console.error('persistSongAssignments',err); alert('Affectations non sauvegardées : '+(err?.message||err)); } }
+async function persistSongAssignments(songId){
+  if(!canEdit) return;
+  try{
+    await supabaseClient
+      .from('song_assignments')
+      .delete()
+      .eq('song_id', songId);
 
+    if(activeSongAssignments.length){
+      const payload = activeSongAssignments
+        .filter(x => x.band_member_id)
+        .map(x => ({
+          song_id: songId,
+          band_member_id: x.band_member_id,
+          role: x.role || null
+        }));
+
+      const { error } = await supabaseClient
+        .from('song_assignments')
+        .insert(payload);
+
+      if(error) throw error;
+    }
+
+    await loadSongAssignments();
+  }catch(err){
+    console.error('persistSongAssignments', err);
+    alert('Affectations non sauvegardées: ' + (err?.message || err));
+  }
+}
 let songs=[],sessions=[],logs=[],planning={},concerts=[],concertSetlist=[];
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null
 let campfirePdfBytes=null,campfirePdfName='',campfirePdfDoc=null,campfireSongs=[],campfireFilteredSongs=[],campfireSelectedIndex=-1,campfireObjectUrl=null
