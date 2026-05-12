@@ -1177,20 +1177,30 @@ async function loadData(){
   renderConcerts();
 }
 
-function searchYoutube(){
-  const titre = document.getElementById('f-titre').value || document.getElementById('f-titre-min').value;
-  const artiste = document.getElementById('f-artiste').value || document.getElementById('f-artiste-min').value;
-  if(!titre){ alert("Entre un titre d'abord"); return; }
-  const q = encodeURIComponent((titre + ' ' + artiste).trim());
-  window.open('https://www.youtube.com/results?search_query=' + q, '_blank');
+function searchYoutube() {
+  const titre = document.getElementById('f-titre').value.trim();
+  const artiste = document.getElementById('f-artiste').value.trim();
+
+  if (!titre) {
+    alert("Entre un titre d'abord");
+    return;
+  }
+
+  const q = encodeURIComponent([titre, artiste].filter(Boolean).join(' '));
+  window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
 }
 
-function searchAudio(){
-  const titre = document.getElementById('f-titre').value || document.getElementById('f-titre-min').value;
-  const artiste = document.getElementById('f-artiste').value || document.getElementById('f-artiste-min').value;
-  if(!titre){ alert("Entre un titre d'abord"); return; }
-  const q = encodeURIComponent((titre + ' ' + artiste + ' audio').trim());
-  window.open('https://www.google.com/search?q=' + q, '_blank');
+function searchAudio() {
+  const titre = document.getElementById('f-titre').value.trim();
+  const artiste = document.getElementById('f-artiste').value.trim();
+
+  if (!titre) {
+    alert("Entre un titre d'abord");
+    return;
+  }
+
+  const q = encodeURIComponent([titre, artiste, 'audio'].filter(Boolean).join(' '));
+  window.open(`https://www.google.com/search?q=${q}`, '_blank');
 }
 
 }
@@ -1625,126 +1635,108 @@ function calcStreak(){
   return streak;
 }
 
-function renderSongs(){
-  const list=document.getElementById('sl');
-  const count=document.getElementById('songs-count');
-  const totalBox=document.getElementById('songs-duration-total');
-let mine=songs.filter(s=>s.user===currentUser).sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
+function renderSongs() {
+  const list = document.getElementById('sl');
+  const count = document.getElementById('songs-count');
+  const totalBox = document.getElementById('songs-duration-total');
+  if (!list) return;
 
-const filterPrio=document.getElementById('filter-priority')&&document.getElementById('filter-priority').checked;
+  let mine = songs
+    .filter(s => s.user === currentUser)
+    .sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
 
-const filterInstGuitare=document.getElementById('filter-inst-guitare')&&document.getElementById('filter-inst-guitare').checked;
-const filterInstBasse=document.getElementById('filter-inst-basse')&&document.getElementById('filter-inst-basse').checked;
-const filterInstSans=document.getElementById('filter-inst-sans')&&document.getElementById('filter-inst-sans').checked;
+  const filterPrio = document.getElementById('filter-priority')?.checked;
+  const filterInstGuitare = document.getElementById('filter-inst-guitare')?.checked;
+  const filterInstBasse = document.getElementById('filter-inst-basse')?.checked;
+  const filterInstSans = document.getElementById('filter-inst-sans')?.checked;
+  const filterChantLead = document.getElementById('filter-chant-lead')?.checked;
+  const filterChantCoeur = document.getElementById('filter-chant-coeur')?.checked;
 
-const filterChantLead=document.getElementById('filter-chant-lead')&&document.getElementById('filter-chant-lead').checked;
-const filterChantCoeur=document.getElementById('filter-chant-coeur')&&document.getElementById('filter-chant-coeur').checked;
-if(filterPrio){
-  mine=mine.filter(s=>s.statut==='a_decouvrir'||s.statut==='en_cours');
-}
+  if (filterPrio) {
+    mine = mine.filter(s => s.statut === 'adecouvrir' || s.statut === 'encours');
+  }
 
+  const selectedInst = [];
+  if (filterInstGuitare) selectedInst.push('Guitare', 'Guitare acoustique');
+  if (filterInstBasse) selectedInst.push('Basse');
+  if (filterInstSans) selectedInst.push('Sans instrument');
 
-const selectedInst=[];
-if(filterInstGuitare) selectedInst.push('Guitare','Guitare acoustique');
-if(filterInstBasse) selectedInst.push('Basse');
-if(filterInstSans) selectedInst.push('Sans instrument');
+  if (selectedInst.length) {
+    mine = mine.filter(s => selectedInst.includes(s.inst));
+  }
 
-if(selectedInst.length){
-  mine=mine.filter(s=>selectedInst.includes(s.inst||''));
-}
+  if (filterChantLead) {
+    mine = mine.filter(s => s.chantLead);
+  }
 
-if(filterChantLead){
-  mine=mine.filter(s=>s.chantLead);
-}
+  if (filterChantCoeur) {
+    mine = mine.filter(s => s.chantCoeur);
+  }
 
-if(filterChantCoeur){
-  mine=mine.filter(s=>s.chantCoeur);
-}
+  const totalDurationSeconds = mine.reduce((sum, s) => sum + (parseInt(s.duree, 10) || 0), 0);
 
-const totalDurationSeconds = mine.reduce((sum,s)=>sum + (parseInt(s.duree,10) || 0), 0);
+  if (count) count.textContent = `${mine.length} morceau${mine.length > 1 ? 'x' : ''}`;
+  if (totalBox) totalBox.textContent = formatDurationLong(totalDurationSeconds);
 
-if(count){
-  count.textContent=mine.length+' morceau'+(mine.length>1?'x':'');
-}
+  const labels = {
+    adecouvrir: 'À découvrir',
+    encours: 'En cours',
+    acquis: 'Acquis',
+    maitrise: 'Maîtrisé'
+  };
 
-if(totalBox){
-  totalBox.textContent=formatDurationLong(totalDurationSeconds);
-}
+  const colors = {
+    adecouvrir: 'b0',
+    encours: 'b1',
+    acquis: 'b2',
+    maitrise: 'b3'
+  };
 
-  const labels={a_decouvrir:'À découvrir',en_cours:'En cours',acquis:'Acquis',maitrise:'Maîtrisé'};
-  const colors={a_decouvrir:'b0',en_cours:'b1',acquis:'b2',maitrise:'b3'};
-list.innerHTML=mine.length?mine.map(s=>{
-const artistText=s.artiste||'';
-const meta=[];
+  list.innerHTML = mine.length ? mine.map(s => {
+    const artistText = s.artiste || '';
+    const meta = [];
 
-if(currentUser==='jd'){
-  meta.push(`<span class="song-chip inst">${s.inst||'Sans instrument'}</span>`);
-}else if(s.inst){
-  meta.push(`<span class="song-chip inst">${s.inst}</span>`);
-}
-
-if(s.chantLead){
-  meta.push(`<span class="song-chip role">Chant lead</span>`);
-}
-
-if(s.chantCoeur){
-  meta.push(`<span class="song-chip role">Chant cœur</span>`);
-}
-
-if(s.tagBA){
-  meta.push(`<span class="song-chip">BA</span>`);
-}
-
-if(s.tagMasch){
-  meta.push(`<span class="song-chip">Masch</span>`);
-}
-
-if(s.duree){
-  meta.push(`<span class="song-chip duration">${formatDuration(s.duree)}</span>`);
-}
-
-if(s.playedByMe===false){
-  meta.push(`<span class="song-chip">Non joué</span>`);
-}
-return `<div>
-  <div class="si" onclick="openModal('${s.id}')">
-    <div>
-<div class="stt">
-  ${s.titre}
-  ${artistText ? `<span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px">${artistText}</span>` : ''}
-</div>
-<div class="song-meta">${meta.join('')}</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
-      <span class="badge ${s.playedByMe===false?'b4':colors[s.statut]||'b0'}">${s.playedByMe===false?'Non joué':labels[s.statut]||s.statut}</span>
-    </div>
-  </div>
-${s.urlAudio ? `
-  <div id="audio-row-${s.id}" style="display:none;padding:8px 12px 12px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;margin-top:-6px;margin-bottom:6px">
-    ${
-      /\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(s.urlAudio)
-        ? `<audio controls preload="none" style="width:100%" src="${s.urlAudio}"></audio>`
-        : s.urlAudio.includes('open.spotify.com/track/')
-          ? `<iframe
-              src="${s.urlAudio.replace('open.spotify.com/', 'open.spotify.com/embed/')}"
-              width="100%"
-              height="152"
-              frameborder="0"
-              allowfullscreen
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy"
-              style="border-radius:12px">
-            </iframe>`
-          : `<div style="font-size:11px;color:var(--dim);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-               <span>Cette URL n'est pas lisible directement dans TEMPO.</span>
-               <a href="${s.urlAudio}" target="_blank" style="color:var(--accent);text-decoration:none">Ouvrir le lien</a>
-             </div>`
+    if (currentUser === 'jd') {
+      meta.push(`<span class="song-chip inst">${escapeHtml(s.inst || 'Sans instrument')}</span>`);
+    } else if (s.inst) {
+      meta.push(`<span class="song-chip inst">${escapeHtml(s.inst)}</span>`);
     }
-  </div>
-` : ''}
-</div>`;
-  }).join(''):'<div style="padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px">Aucun morceau</div>';
+
+    if (s.chantLead) meta.push(`<span class="song-chip role">Chant lead</span>`);
+    if (s.chantCoeur) meta.push(`<span class="song-chip role">Chant chœur</span>`);
+    if (s.assignmentSummary) meta.push(`<span class="song-chip">${escapeHtml(s.assignmentSummary)}</span>`);
+    if (s.duree) meta.push(`<span class="song-chip duration">${formatDuration(s.duree)}</span>`);
+
+    return `
+      <div>
+        <div class="si" onclick="openModal('${s.id}')">
+          <div>
+            <div class="stt">
+              ${escapeHtml(s.titre)}
+              ${artistText ? `<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px">${escapeHtml(artistText)}</span>` : ''}
+            </div>
+            <div class="song-meta">${meta.join('')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
+            <span class="badge ${colors[s.statut] || 'b0'}">${labels[s.statut] || s.statut || ''}</span>
+          </div>
+        </div>
+        ${s.urlAudio ? `
+          <div id="audio-row-${s.id}" style="display:none;padding:8px 12px 12px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;margin-top:-6px;margin-bottom:6px">
+            ${/\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(s.urlAudio)
+              ? `<audio controls preload="none" style="width:100%" src="${s.urlAudio}"></audio>`
+              : s.urlAudio.includes('open.spotify.com/track')
+                ? `<iframe src="${s.urlAudio.replace('open.spotify.com/', 'open.spotify.com/embed/')}" width="100%" height="152" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>`
+                : `<div style="font-size:11px;color:var(--dim);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                     <span>Cette URL n'est pas lisible directement dans TEMPO.</span>
+                     <a href="${s.urlAudio}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:none">Ouvrir le lien</a>
+                   </div>`
+            }
+          </div>` : ''}
+      </div>
+    `;
+  }).join('') : `<div style="text-align:center;color:var(--muted);padding:20px">Aucun morceau</div>`;
 }
 
 function openModal(id) {
