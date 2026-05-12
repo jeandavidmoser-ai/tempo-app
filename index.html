@@ -598,177 +598,153 @@ textarea{resize:vertical;min-height:72px}
 </div>
   
 <div id="ov" class="ov">
-<div class="modal">
-<div class="mh">
-<div id="mt" class="mt">Nouveau morceau</div>
-<button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeModal()">✕</button>
-</div>
-<div class="modal-tabs">
-<button class="modal-tab active" onclick="switchModalTab('fiche')">Fiche</button>
-<button class="modal-tab" onclick="switchModalTab('historique')">Historique</button>
-<button class="modal-tab" onclick="switchModalTab('videos')">Vidéos</button>
-</div>
-<form id="sf" onsubmit="save(event)">
-<div id="panel-fiche" class="modal-panel active">
-<input type="hidden" id="f-id">
-<div class="toggle-row">
-<span class="toggle-label">Joué par moi :</span>
-<div class="toggle-opts">
-<button type="button" id="played-yes" class="toggle-btn active" onclick="setPlayedBy(true)">Oui</button>
-<button type="button" id="played-no" class="toggle-btn" onclick="setPlayedBy(false)">Non</button>
-</div>
-</div>
-<div id="form-full">
-<div class="fg full">
-<label>Tags</label>
-<div class="tags-row">
-<label class="check-row" style="margin:0">
-<input type="checkbox" id="f-tag-ba">
-<span>Broken Arms</span>
-</label>
-<label class="check-row" style="margin:0">
-<input type="checkbox" id="f-tag-masch">
-<span>Masch</span>
-</label>
-</div>
-</div>
-<div class="fr2">
-<div class="fg">
-<label>Titre *</label>
-<input type="text" id="f-titre" required>
-</div>
-<div class="fg">
-<label>Artiste</label>
-<input type="text" id="f-artiste">
-</div>
-</div>
-<div class="fr2">
-<div class="fg" id="fg-inst">
-<label>Instrument</label>
-<select id="f-inst">
-  <option value="">—</option>
-  <option value="Guitare">Guitare</option>
-  <option value="Guitare acoustique">Guitare acoustique</option>
-  <option value="Basse">Basse</option>
-  <option value="Batterie">Batterie</option>
-  <option value="Sans instrument">Sans instrument</option>
-</select>
-</div>
-<div class="fg">
-<label>Chant</label>
-<div style="display:flex;gap:10px;padding-top:8px">
-<label class="check-row">
-<input type="checkbox" id="f-chant-lead">
-<span>Lead</span>
-</label>
-<label class="check-row">
-<input type="checkbox" id="f-chant-coeur">
-<span>Chœur</span>
-</label>
-</div>
-</div>
-</div>
-<div class="fr2">
-<div class="fg">
-<label>Statut</label>
-<select id="f-statut">
-<option value="a_decouvrir">À découvrir</option>
-<option value="en_cours">En cours</option>
-<option value="acquis">Acquis</option>
-<option value="maitrise">Maîtrisé</option>
-</select>
-</div>
-<div class="fg">
-<label>Difficulté (1-5)</label>
-<input type="number" id="f-diff" min="1" max="5" value="3">
-</div>
-</div>
-<div class="fr2">
-<div class="fg" style="display:none">
-<label>BPM cible</label>
-<input type="number" id="f-bpm">
-</div>
-<div class="fg">
-  <label>Durée (mm:ss)</label>
-  <input type="text" id="f-duree" placeholder="ex: 03:45">
-</div>
-</div>
-<div class="fg full">
-<label>Accordage/Capo</label>
-<input type="text" id="f-ton">
-</div>
-<div class="fg full">
-  <label style="display:none">URL Audio</label>
-  <div style="display:flex;gap:6px;flex-wrap:wrap">
-    <input type="url" id="f-url-audio" placeholder="https://..." style="display:none">
-    <button type="button" class="bo" onclick="searchYoutube()" style="white-space:nowrap">YouTube</button>
-  </div>
-</div>
-<div class="fr2">
-<div class="fg">
-<label>URL Studio</label>
-<input type="url" id="f-url-s" placeholder="https://youtube.com/...">
-</div>
-<div class="fg">
-<label>URL Live</label>
-<input type="url" id="f-url-l" placeholder="https://youtube.com/...">
-</div>
-</div>
-<div class="fg full">
-<label>URL Tuto</label>
-<input type="url" id="f-url-t" placeholder="https://youtube.com/...">
-</div>
-<div class="fg full">
-<label>Notes</label>
-<textarea id="f-notes"></textarea>
-</div>
-<div class="fg full" id="song-assignments-box"></div>
-</div>
-<div id="form-minimal" style="display:none">
-  <div class="fg full">
-    <label>Tags</label>
-    <div class="tags-row">
-      <label class="check-row" style="margin:0">
-        <input type="checkbox" id="f-tag-ba-min">
-        <span>Broken Arms</span>
-      </label>
-      <label class="check-row" style="margin:0">
-        <input type="checkbox" id="f-tag-masch-min">
-        <span>Masch</span>
-      </label>
+  <div class="modal">
+    <div class="mh">
+      <div id="mt" class="mt">Nouveau morceau</div>
+      <button
+        style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer"
+        onclick="closeModal()"
+      >×</button>
     </div>
-  </div>
 
-  <div class="fr2">
-    <div class="fg">
-      <label>Titre *</label>
-      <input type="text" id="f-titre-min">
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchModalTab('fiche')">Fiche</button>
+      <button class="modal-tab" onclick="switchModalTab('historique')">Historique</button>
+      <button class="modal-tab" onclick="switchModalTab('videos')">Vidéos</button>
     </div>
-    <div class="fg">
-      <label>Artiste</label>
-      <input type="text" id="f-artiste-min">
-    </div>
-  </div>
 
-  <div class="fg full">
-    <label>Durée (mm:ss)</label>
-    <input type="text" id="f-duree-min" placeholder="ex: 03:45">
+    <form id="sf" onsubmit="save(event)">
+      <div id="panel-fiche" class="modal-panel active">
+        <input type="hidden" id="f-id">
+
+        <div class="fr2">
+          <div class="fg">
+            <label>Titre</label>
+            <input type="text" id="f-titre" required>
+          </div>
+          <div class="fg">
+            <label>Artiste</label>
+            <input type="text" id="f-artiste">
+          </div>
+        </div>
+
+        <div class="fr2">
+          <div class="fg" id="fg-inst">
+            <label>Instrument</label>
+            <select id="f-inst">
+              <option value=""></option>
+              <option value="Guitare">Guitare</option>
+              <option value="Guitare acoustique">Guitare acoustique</option>
+              <option value="Basse">Basse</option>
+              <option value="Batterie">Batterie</option>
+              <option value="Sans instrument">Sans instrument</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Chant</label>
+            <div style="display:flex;gap:10px;padding-top:8px">
+              <label class="check-row">
+                <input type="checkbox" id="f-chant-lead">
+                <span>Lead</span>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" id="f-chant-coeur">
+                <span>Chœur</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="fr2">
+          <div class="fg">
+            <label>Statut</label>
+            <select id="f-statut">
+              <option value="adecouvrir">À découvrir</option>
+              <option value="encours">En cours</option>
+              <option value="acquis">Acquis</option>
+              <option value="maitrise">Maîtrisé</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label>Difficulté 1-5</label>
+            <input type="number" id="f-diff" min="1" max="5" value="3">
+          </div>
+        </div>
+
+        <div class="fr2">
+          <div class="fg" style="display:none">
+            <label>BPM cible</label>
+            <input type="number" id="f-bpm">
+          </div>
+
+          <div class="fg">
+            <label>Durée mm:ss</label>
+            <input type="text" id="f-duree" placeholder="ex : 03:45">
+          </div>
+        </div>
+
+        <div class="fg full">
+          <label>Accordage / Capo</label>
+          <input type="text" id="f-ton">
+        </div>
+
+        <div class="fg full">
+          <label style="display:none">URL Audio</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <input type="url" id="f-url-audio" placeholder="https..." style="display:none">
+            <button type="button" class="bo" onclick="searchYoutube()" style="white-space:nowrap">YouTube</button>
+          </div>
+        </div>
+
+        <div class="fr2">
+          <div class="fg">
+            <label>URL Studio</label>
+            <input type="url" id="f-url-s" placeholder="https://youtube.com/...">
+          </div>
+          <div class="fg">
+            <label>URL Live</label>
+            <input type="url" id="f-url-l" placeholder="https://youtube.com/...">
+          </div>
+        </div>
+
+        <div class="fg full">
+          <label>URL Tuto</label>
+          <input type="url" id="f-url-t" placeholder="https://youtube.com/...">
+        </div>
+
+        <div class="fg full">
+          <label>Notes</label>
+          <textarea id="f-notes"></textarea>
+        </div>
+
+        <div class="fg full" id="song-assignments-box"></div>
+      </div>
+
+      <div id="panel-historique" class="modal-panel">
+        <div id="hist-content"></div>
+      </div>
+
+      <div id="panel-videos" class="modal-panel">
+        <div id="video-content"></div>
+      </div>
+
+      <div class="mfoot">
+        <button
+          type="button"
+          id="btn-del"
+          class="bdd"
+          data-admin-only
+          onclick="del()"
+          style="display:none"
+        >Supprimer</button>
+
+        <button type="button" class="bo" onclick="closeModal()">Annuler</button>
+        <button type="submit" id="btn-save" class="br">Sauvegarder</button>
+      </div>
+    </form>
   </div>
-</div>
-</div>
-<div id="panel-historique" class="modal-panel">
-<div id="hist-content"></div>
-</div>
-<div id="panel-videos" class="modal-panel">
-<div id="video-content"></div>
-</div>
-<div class="mfoot">
-<button type="button" id="btn-del" class="bdd" data-admin-only onclick="del()" style="display:none">Supprimer</button>
-<button type="button" class="bo" onclick="closeModal()">Annuler</button>
-<button type="submit" id="btn-save" class="br">Sauvegarder</button>
-</div>
-</form>
-</div>
 </div>
 
 <div id="ov-log" class="ov">
@@ -1780,57 +1756,56 @@ ${s.urlAudio ? `
   }).join(''):'<div style="padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:6px">Aucun morceau</div>';
 }
 
-function openModal(id){
+function openModal(id) {
   document.getElementById('ov').classList.add('open');
   document.getElementById('sf').reset();
-  document.getElementById('btn-del').style.display='none';
+  document.getElementById('btn-del').style.display = 'none';
+  document.getElementById('f-id').value = '';
+  document.getElementById('mt').textContent = 'Nouveau morceau';
   switchModalTab('fiche');
-  setPlayedBy(true);
-  activeSongAssignments=[];
+
+  activeSongAssignments = [];
+  buildAssignmentsForAllMembers();
   renderAssignmentsEditor();
-  if(document.getElementById('fg-inst'))document.getElementById('fg-inst').style.display=currentUser==='stephanie'?'none':'flex';
-  if(id!=='new'){
-    const s=songs.find(x=>x.id===id);
-    if(!s)return;
-    document.getElementById('f-id').value=s.id;
-    setPlayedBy(s.playedByMe!==false);
-    if(s.playedByMe!==false){
-      document.getElementById('f-titre').value=s.titre||'';
-      document.getElementById('f-artiste').value=s.artiste||'';
-      if(document.getElementById('f-inst'))document.getElementById('f-inst').value=s.inst||'';
-      document.getElementById('f-chant-lead').checked=s.chantLead||false;
-      document.getElementById('f-chant-coeur').checked=s.chantCoeur||false;
-      document.getElementById('f-statut').value=s.statut||'a_decouvrir';
-      document.getElementById('f-diff').value=s.diff||3;
-      document.getElementById('f-bpm').value=s.bpm||'';
-      document.getElementById('f-duree').value=formatDuration(s.duree);
-      document.getElementById('f-ton').value=s.ton||'';
-      document.getElementById('f-url-s').value=s.urlS||'';
-      document.getElementById('f-url-l').value=s.urlL||'';
-      document.getElementById('f-url-t').value=s.urlT||'';
-      document.getElementById('f-url-audio').value=s.urlAudio||'';
-      document.getElementById('f-notes').value=s.notes||'';
-  buildAssignmentsForAllMembers(s.id);
-  renderAssignmentsEditor();
-      document.getElementById('f-tag-ba').checked=s.tagBA||false;
-      document.getElementById('f-tag-masch').checked=s.tagMasch||false;
-}else{
-  document.getElementById('f-titre-min').value=s.titre||'';
-  document.getElementById('f-artiste-min').value=s.artiste||'';
-  document.getElementById('f-duree-min').value=formatDuration(s.duree);
-  document.getElementById('f-tag-ba-min').checked=s.tagBA||false;
-  document.getElementById('f-tag-masch-min').checked=s.tagMasch||false;
-}
-    document.getElementById('btn-del').style.display='inline-block';
-    document.getElementById('mt').textContent='Modifier le morceau';
+
+  if (document.getElementById('fg-inst')) {
+    document.getElementById('fg-inst').style.display = currentUser === 'stephanie' ? 'none' : 'flex';
+  }
+
+  if (id !== 'new') {
+    const s = songs.find(x => x.id === id);
+    if (!s) return;
+
+    document.getElementById('f-id').value = s.id;
+    document.getElementById('f-titre').value = s.titre || '';
+    document.getElementById('f-artiste').value = s.artiste || '';
+    if (document.getElementById('f-inst')) document.getElementById('f-inst').value = s.inst || '';
+    document.getElementById('f-chant-lead').checked = !!s.chantLead;
+    document.getElementById('f-chant-coeur').checked = !!s.chantCoeur;
+    document.getElementById('f-statut').value = s.statut || 'adecouvrir';
+    document.getElementById('f-diff').value = s.diff || 3;
+    document.getElementById('f-bpm').value = s.bpm || '';
+    document.getElementById('f-duree').value = formatDuration(s.duree);
+    document.getElementById('f-ton').value = s.ton || '';
+    document.getElementById('f-url-s').value = s.urlS || '';
+    document.getElementById('f-url-l').value = s.urlL || '';
+    document.getElementById('f-url-t').value = s.urlT || '';
+    document.getElementById('f-url-audio').value = s.urlAudio || '';
+    document.getElementById('f-notes').value = s.notes || '';
+
+    buildAssignmentsForAllMembers(s.id);
+    renderAssignmentsEditor();
+
+    document.getElementById('btn-del').style.display = 'inline-block';
+    document.getElementById('mt').textContent = 'Modifier le morceau';
+
     renderHistorique(s.id);
     renderVideos(s);
-  }else{
-    document.getElementById('f-id').value='';
-    document.getElementById('mt').textContent='Nouveau morceau';
+  } else {
+    renderHistorique(null);
+    renderVideos(null);
   }
 }
-
 function closeModal(){document.getElementById('ov').classList.remove('open');}
 
 function switchModalTab(tab){
@@ -1889,78 +1864,50 @@ ${videoId?`<div class="video-wrap">
   document.getElementById('video-content').innerHTML=html;
 }
 
-async function save(e){ if(!ensureAdminAction()) return; 
+async function save(e) {
+  if (!ensureAdminAction()) return;
   e.preventDefault();
-  const id=document.getElementById('f-id').value||crypto.randomUUID();
-  let song;
-  if(currentPlayedBy){
-    song={
-      id,
-      user:currentUser,
-      played_by_me:true,
-      titre:document.getElementById('f-titre').value,
-      artiste:document.getElementById('f-artiste').value,
-      inst:document.getElementById('f-inst')?document.getElementById('f-inst').value:'',
-      chant_lead:document.getElementById('f-chant-lead').checked,
-      chant_coeur:document.getElementById('f-chant-coeur').checked,
-      statut:document.getElementById('f-statut').value,
-      diff:parseInt(document.getElementById('f-diff').value)||3,
-      bpm:document.getElementById('f-bpm').value||null,
-      duree:parseDurationToSeconds(document.getElementById('f-duree').value),
-      ton:document.getElementById('f-ton').value||null,
-      url_s:document.getElementById('f-url-s').value||null,
-      url_l:document.getElementById('f-url-l').value||null,
-      url_t:document.getElementById('f-url-t').value||null,
-      url_audio:document.getElementById('f-url-audio').value||null,
-      notes:document.getElementById('f-notes').value||null,
-      tag_ba:document.getElementById('f-tag-ba').checked,
-      tag_masch:document.getElementById('f-tag-masch').checked,
-      last_practice:songs.find(s=>s.id===id)?.lastPractice||null
-    };
-}else{
-  song={
+
+  const id = document.getElementById('f-id').value || crypto.randomUUID();
+  const existing = songs.find(s => s.id === id);
+
+  const song = {
     id,
-    user:currentUser,
-    played_by_me:false,
-    titre:document.getElementById('f-titre-min').value || document.getElementById('f-titre').value,
-    artiste:(document.getElementById('f-artiste-min').value || document.getElementById('f-artiste').value) || null,
-    duree:parseDurationToSeconds(document.getElementById('f-duree-min').value || document.getElementById('f-duree').value),
-    statut:null,
-    inst:null,
-    chant_lead:false,
-    chant_coeur:false,
-    diff:3,
-    bpm:null,
-    ton:null,
-    url_s:null,
-    url_l:null,
-    url_t:null,
-    url_audio:null,
-    notes:null,
-    tag_ba:document.getElementById('f-tag-ba-min').checked,
-    tag_masch:document.getElementById('f-tag-masch-min').checked,
-    last_practice:null
+    user: currentUser,
+    titre: document.getElementById('f-titre').value.trim(),
+    artiste: document.getElementById('f-artiste').value.trim() || null,
+    inst: document.getElementById('f-inst') ? (document.getElementById('f-inst').value || null) : null,
+    chantlead: document.getElementById('f-chant-lead').checked,
+    chantcoeur: document.getElementById('f-chant-coeur').checked,
+    statut: document.getElementById('f-statut').value || 'adecouvrir',
+    diff: parseInt(document.getElementById('f-diff').value || '3', 10),
+    bpm: document.getElementById('f-bpm').value ? parseInt(document.getElementById('f-bpm').value, 10) : null,
+    duree: parseDurationToSeconds(document.getElementById('f-duree').value),
+    ton: document.getElementById('f-ton').value.trim() || null,
+    urls: document.getElementById('f-url-s').value.trim() || null,
+    urll: document.getElementById('f-url-l').value.trim() || null,
+    urlt: document.getElementById('f-url-t').value.trim() || null,
+    urlaudio: document.getElementById('f-url-audio').value.trim() || null,
+    notes: document.getElementById('f-notes').value.trim() || null,
+    lastpractice: existing?.lastPractice || null
   };
-}
-  const { error } = await supabaseClient.from('songs').upsert(song);
-  if(error){
-    console.error('Erreur Supabase (songs.upsert):',error);
-    alert('Erreur lors de la sauvegarde du morceau.\nDétail dans la console.');
+
+  if (!song.titre) {
+    alert('Le titre est obligatoire.');
     return;
   }
+
+  const { error } = await supabaseClient.from('songs').upsert(song);
+  if (error) {
+    console.error('Erreur Supabase songs.upsert', error);
+    alert('Erreur lors de la sauvegarde du morceau. Détail dans la console.');
+    return;
+  }
+
   await persistSongAssignments(id);
   await loadData();
   closeModal();
 }
-
-async function del(){ if(!ensureAdminAction()) return; 
-  if(!confirm('Supprimer ce morceau ?'))return;
-  const id=document.getElementById('f-id').value;
-  await supabaseClient.from('songs').delete().eq('id',id);
-  await loadData();
-  closeModal();
-}
-
 document.addEventListener('DOMContentLoaded',()=>{loadData();renderCampfireList();setEditabilityState();});
 
 function askCoach(){
