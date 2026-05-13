@@ -354,26 +354,7 @@ textarea{resize:vertical;min-height:72px}
       <button class="br" data-admin-only onclick="openModal('new')">+ Ajouter</button>
     </div>
     <div style="padding:14px">
-<div class="filter-row" style="justify-content:space-between;flex-wrap:wrap;align-items:center">
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <label class="check-row" style="margin:0">
-      <input type="checkbox" id="filter-my-songs" onchange="renderSongs()" />
-      <span style="font-size:11px">Mes morceaux</span>
-    </label>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px">
-      <span>Rôle :</span>
-      <select id="filter-role" onchange="renderSongs()" style="width:auto;min-width:140px;padding:5px 8px;font-size:11px">
-        <option value="">Tous les rôles</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px">
-      <span>Membre :</span>
-      <select id="filter-member" onchange="renderSongs()" style="width:auto;min-width:140px;padding:5px 8px;font-size:11px">
-        <option value="">Tous les membres</option>
-      </select>
-    </div>
-  </div>
-</div>
+<div class="filter-row" style="justify-content:space-between;flex-wrap:wrap">
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <label class="check-row">
       <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
@@ -1692,59 +1673,42 @@ function calcStreak(){
   return streak;
 }
 
-function getSongIdsForMemberAndRole(memberId, roleValue){
-  if(!memberId) return new Set();
-  let filtered = songAssignments.filter(a => String(a.band_member_id) === String(memberId));
-  if(roleValue){
-    filtered = filtered.filter(a => a.role === roleValue);
-  }
-  return new Set(filtered.map(a => a.song_id));
-}
-
-function populateMemberAndRoleFilters(){
-  const roleSelect = document.getElementById('filter-role');
-  const memberSelect = document.getElementById('filter-member');
-  if(roleSelect){
-    // reset, puis options
-    const current = roleSelect.value;
-    roleSelect.innerHTML = '<option value="">Tous les rôles</option>' +
-      BAND_ROLE_OPTIONS.map(r => `<option value="${r.value}">${r.label}</option>`).join('');
-    roleSelect.value = current || '';
-  }
-  if(memberSelect){
-    const current = memberSelect.value;
-    memberSelect.innerHTML = '<option value="">Tous les membres</option>' +
-      bandMembers.map(m => `<option value="${m.id}">${escapeHtml(m.name || 'Membre')}</option>`).join('');
-    memberSelect.value = current || '';
-  }
-}
-
 function renderSongs() {
   const list = document.getElementById('sl');
   const count = document.getElementById('songs-count');
   const totalBox = document.getElementById('songs-duration-total');
   if (!list) return;
 
-  populateMemberAndRoleFilters();
-
   let mine = songs
-    .slice()
+    .filter(s => s.user === currentUser)
     .sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
 
-  const mySongsOnly = document.getElementById('filter-my-songs')?.checked;
-  const roleValue = document.getElementById('filter-role')?.value || '';
-  const memberValue = document.getElementById('filter-member')?.value || '';
+  const filterPrio = document.getElementById('filter-priority')?.checked;
+  const filterInstGuitare = document.getElementById('filter-inst-guitare')?.checked;
+  const filterInstBasse = document.getElementById('filter-inst-basse')?.checked;
+  const filterInstSans = document.getElementById('filter-inst-sans')?.checked;
+  const filterChantLead = document.getElementById('filter-chant-lead')?.checked;
+  const filterChantCoeur = document.getElementById('filter-chant-coeur')?.checked;
 
-  // Détermination du membre cible : soit sélection explicite, soit "moi" si mySongsOnly est coché
-  let targetMemberId = memberValue || null;
-  const me = bandMembers.find(m => (m.name || '').toLowerCase() === (currentUser || '').toLowerCase());
-  if(!targetMemberId && mySongsOnly && me){
-    targetMemberId = me.id;
+  if (filterPrio) {
+    mine = mine.filter(s => s.statut === 'adecouvrir' || s.statut === 'encours');
   }
 
-  if(targetMemberId){
-    const ids = getSongIdsForMemberAndRole(targetMemberId, roleValue || null);
-    mine = mine.filter(s => ids.has(s.id));
+  const selectedInst = [];
+  if (filterInstGuitare) selectedInst.push('Guitare', 'Guitare acoustique');
+  if (filterInstBasse) selectedInst.push('Basse');
+  if (filterInstSans) selectedInst.push('Sans instrument');
+
+  if (selectedInst.length) {
+    mine = mine.filter(s => selectedInst.includes(s.inst));
+  }
+
+  if (filterChantLead) {
+    mine = mine.filter(s => s.chantLead);
+  }
+
+  if (filterChantCoeur) {
+    mine = mine.filter(s => s.chantCoeur);
   }
 
   const totalDurationSeconds = mine.reduce((sum, s) => sum + (parseInt(s.duree, 10) || 0), 0);
