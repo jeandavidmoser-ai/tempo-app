@@ -1875,42 +1875,21 @@ async function save(e) {
     user: currentUser,
     titre: document.getElementById('f-titre').value.trim(),
     artiste: document.getElementById('f-artiste').value.trim() || null,
-    inst: document.getElementById('f-inst')
-      ? (document.getElementById('f-inst').value || null)
-      : null,
-    chant_lead: document.getElementById('f-chant-lead').checked,
-    chant_coeur: document.getElementById('f-chant-coeur').checked,
+    inst: document.getElementById('f-inst') ? (document.getElementById('f-inst').value || null) : null,
+    chantlead: document.getElementById('f-chant-lead').checked,
+    chantcoeur: document.getElementById('f-chant-coeur').checked,
     statut: document.getElementById('f-statut').value || 'adecouvrir',
     diff: parseInt(document.getElementById('f-diff').value || '3', 10),
-    bpm: document.getElementById('f-bpm').value
-      ? parseInt(document.getElementById('f-bpm').value, 10)
-      : null,
+    bpm: document.getElementById('f-bpm').value ? parseInt(document.getElementById('f-bpm').value, 10) : null,
     duree: parseDurationToSeconds(document.getElementById('f-duree').value),
     ton: document.getElementById('f-ton').value.trim() || null,
-    url_s: document.getElementById('f-url-s').value.trim() || null,
-    url_l: document.getElementById('f-url-l').value.trim() || null,
-    url_t: document.getElementById('f-url-t').value.trim() || null,
-    url_audio: document.getElementById('f-url-audio').value.trim() || null,
+    urls: document.getElementById('f-url-s').value.trim() || null,
+    urll: document.getElementById('f-url-l').value.trim() || null,
+    urlt: document.getElementById('f-url-t').value.trim() || null,
+    urlaudio: document.getElementById('f-url-audio').value.trim() || null,
     notes: document.getElementById('f-notes').value.trim() || null,
-    last_practice: existing?.lastPractice || null
+    lastpractice: existing?.lastPractice || null
   };
-
-  if (!song.titre) {
-    alert('Le titre est obligatoire.');
-    return;
-  }
-
-  const { error } = await supabaseClient.from('songs').upsert(song);
-  if (error) {
-    console.error('Erreur Supabase songs.upsert', error);
-    alert('Erreur lors de la sauvegarde du morceau. Détail dans la console.');
-    return;
-  }
-
-  await persistSongAssignments(id);
-  await loadData();
-  closeModal();
-}
 
   if (!song.titre) {
     alert('Le titre est obligatoire.');
