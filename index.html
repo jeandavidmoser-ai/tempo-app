@@ -1912,17 +1912,6 @@ async function save(e) {
   closeModal();
 }
 
-  const { error } = await supabaseClient.from('songs').upsert(song);
-  if (error) {
-    console.error('Erreur Supabase songs.upsert', error);
-    alert('Erreur lors de la sauvegarde du morceau. Détail dans la console.');
-    return;
-  }
-
-  await persistSongAssignments(id);
-  await loadData();
-  closeModal();
-}
 document.addEventListener('DOMContentLoaded', async ()=>{
   renderCampfireList();
   setEditabilityState();
