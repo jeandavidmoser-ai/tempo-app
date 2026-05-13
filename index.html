@@ -354,7 +354,26 @@ textarea{resize:vertical;min-height:72px}
       <button class="br" data-admin-only onclick="openModal('new')">+ Ajouter</button>
     </div>
     <div style="padding:14px">
-<div class="filter-row" style="justify-content:space-between;flex-wrap:wrap">
+<div class="filter-row" style="justify-content:space-between;flex-wrap:wrap;align-items:center">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <label class="check-row" style="margin:0">
+      <input type="checkbox" id="filter-my-songs" onchange="renderSongs()" />
+      <span style="font-size:11px">Mes morceaux</span>
+    </label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px">
+      <span>Rôle :</span>
+      <select id="filter-role" onchange="renderSongs()" style="width:auto;min-width:140px;padding:5px 8px;font-size:11px">
+        <option value="">Tous les rôles</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px">
+      <span>Membre :</span>
+      <select id="filter-member" onchange="renderSongs()" style="width:auto;min-width:140px;padding:5px 8px;font-size:11px">
+        <option value="">Tous les membres</option>
+      </select>
+    </div>
+  </div>
+</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <label class="check-row">
       <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
@@ -871,16 +890,16 @@ function getAllowedPages(){return currentRole==='admin'?['home','repertoire','pl
 function applyNavigationVisibility(){const allowed=new Set(getAllowedPages()); document.querySelectorAll('#main-nav [data-page]').forEach(btn=>{const ok=allowed.has(btn.dataset.page); btn.style.display=ok?'':'none';});}
 function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display='none'; const logoutBtn=document.getElementById('btn-logout'); if(logoutBtn) logoutBtn.style.display=authMode==='supabase'?'inline-block':'none'; applyNavigationVisibility(); updateUserBadge();}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
-async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.display_name||data.name||data.nom||email||'user').toLowerCase(); }
+async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); }
 async function initAuth(){ try{ const { data: { session }, error } = await supabaseClient.auth.getSession(); if(error) throw error; if(!session?.user){ authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); openLoginOverlay(); return false; } await hydrateProfileFromSession(session.user); authMode='supabase'; setLoginError(''); closeLoginOverlay(); setEditabilityState(); return true; }catch(err){ console.error('initAuth',err); lastAuthError=err?.message||String(err); authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); setLoginError(lastAuthError); openLoginOverlay(); return false; } }
 async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage(currentRole==='admin'?'home':'repertoire'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
 async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; setEditabilityState(); openLoginOverlay(); showPage('repertoire'); }
-async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||r.display_name||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
+async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
 function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>`${a.member_name} · ${a.role||'rôle'}`).join(' • '); }
 function buildAssignmentsForAllMembers(songId=null){ const existing=songId?getAssignmentsForSong(songId):[]; activeSongAssignments=bandMembers.map(member=>{ const found=existing.find(x=>String(x.band_member_id)===String(member.id)); return { band_member_id:member.id, role:found?.role||'' }; }); }
-function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml((member&&member.name)||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(role=>`<option value="${escapeHtml(role.value)}" ${row.role===role.value?'selected':''}>${escapeHtml(role.label)}</option>`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
+function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml((member&&member.name)||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(role=>`<option value="${escapeHtml(role)}" ${row.role===role?'selected':''}>${escapeHtml(role)}</option>`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
 function addAssignmentRow(){ renderAssignmentsEditor(); }
 function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
 function removeAssignmentRow(idx){ renderAssignmentsEditor(); }
@@ -1673,42 +1692,59 @@ function calcStreak(){
   return streak;
 }
 
+function getSongIdsForMemberAndRole(memberId, roleValue){
+  if(!memberId) return new Set();
+  let filtered = songAssignments.filter(a => String(a.band_member_id) === String(memberId));
+  if(roleValue){
+    filtered = filtered.filter(a => a.role === roleValue);
+  }
+  return new Set(filtered.map(a => a.song_id));
+}
+
+function populateMemberAndRoleFilters(){
+  const roleSelect = document.getElementById('filter-role');
+  const memberSelect = document.getElementById('filter-member');
+  if(roleSelect){
+    // reset, puis options
+    const current = roleSelect.value;
+    roleSelect.innerHTML = '<option value="">Tous les rôles</option>' +
+      BAND_ROLE_OPTIONS.map(r => `<option value="${r.value}">${r.label}</option>`).join('');
+    roleSelect.value = current || '';
+  }
+  if(memberSelect){
+    const current = memberSelect.value;
+    memberSelect.innerHTML = '<option value="">Tous les membres</option>' +
+      bandMembers.map(m => `<option value="${m.id}">${escapeHtml(m.name || 'Membre')}</option>`).join('');
+    memberSelect.value = current || '';
+  }
+}
+
 function renderSongs() {
   const list = document.getElementById('sl');
   const count = document.getElementById('songs-count');
   const totalBox = document.getElementById('songs-duration-total');
   if (!list) return;
 
+  populateMemberAndRoleFilters();
+
   let mine = songs
-    .filter(s => s.user === currentUser)
+    .slice()
     .sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
 
-  const filterPrio = document.getElementById('filter-priority')?.checked;
-  const filterInstGuitare = document.getElementById('filter-inst-guitare')?.checked;
-  const filterInstBasse = document.getElementById('filter-inst-basse')?.checked;
-  const filterInstSans = document.getElementById('filter-inst-sans')?.checked;
-  const filterChantLead = document.getElementById('filter-chant-lead')?.checked;
-  const filterChantCoeur = document.getElementById('filter-chant-coeur')?.checked;
+  const mySongsOnly = document.getElementById('filter-my-songs')?.checked;
+  const roleValue = document.getElementById('filter-role')?.value || '';
+  const memberValue = document.getElementById('filter-member')?.value || '';
 
-  if (filterPrio) {
-    mine = mine.filter(s => s.statut === 'adecouvrir' || s.statut === 'encours');
+  // Détermination du membre cible : soit sélection explicite, soit "moi" si mySongsOnly est coché
+  let targetMemberId = memberValue || null;
+  const me = bandMembers.find(m => (m.name || '').toLowerCase() === (currentUser || '').toLowerCase());
+  if(!targetMemberId && mySongsOnly && me){
+    targetMemberId = me.id;
   }
 
-  const selectedInst = [];
-  if (filterInstGuitare) selectedInst.push('Guitare', 'Guitare acoustique');
-  if (filterInstBasse) selectedInst.push('Basse');
-  if (filterInstSans) selectedInst.push('Sans instrument');
-
-  if (selectedInst.length) {
-    mine = mine.filter(s => selectedInst.includes(s.inst));
-  }
-
-  if (filterChantLead) {
-    mine = mine.filter(s => s.chantLead);
-  }
-
-  if (filterChantCoeur) {
-    mine = mine.filter(s => s.chantCoeur);
+  if(targetMemberId){
+    const ids = getSongIdsForMemberAndRole(targetMemberId, roleValue || null);
+    mine = mine.filter(s => ids.has(s.id));
   }
 
   const totalDurationSeconds = mine.reduce((sum, s) => sum + (parseInt(s.duree, 10) || 0), 0);
@@ -1898,19 +1934,19 @@ async function save(e) {
     titre: document.getElementById('f-titre').value.trim(),
     artiste: document.getElementById('f-artiste').value.trim() || null,
     inst: document.getElementById('f-inst') ? (document.getElementById('f-inst').value || null) : null,
-    chant_lead: document.getElementById('f-chant-lead').checked,
-    chant_coeur: document.getElementById('f-chant-coeur').checked,
+    chantlead: document.getElementById('f-chant-lead').checked,
+    chantcoeur: document.getElementById('f-chant-coeur').checked,
     statut: document.getElementById('f-statut').value || 'adecouvrir',
     diff: parseInt(document.getElementById('f-diff').value || '3', 10),
     bpm: document.getElementById('f-bpm').value ? parseInt(document.getElementById('f-bpm').value, 10) : null,
     duree: parseDurationToSeconds(document.getElementById('f-duree').value),
     ton: document.getElementById('f-ton').value.trim() || null,
-    url_s: document.getElementById('f-url-s').value.trim() || null,
-    url_l: document.getElementById('f-url-l').value.trim() || null,
-    url_t: document.getElementById('f-url-t').value.trim() || null,
-    url_audio: document.getElementById('f-url-audio').value.trim() || null,
+    urls: document.getElementById('f-url-s').value.trim() || null,
+    urll: document.getElementById('f-url-l').value.trim() || null,
+    urlt: document.getElementById('f-url-t').value.trim() || null,
+    urlaudio: document.getElementById('f-url-audio').value.trim() || null,
     notes: document.getElementById('f-notes').value.trim() || null,
-    last_practice: existing?.lastPractice || null
+    lastpractice: existing?.lastPractice || null
   };
 
   if (!song.titre) {
