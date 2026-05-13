@@ -272,19 +272,19 @@ textarea{resize:vertical;min-height:72px}
 <div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
 <div class="logo-sub">Coach · Répétitions · Concerts · Setlists · Feu de camp</div>
 </div>
-<div class="usw" id="user-switcher">
-<button id="bu1" class="on" onclick="switchUser('jd')">JD</button>
-<button id="bu2" onclick="switchUser('stephanie')">Stéphanie</button>
+<div id="session-controls" style="display:flex;align-items:center;gap:8px">
+<button id="btn-logout" class="bo" type="button" onclick="handleLogout()" style="display:none">Déconnexion</button>
+<div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Connexion requise</div>
 </div>
-<div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Mode local</div>
+
 </header>
-<nav>
-<button onclick="showPage('home')">Tableau de bord</button>
-<button onclick="showPage('repertoire')">Répertoire</button>
-<button onclick="showPage('planning')">Planning</button>
-<button onclick="showPage('stats')">Stats</button>
-<button onclick="showPage('concerts')">Concerts</button>
-  <button onclick="showPage('feu-de-camp')">Feu de camp</button>
+<nav id="main-nav">
+<button data-page="home" onclick="showPage('home')">Tableau de bord</button>
+<button data-page="repertoire" onclick="showPage('repertoire')">Répertoire</button>
+<button data-page="planning" onclick="showPage('planning')">Planning</button>
+<button data-page="stats" onclick="showPage('stats')">Stats</button>
+<button data-page="concerts" onclick="showPage('concerts')">Concerts</button>
+<button data-page="feu-de-camp" onclick="showPage('feu-de-camp')">Feu de camp</button>
 </nav>
 
 <div id="page-home" class="page active">
@@ -597,6 +597,32 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
   
+
+<div id="login-overlay" class="ov">
+  <div class="modal" style="max-width:420px">
+    <div class="mh">
+      <div class="mt">Connexion</div>
+    </div>
+    <form id="login-form">
+      <div class="mb">
+        <div style="font-size:12px;color:var(--dim)">Connecte-toi avec ton compte Supabase pour accéder à TEMPO.</div>
+        <div class="fg full">
+          <label>Email</label>
+          <input type="email" id="login-email" autocomplete="username" required>
+        </div>
+        <div class="fg full">
+          <label>Mot de passe</label>
+          <input type="password" id="login-password" autocomplete="current-password" required>
+        </div>
+        <div id="login-error" style="display:none;font-size:12px;color:#ff6b81"></div>
+      </div>
+      <div class="mfoot">
+        <button type="submit" id="login-submit" class="br">Se connecter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div id="ov" class="ov">
   <div class="modal">
     <div class="mh">
@@ -808,11 +834,11 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
 <script>
-var currentUser='jd';
+var currentUser='user';
 let currentProfile=null;
-let currentRole='admin';
-let canEdit=true;
-let authMode='local';
+let currentRole='band_member';
+let canEdit=false;
+let authMode='locked';
 let bandMembers=[];
 let songAssignments=[];
 let activeSongAssignments=[];
@@ -826,7 +852,8 @@ const BAND_ROLE_OPTIONS = [
   {value:'basse', label:'Basse'},
   {value:'accordeon', label:'Accordéon'},
   {value:'batterie', label:'Batterie'}
-];let lastAuthError='';
+];
+let lastAuthError='';
 
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
 const supabaseKey='sb_publishable_5Tp1mJMNq2dMdrAOb6F1sg_GHfrRBYt';
@@ -835,18 +862,25 @@ const supabaseClient=createClient(supabaseUrl,supabaseKey);
 
 function escapeHtml(s){return (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function normalizeText(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
-function roleLabel(role){return role==='admin'?'admin':'lecture seule';}
-function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Mode local', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
-function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display=authMode==='local'?'flex':'none'; updateUserBadge();}
+function roleLabel(role){return role==='admin'?'admin':'membre';}
+function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Connexion requise', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
+function openLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.add('open');}
+function closeLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.remove('open');}
+function setLoginError(message=''){const box=document.getElementById('login-error'); if(!box) return; box.textContent=message||''; box.style.display=message?'block':'none';}
+function getAllowedPages(){return currentRole==='admin'?['home','repertoire','planning','stats','concerts','feu-de-camp']:['repertoire','concerts'];}
+function applyNavigationVisibility(){const allowed=new Set(getAllowedPages()); document.querySelectorAll('#main-nav [data-page]').forEach(btn=>{const ok=allowed.has(btn.dataset.page); btn.style.display=ok?'':'none';});}
+function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display='none'; const logoutBtn=document.getElementById('btn-logout'); if(logoutBtn) logoutBtn.style.display=authMode==='supabase'?'inline-block':'none'; applyNavigationVisibility(); updateUserBadge();}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
-async function initAuth(){ try{ const { data: { session } } = await supabaseClient.auth.getSession(); if(session?.user){ await hydrateProfileFromSession(session.user); authMode='supabase'; } else { authMode='local'; currentRole=(currentUser==='jd'||currentUser==='stephanie')?'admin':'band_member'; } }catch(err){ console.warn('Auth init fallback:',err); lastAuthError=err?.message||String(err); authMode='local'; currentRole='admin'; } setEditabilityState(); }
-async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); let guessed='band_member'; if(email.includes('jd')||email.includes('jer')||email.includes('steph')) guessed='admin'; try{ const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(data){ currentRole=data.role||guessed; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); } else { currentRole=guessed; currentUser=email||'user'; } }catch(err){ console.warn('Profile fallback:',err); currentRole=guessed; currentUser=email||'user'; } }
+async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('id, role, username, display_name, full_name').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); }
+async function initAuth(){ try{ const { data: { session }, error } = await supabaseClient.auth.getSession(); if(error) throw error; if(!session?.user){ authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); openLoginOverlay(); return false; } await hydrateProfileFromSession(session.user); authMode='supabase'; setLoginError(''); closeLoginOverlay(); setEditabilityState(); return true; }catch(err){ console.error('initAuth',err); lastAuthError=err?.message||String(err); authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); setLoginError(lastAuthError); openLoginOverlay(); return false; } }
+async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage(currentRole==='admin'?'home':'repertoire'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
+async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; setEditabilityState(); openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
 function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>`${a.member_name} · ${a.role||'rôle'}`).join(' • '); }
 function buildAssignmentsForAllMembers(songId=null){ const existing=songId?getAssignmentsForSong(songId):[]; activeSongAssignments=bandMembers.map(member=>{ const found=existing.find(x=>String(x.band_member_id)===String(member.id)); return { band_member_id:member.id, role:found?.role||'' }; }); }
-function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml(member?.name||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(option=>`<option value="${escapeHtml(option.value)}" ${row.role===option.value?'selected':''}>${escapeHtml(option.label)}</option>`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
+function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ box.innerHTML='<div class="empty-hist">Lecture seule.</div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml(member?.name||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(role=>`<option value="${escapeHtml(role)}" ${row.role===role?'selected':''}>${escapeHtml(role)}</option>`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
 function addAssignmentRow(){ renderAssignmentsEditor(); }
 function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
 function removeAssignmentRow(idx){ renderAssignmentsEditor(); }
@@ -860,21 +894,18 @@ async function persistSongAssignments(songId){
 
     if(activeSongAssignments.length){
       const payload = activeSongAssignments
-        .filter(x => x.band_member_id && x.role)
+        .filter(x => x.band_member_id)
         .map(x => ({
           song_id: songId,
           band_member_id: x.band_member_id,
-          role: x.role
+          role: x.role || null
         }));
 
-      if(payload.length){
-        const { error } = await supabaseClient
-          .from('song_assignments')
-          .insert(payload);
+      const { error } = await supabaseClient
+        .from('song_assignments')
+        .insert(payload);
 
-        if(error) throw error;
-      }
-
+      if(error) throw error;
     }
 
     await loadSongAssignments();
@@ -1101,8 +1132,11 @@ function formatDurationLong(value){
   return `${hours} heure${hours>1?'s':''}, ${minutes} minute${minutes>1?'s':''}, ${seconds} seconde${seconds>1?'s':''}`;
 }
 
-async function loadData(){
-  await initAuth();
+async function loadData(skipAuth=false){
+  if(!skipAuth){
+    const ok = await initAuth();
+    if(!ok) return false;
+  }
   await Promise.all([loadBandMembers(), loadSongAssignments()]);
   const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
@@ -1178,6 +1212,7 @@ async function loadData(){
   renderPlanning();
   renderStatsPage();
   renderConcerts();
+  return true;
 }
 
 function searchYoutube() {
@@ -1220,18 +1255,20 @@ function switchUser(u){ if(authMode==='supabase') return;
   renderPlanning();
   renderStatsPage();
   renderConcerts();
+  return true;
 }
 
 function showPage(id){
+  const allowed=getAllowedPages();
+  if(!allowed.includes(id)) id=allowed[0]||'repertoire';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
 
   const page=document.getElementById('page-'+id);
   if(page) page.classList.add('active');
 
-  const idx={home:0,repertoire:1,planning:2,stats:3,concerts:4,'feu-de-camp':5}[id];
-  const navButtons=document.querySelectorAll('nav button');
-  if(idx!==undefined && navButtons[idx]) navButtons[idx].classList.add('active');
+  const activeBtn=document.querySelector('#main-nav [data-page="'+id+'"]');
+  if(activeBtn) activeBtn.classList.add('active');
 
   if(id==='repertoire') renderSongs();
   if(id==='planning') renderPlanning();
@@ -1243,36 +1280,10 @@ function showPage(id){
   }
 }
 
-
-function normalizeSongStatut(statut){
-  const value=(statut||'').toString().trim().toLowerCase();
-  if(value==='en_cours') return 'encours';
-  if(value==='a_decouvrir') return 'adecouvrir';
-  return value;
-}
-function songAssignmentsForCurrentUser(songId){
-  return getAssignmentsForSong(songId).filter(a=>normalizeText(a.memberName)===normalizeText(currentUser));
-}
-function isSongForCurrentUser(song){
-  return !!song && song.user===currentUser;
-}
-function isSongPlayedByCurrentUser(song){
-  if(!isSongForCurrentUser(song)) return false;
-  const assigned=songAssignmentsForCurrentUser(song.id);
-  if(assigned.length) return assigned.some(a=>!!a.role);
-  return song.playedByMe!==false;
-}
-function getSongsForCurrentUser(){
-  return songs.filter(isSongForCurrentUser);
-}
-function getPlayableSongsForCurrentUser(){
-  return getSongsForCurrentUser().filter(isSongPlayedByCurrentUser);
-}
-
 function renderStats(){
-  const mine=getPlayableSongsForCurrentUser();
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
   document.getElementById('stat-count').textContent=mine.length;
-  const prio=mine.filter(s=>normalizeSongStatut(s.statut)==='encours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
+  const prio=mine.filter(s=>s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
   document.getElementById('stat-p').textContent=prio?prio.titre:'—';
   const streak=calcStreak();
   document.getElementById('stat-streak').textContent=streak+'🔥';
@@ -1285,7 +1296,7 @@ function renderStats(){
 }
 
 function renderPriorityList(){
-  const mine=getPlayableSongsForCurrentUser().filter(s=>normalizeSongStatut(s.statut)==='encours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1).slice(0,5);
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false&&s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1).slice(0,5);
   const html=mine.length?mine.map(s=>{
     const hasVideos=!!(s.urlS||s.urlL||s.urlT);
     return `<div class="prio-item" onclick="openModal('${s.id}')">
@@ -1668,7 +1679,8 @@ function renderSongs() {
   const totalBox = document.getElementById('songs-duration-total');
   if (!list) return;
 
-  let mine = getSongsForCurrentUser()
+  let mine = songs
+    .filter(s => s.user === currentUser)
     .sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
 
   const filterPrio = document.getElementById('filter-priority')?.checked;
@@ -1677,16 +1689,9 @@ function renderSongs() {
   const filterInstSans = document.getElementById('filter-inst-sans')?.checked;
   const filterChantLead = document.getElementById('filter-chant-lead')?.checked;
   const filterChantCoeur = document.getElementById('filter-chant-coeur')?.checked;
-  const filterParticipation = document.getElementById('filter-participation')?.value || 'mine';
 
   if (filterPrio) {
-    mine = mine.filter(s => ['adecouvrir', 'encours'].includes(normalizeSongStatut(s.statut)));
-  }
-
-  if (filterParticipation === 'mine') {
-    mine = mine.filter(isSongPlayedByCurrentUser);
-  } else if (filterParticipation === 'not_played') {
-    mine = mine.filter(s => !isSongPlayedByCurrentUser(s));
+    mine = mine.filter(s => s.statut === 'adecouvrir' || s.statut === 'encours');
   }
 
   const selectedInst = [];
@@ -1893,19 +1898,19 @@ async function save(e) {
     titre: document.getElementById('f-titre').value.trim(),
     artiste: document.getElementById('f-artiste').value.trim() || null,
     inst: document.getElementById('f-inst') ? (document.getElementById('f-inst').value || null) : null,
-    chant_lead: document.getElementById('f-chant-lead').checked,
-    chant_coeur: document.getElementById('f-chant-coeur').checked,
+    chantlead: document.getElementById('f-chant-lead').checked,
+    chantcoeur: document.getElementById('f-chant-coeur').checked,
     statut: document.getElementById('f-statut').value || 'adecouvrir',
     diff: parseInt(document.getElementById('f-diff').value || '3', 10),
     bpm: document.getElementById('f-bpm').value ? parseInt(document.getElementById('f-bpm').value, 10) : null,
     duree: parseDurationToSeconds(document.getElementById('f-duree').value),
     ton: document.getElementById('f-ton').value.trim() || null,
-    url_s: document.getElementById('f-url-s').value.trim() || null,
-    url_l: document.getElementById('f-url-l').value.trim() || null,
-    url_t: document.getElementById('f-url-t').value.trim() || null,
-    url_audio: document.getElementById('f-url-audio').value.trim() || null,
+    urls: document.getElementById('f-url-s').value.trim() || null,
+    urll: document.getElementById('f-url-l').value.trim() || null,
+    urlt: document.getElementById('f-url-t').value.trim() || null,
+    urlaudio: document.getElementById('f-url-audio').value.trim() || null,
     notes: document.getElementById('f-notes').value.trim() || null,
-    last_practice: existing?.lastPractice || null
+    lastpractice: existing?.lastPractice || null
   };
 
   if (!song.titre) {
@@ -1924,20 +1929,28 @@ async function save(e) {
   await loadData();
   closeModal();
 }
-document.addEventListener('DOMContentLoaded',()=>{loadData();renderCampfireList();setEditabilityState();});
+document.addEventListener('DOMContentLoaded', async ()=>{
+  renderCampfireList();
+  setEditabilityState();
+  const form=document.getElementById('login-form');
+  if(form) form.addEventListener('submit', handleLogin);
+  const ok = await loadData();
+  if(ok) showPage(currentRole==='admin'?'home':'repertoire');
+});
 
 function askCoach(){
   const q=document.getElementById('agent-in').value.trim();
   if(!q)return;
-  const mine=getPlayableSongsForCurrentUser();
-  const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${normalizeSongStatut(s.statut) || 'sans statut'})`).join(', ')}. `:'';
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
   window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
   document.getElementById('agent-in').value='';
 }
 
 function startSession(){
   const select=document.getElementById('start-song');
-  const mine=getPlayableSongsForCurrentUser()
+  const mine=songs
+    .filter(s=>s.user===currentUser&&s.playedByMe!==false)
     .sort((a,b)=>a.titre.localeCompare(b.titre,'fr'));
 
   select.innerHTML='<option value="">— Sélectionner —</option>' + 
@@ -2043,7 +2056,7 @@ function openStopModal(){
   const mins=Math.round(timerSeconds/60);
   document.getElementById('log-duration-info').textContent=`Durée totale: ${mins} min (${timerBlocks} blocs)`;
   const select=document.getElementById('log-song');
-  const mine=getPlayableSongsForCurrentUser();
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
   select.innerHTML='<option value="">— Sélectionner —</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
 select.value=currentSessionSongId||'';
   document.getElementById('ov-log').classList.add('open');
@@ -2097,9 +2110,9 @@ function renderPlanning(){
   const today=new Date();
   const dow=today.getDay()===0?6:today.getDay()-1;
   const monday=new Date(today);monday.setDate(today.getDate()-dow);
-  const mine=getPlayableSongsForCurrentUser();
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
   if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
-  const sorted=[...mine].sort((a,b)=>{const o={encours:0,adecouvrir:1,acquis:2,maitrise:3};return (o[normalizeSongStatut(a.statut)]||0)-(o[normalizeSongStatut(b.statut)]||0);});
+  const sorted=[...mine].sort((a,b)=>{const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};return (o[a.statut]||0)-(o[b.statut]||0);});
   grid.innerHTML=days.map((day,i)=>{
     const d=new Date(monday);d.setDate(monday.getDate()+i);
     const key=d.toISOString().split('T')[0];
@@ -2135,7 +2148,7 @@ async function markSkip(key,songId){
 }
 
 function renderStatsPage(){
-  const mine=getPlayableSongsForCurrentUser();
+  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
   const now=new Date();
   const month=now.toISOString().substring(0,7);
   const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
@@ -2189,7 +2202,6 @@ function renderStatsPage(){
 </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:20px">Aucune donnée BPM</div>';
 }
 
-loadData().then(()=>showPage('home'));
 </script>
 </body>
 </html>
