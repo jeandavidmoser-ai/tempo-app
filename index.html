@@ -1281,7 +1281,7 @@ function showPage(id){
 }
 
 function renderStats(){
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=songs.filter(s=>s.user===currentUser);
   document.getElementById('stat-count').textContent=mine.length;
   const prio=mine.filter(s=>s.statut==='en_cours').sort((a,b)=>(a.lastPractice||'')>(b.lastPractice||'')?1:-1)[0];
   document.getElementById('stat-p').textContent=prio?prio.titre:'—';
@@ -1941,7 +1941,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 function askCoach(){
   const q=document.getElementById('agent-in').value.trim();
   if(!q)return;
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=songs.filter(s=>s.user===currentUser);
   const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
   window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
   document.getElementById('agent-in').value='';
@@ -2056,7 +2056,7 @@ function openStopModal(){
   const mins=Math.round(timerSeconds/60);
   document.getElementById('log-duration-info').textContent=`Durée totale: ${mins} min (${timerBlocks} blocs)`;
   const select=document.getElementById('log-song');
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=songs.filter(s=>s.user===currentUser);
   select.innerHTML='<option value="">— Sélectionner —</option>'+mine.map(s=>`<option value="${s.id}">${s.titre}</option>`).join('');
 select.value=currentSessionSongId||'';
   document.getElementById('ov-log').classList.add('open');
@@ -2110,7 +2110,7 @@ function renderPlanning(){
   const today=new Date();
   const dow=today.getDay()===0?6:today.getDay()-1;
   const monday=new Date(today);monday.setDate(today.getDate()-dow);
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=songs.filter(s=>s.user===currentUser);
   if(!mine.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Ajoute des morceaux pour générer un planning.</p>';return;}
   const sorted=[...mine].sort((a,b)=>{const o={en_cours:0,a_decouvrir:1,acquis:2,maitrise:3};return (o[a.statut]||0)-(o[b.statut]||0);});
   grid.innerHTML=days.map((day,i)=>{
@@ -2148,7 +2148,7 @@ async function markSkip(key,songId){
 }
 
 function renderStatsPage(){
-  const mine=songs.filter(s=>s.user===currentUser&&s.playedByMe!==false);
+  const mine=songs.filter(s=>s.user===currentUser);
   const now=new Date();
   const month=now.toISOString().substring(0,7);
   const monthLogs=logs.filter(l=>l.user===currentUser&&l.date.startsWith(month));
