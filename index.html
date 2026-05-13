@@ -354,48 +354,30 @@ textarea{resize:vertical;min-height:72px}
       <button class="br" data-admin-only onclick="openModal('new')">+ Ajouter</button>
     </div>
     <div style="padding:14px">
-<div class="filter-row" style="justify-content:space-between;flex-wrap:wrap">
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <label class="check-row">
-      <input type="checkbox" id="filter-ba" checked onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Broken Arms</span>
+<div class="filter-row" style="justify-content:space-between;flex-wrap:wrap;align-items:center">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <label class="check-row" style="margin:0">
+      <input type="checkbox" id="filter-my-songs" onchange="renderSongs()" />
+      <span style="font-size:11px">Mes morceaux</span>
     </label>
 
-    <label class="check-row">
-      <input type="checkbox" id="filter-masch" onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Masch</span>
-    </label>
+    <select
+      id="filter-role"
+      onchange="renderSongs()"
+      style="width:auto;min-width:140px;padding:5px 8px;font-size:11px"
+    >
+      <option value="">Tous les rôles</option>
+    </select>
 
-    <label class="check-row">
-      <input type="checkbox" id="filter-priority" onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Priorité</span>
-    </label>
-
-    <label class="check-row">
-      <input type="checkbox" id="filter-inst-guitare" onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Guitare</span>
-    </label>
-
-    <label class="check-row">
-      <input type="checkbox" id="filter-inst-basse" onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Basse</span>
-    </label>
-
-    <label class="check-row">
-      <input type="checkbox" id="filter-inst-sans" onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Sans instrument</span>
-    </label>
-
-    <label class="check-row">
-      <input type="checkbox" id="filter-chant-lead" onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Chant lead</span>
-    </label>
-
-    <label class="check-row">
-      <input type="checkbox" id="filter-chant-coeur" onchange="renderSongs()" style="width:auto;margin:0">
-      <span style="font-size:11px">Chant cœur</span>
-    </label>
+    <select
+      id="filter-member"
+      onchange="renderSongs()"
+      style="width:auto;min-width:140px;padding:5px 8px;font-size:11px"
+    >
+      <option value="">Tous les membres</option>
+    </select>
   </div>
+</div>
 
   <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
     <select id="filter-participation" onchange="renderSongs()" style="width:auto;min-width:170px;padding:5px 8px;font-size:11px">
