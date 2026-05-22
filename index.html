@@ -1764,13 +1764,23 @@ function openModal(id) {
   document.getElementById('mt').textContent = 'Nouveau morceau';
   switchModalTab('fiche');
 
+  const isAdminView = currentUser === 'jd';
+
+  const adminOnlyFields = [
+    'fg-inst',
+    'fg-chant',
+    'fg-statut',
+    'fg-diff'
+  ];
+
+  adminOnlyFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdminView ? 'flex' : 'none';
+  });
+
   activeSongAssignments = [];
   buildAssignmentsForAllMembers();
   renderAssignmentsEditor();
-
-  if (document.getElementById('fg-inst')) {
-    document.getElementById('fg-inst').style.display = currentUser === 'stephanie' ? 'none' : 'flex';
-  }
 
   if (id !== 'new') {
     const s = songs.find(x => x.id === id);
@@ -1796,18 +1806,54 @@ function openModal(id) {
     buildAssignmentsForAllMembers(s.id);
     renderAssignmentsEditor();
 
-    document.getElementById('btn-del').style.display = 'inline-block';
-    document.getElementById('mt').textContent = 'Modifier le morceau';
+    document.getElementById('btn-del').style.display = isAdminView ? 'inline-block' : 'none';
+    document.getElementById('mt').textContent = isAdminView ? 'Modifier le morceau' : 'Fiche morceau';
 
     renderHistorique(s.id);
     renderVideos(s);
   } else {
+    document.getElementById('btn-del').style.display = 'none';
+    document.getElementById('mt').textContent = isAdminView ? 'Nouveau morceau' : 'Fiche morceau';
     renderHistorique(null);
     renderVideos(null);
   }
 }
 function closeModal(){document.getElementById('ov').classList.remove('open');}
 
+async function del() {
+  const id = document.getElementById('f-id')?.value;
+  if (!id) return;
+
+  const ok = confirm('Supprimer définitivement ce morceau ?');
+  if (!ok) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('songs')
+      .delete()
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+
+    if (!data || !data.length) {
+      alert("Suppression impossible : aucun morceau supprimé.");
+      return;
+    }
+
+    songs = songs.filter(s => s.id !== id);
+
+    closeModal();
+    renderSongs();
+
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof renderConcertSongs === 'function') renderConcertSongs();
+  } catch (err) {
+    console.error('Erreur suppression morceau:', err);
+    alert(`Erreur suppression : ${err.message || err}`);
+  }
+}
+  
 function switchModalTab(tab){
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
