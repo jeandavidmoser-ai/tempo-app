@@ -1662,35 +1662,42 @@ function renderSongs() {
   const totalBox = document.getElementById('songs-duration-total');
   if (!list) return;
 
-let mine = [...songs]
-  .sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
+  let mine = [...songs].sort((a, b) => (a.titre || '').localeCompare(b.titre || '', 'fr'));
 
-  const filterPrio = document.getElementById('filter-priority')?.checked;
-  const filterInstGuitare = document.getElementById('filter-inst-guitare')?.checked;
-  const filterInstBasse = document.getElementById('filter-inst-basse')?.checked;
-  const filterInstSans = document.getElementById('filter-inst-sans')?.checked;
-  const filterChantLead = document.getElementById('filter-chant-lead')?.checked;
-  const filterChantCoeur = document.getElementById('filter-chant-coeur')?.checked;
+  const filterMySongs = document.getElementById('filter-my-songs')?.checked;
+  const filterRole = document.getElementById('filter-role')?.value || '';
+  const filterMember = document.getElementById('filter-member')?.value || '';
 
-  if (filterPrio) {
-    mine = mine.filter(s => s.statut === 'adecouvrir' || s.statut === 'encours');
+  if (filterMySongs) {
+    const me = bandMembers.find(m => normalizeText(m.name) === normalizeText(currentUser));
+    if (me) {
+      const mySongIds = new Set(
+        songAssignments
+          .filter(a => String(a.band_member_id) === String(me.id))
+          .map(a => String(a.song_id))
+      );
+      mine = mine.filter(s => mySongIds.has(String(s.id)));
+    } else {
+      mine = [];
+    }
   }
 
-  const selectedInst = [];
-  if (filterInstGuitare) selectedInst.push('Guitare', 'Guitare acoustique');
-  if (filterInstBasse) selectedInst.push('Basse');
-  if (filterInstSans) selectedInst.push('Sans instrument');
-
-  if (selectedInst.length) {
-    mine = mine.filter(s => selectedInst.includes(s.inst));
+  if (filterRole) {
+    const songIdsWithRole = new Set(
+      songAssignments
+        .filter(a => a.role === filterRole)
+        .map(a => String(a.song_id))
+    );
+    mine = mine.filter(s => songIdsWithRole.has(String(s.id)));
   }
 
-  if (filterChantLead) {
-    mine = mine.filter(s => s.chantLead);
-  }
-
-  if (filterChantCoeur) {
-    mine = mine.filter(s => s.chantCoeur);
+  if (filterMember) {
+    const songIdsForMember = new Set(
+      songAssignments
+        .filter(a => String(a.band_member_id) === String(filterMember))
+        .map(a => String(a.song_id))
+    );
+    mine = mine.filter(s => songIdsForMember.has(String(s.id)));
   }
 
   const totalDurationSeconds = mine.reduce((sum, s) => sum + (parseInt(s.duree, 10) || 0), 0);
