@@ -1735,7 +1735,7 @@ let mine = [...songs]
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
-            <span class="badge ${colors[s.statut] || 'b0'}">${labels[s.statut] || s.statut || ''}</span>
+                      ${canEdit ? `<span class="badge ${colors[s.statut] || 'b0'}">${labels[s.statut] || s.statut || ''}</span>` : ''}
           </div>
         </div>
         ${s.urlAudio ? `
