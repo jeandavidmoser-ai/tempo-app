@@ -1122,7 +1122,7 @@ async function loadData(skipAuth=false){
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
   if(s)songs=s.map(r=>({
     id:r.id,
-    user:r.user||'jd',
+    user:r.user||'',
     titre:r.titre,
     artiste:r.artiste,
     inst:r.inst,
@@ -1143,9 +1143,9 @@ async function loadData(skipAuth=false){
   }));
   songs=songs.map(song=>({ ...song, assignmentSummary: assignmentsSummary(song.id) }));
   const { data: ss } = await supabaseClient.from('tempo_sessions').select('*');
-  if(ss)sessions=ss.map(r=>({user:r.user||'jd',date:r.date,duration:r.duration,blocks:r.blocks}));
+  if(ss)sessions=ss.map(r=>({user:r.user||'',date:r.date,duration:r.duration,blocks:r.blocks}));
   const { data: l } = await supabaseClient.from('tempo_logs').select('*');
-  if(l)logs=l.map(r=>({id:r.id,user:r.user||'jd',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
+  if(l)logs=l.map(r=>({id:r.id,user:r.user||'',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
   const { data: p } = await supabaseClient.from('tempo_planning').select('*');
   if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
   const { data: c, error: concertsError } = await supabaseClient.from('concerts').select('*').order('date',{ascending:true}).order('heure_debut',{ascending:true});
@@ -1713,7 +1713,7 @@ let mine = [...songs]
     const artistText = s.artiste || '';
     const meta = [];
 
-    if (currentUser === 'jd') {
+    if (canEdit) {
       meta.push(`<span class="song-chip inst">${escapeHtml(s.inst || 'Sans instrument')}</span>`);
     } else if (s.inst) {
       meta.push(`<span class="song-chip inst">${escapeHtml(s.inst)}</span>`);
@@ -1764,7 +1764,7 @@ function openModal(id) {
   document.getElementById('mt').textContent = 'Nouveau morceau';
   switchModalTab('fiche');
 
-  const isAdminView = currentUser === 'jd';
+  const isAdminView = canEdit;
 
   const adminOnlyFields = [
     'fg-inst',
