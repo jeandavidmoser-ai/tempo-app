@@ -1718,6 +1718,7 @@ let mine = [...songs]
 
     if (canEdit) {
       meta.push(`<span class="song-chip inst">${escapeHtml(s.inst || 'Sans instrument')}</span>`);
+              }
     
     if (s.assignmentSummary) meta.push(`<span class="song-chip">${escapeHtml(s.assignmentSummary)}</span>`);
     if (s.duree) meta.push(`<span class="song-chip duration">${formatDuration(s.duree)}</span>`);
