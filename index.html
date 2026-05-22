@@ -1659,9 +1659,8 @@ function renderSongs() {
   const totalBox = document.getElementById('songs-duration-total');
   if (!list) return;
 
-  let mine = songs
-    .filter(s => s.user === currentUser)
-    .sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
+let mine = [...songs]
+  .sort((a, b) => a.titre.localeCompare(b.titre, 'fr'));
 
   const filterPrio = document.getElementById('filter-priority')?.checked;
   const filterInstGuitare = document.getElementById('filter-inst-guitare')?.checked;
