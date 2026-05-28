@@ -518,7 +518,7 @@ textarea{resize:vertical;min-height:72px}
         <div class="campfire-side">
           <div class="campfire-head">
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="br" onclick="document.getElementById('campfire-file').click()">Charger le PDF</button>
+              <button class="br" data-admin-only onclick="document.getElementById('campfire-file').click()">Charger le PDF</button>
               <input id="campfire-file" type="file" accept="application/pdf" style="display:none" onchange="campfireHandleFile(event)">
             </div>
             <input id="campfire-search" class="campfire-search" type="text" placeholder="Rechercher un titre ou un artiste" oninput="renderCampfireList()">
@@ -849,7 +849,7 @@ function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée 
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); }
 async function initAuth(){ try{ const { data: { session }, error } = await supabaseClient.auth.getSession(); if(error) throw error; if(!session?.user){ authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); openLoginOverlay(); return false; } await hydrateProfileFromSession(session.user); authMode='supabase'; setLoginError(''); closeLoginOverlay(); setEditabilityState(); return true; }catch(err){ console.error('initAuth',err); lastAuthError=err?.message||String(err); authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); setLoginError(lastAuthError); openLoginOverlay(); return false; } }
 async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage(currentRole==='admin'?'home':'repertoire'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
-async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; setEditabilityState(); openLoginOverlay(); showPage('repertoire'); }
+async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
@@ -898,6 +898,9 @@ async function persistSongAssignments(songId){
 let songs=[],sessions=[],logs=[],planning={},concerts=[],concertSetlist=[];
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null
 let campfirePdfBytes=null,campfirePdfName='',campfirePdfDoc=null,campfireSongs=[],campfireFilteredSongs=[],campfireSelectedIndex=-1,campfireObjectUrl=null
+let campfireStorageAttempted=false
+const CAMPFIRE_STORAGE_BUCKET='tempo-songbook'
+const CAMPFIRE_STORAGE_PATH='songbook.pdf'
 const CAMPFIRE_FALLBACK_SONGS=[
   {title:'Sarbacane',artist:'Francis Cabrel',page:1},
   {title:'Corrida',artist:'Francis Cabrel',page:2},
@@ -925,6 +928,52 @@ function campfireParseHeader(text,pageNumber){
   }
   return {title:title||('Page '+pageNumber),artist,page:pageNumber};
 }
+async function uploadCampfirePdfToStorage(file){
+  if(!canEdit) return false;
+  try{
+    const { error } = await supabaseClient.storage
+      .from(CAMPFIRE_STORAGE_BUCKET)
+      .upload(CAMPFIRE_STORAGE_PATH, file, { upsert: true, contentType: 'application/pdf' });
+    if(error) throw error;
+    return true;
+  }catch(err){
+    console.error('uploadCampfirePdfToStorage', err);
+    alert('PDF chargé localement, mais non sauvegardé sur le serveur :\n' + (err?.message || err));
+    return false;
+  }
+}
+
+async function loadCampfirePdfFromStorage(){
+  if(authMode !== 'supabase') return;
+  if(campfirePdfDoc) return;
+  campfireStorageAttempted = true;
+
+  const status = document.getElementById('campfire-status');
+  if(status){
+    status.style.display='block';
+    status.textContent='Récupération du songbook depuis le serveur...';
+  }
+
+  try{
+    const { data, error } = await supabaseClient.storage
+      .from(CAMPFIRE_STORAGE_BUCKET)
+      .download(CAMPFIRE_STORAGE_PATH);
+    if(error){
+      console.log('Pas encore de songbook sur le serveur:', error.message);
+      if(status) status.style.display='none';
+      return;
+    }
+    const file = new File([data], CAMPFIRE_STORAGE_PATH, { type: 'application/pdf' });
+    campfirePdfName = CAMPFIRE_STORAGE_PATH;
+    const nameBox = document.getElementById('campfire-file-name');
+    if(nameBox) nameBox.textContent = CAMPFIRE_STORAGE_PATH + ' (serveur)';
+    await processCampfirePdfFile(file);
+  }catch(err){
+    console.warn('loadCampfirePdfFromStorage', err);
+    if(status) status.style.display='none';
+  }
+}
+
 async function campfireHandleFile(event){
   const file=event.target.files&&event.target.files[0];
   if(!file)return;
@@ -932,6 +981,19 @@ async function campfireHandleFile(event){
   campfirePdfName=file.name;
   document.getElementById('campfire-file-name').textContent=file.name;
 
+  if(canEdit){
+    const status=document.getElementById('campfire-status');
+    if(status){
+      status.style.display='block';
+      status.textContent='Envoi du songbook vers le serveur...';
+    }
+    await uploadCampfirePdfToStorage(file);
+  }
+
+  await processCampfirePdfFile(file);
+}
+
+async function processCampfirePdfFile(file){
   const status=document.getElementById('campfire-status');
   const empty=document.getElementById('campfire-empty');
   const canvas=document.getElementById('campfire-canvas');
@@ -1259,8 +1321,12 @@ function showPage(id){
   if(id==='home') renderStats();
   if(id==='stats') renderStatsPage();
   if(id==='concerts') renderConcerts();
-  if(id==='feu-de-camp' && campfireSelectedIndex>=0) {
-    renderCampfirePage(campfireSongs[campfireSelectedIndex].page);
+  if(id==='feu-de-camp') {
+    if(!campfireStorageAttempted && !campfirePdfDoc){
+      loadCampfirePdfFromStorage();
+    } else if(campfireSelectedIndex>=0) {
+      renderCampfirePage(campfireSongs[campfireSelectedIndex].page);
+    }
   }
 }
 
