@@ -233,7 +233,35 @@ textarea{resize:vertical;min-height:72px}
 .concert-card-setlist-details[open] > summary{margin-bottom:10px}
 .concert-card-setlist{display:grid;grid-template-columns:1fr 1fr;gap:22px}
 .concert-card-setlist.single{display:block}
-@media(max-width:768px){.concert-card-setlist{grid-template-columns:1fr}}
+@media(max-width:768px){
+  .concert-card-setlist{grid-template-columns:1fr;gap:12px}
+  .concert-item{padding:10px 10px}
+  .concert-title{font-size:15px}
+  .concert-summary{font-size:12px;gap:6px}
+  .concert-actions{gap:4px;flex-wrap:wrap;justify-content:flex-end}
+  .concert-actions button{padding:4px 7px;font-size:9px}
+  .concert-card-partie{padding:8px 10px}
+  .concert-card-partie-title{font-size:10px}
+  .concert-card-partie-total{font-size:9px}
+  .concert-card-song{padding:6px 0}
+  .concert-card-song-head{gap:6px;font-size:11px}
+  .cs-order{min-width:20px;font-size:10px}
+  .cs-title{font-size:12px}
+  .cs-title small{display:none}
+  .cs-dur{font-size:10px}
+  .cs-moves{margin-left:6px;gap:1px}
+  .cs-moves button{padding:1px 4px;font-size:10px;min-width:18px}
+  .cs-switch{font-size:10px;padding:1px 4px}
+  .concert-card-song-affs{padding-left:22px;font-size:9.5px;line-height:1.4}
+  .concert-card-grandtotal{padding:8px 10px;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .concert-card-grandtotal-label{font-size:9px;letter-spacing:.1em}
+  .concert-card-grandtotal-value{font-size:11px}
+  .setlist-toolbar button{font-size:9px;padding:3px 8px}
+}
+@media(max-width:480px){
+  .concert-item-head{flex-direction:column;gap:6px}
+  .concert-actions{align-self:flex-end}
+}
 .concert-card-song-affs{display:none}
 .concert-card-setlist.show-affs .concert-card-song-affs{display:block}
 .setlist-toolbar{display:flex;justify-content:flex-end;margin-bottom:8px}
@@ -1032,7 +1060,7 @@ const supabaseClient=createClient(supabaseUrl,supabaseKey);
 function escapeHtml(s){return (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function normalizeText(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
 function roleLabel(role){return role==='admin'?'admin':'membre';}
-function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; const parts=[authMode==='supabase'?'Supabase':'Connexion requise', currentUser||'—', roleLabel(currentRole)]; el.textContent=parts.join(' · ');}
+function updateUserBadge(){const el=document.getElementById('user-badge'); if(!el) return; if(authMode!=='supabase'){ el.textContent='Connexion requise'; return; } let display=currentUser||'—'; if(currentMemberId){ const m=bandMembers.find(x=>x.id===currentMemberId); if(m) display=m.name; } el.textContent=display;}
 function openLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.add('open');}
 function closeLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.remove('open');}
 function setLoginError(message=''){const box=document.getElementById('login-error'); if(!box) return; box.textContent=message||''; box.style.display=message?'block':'none';}
