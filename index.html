@@ -262,6 +262,47 @@ textarea{resize:vertical;min-height:72px}
 .repet-list .concert-summary-date{color:#aecadf}
 .repet-card .ch{border-bottom-color:rgba(74,144,200,0.3)}
 .repet-card .cl{color:#aecadf}
+#next-events-banner{max-width:1100px;margin:14px auto 0;padding:0 24px;display:flex;gap:12px;flex-wrap:wrap}
+#next-events-banner:empty{display:none}
+.next-event{flex:1;min-width:240px;display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s}
+.next-event:hover{border-color:#3d3d3d;transform:translateY(-1px)}
+.next-event.is-concert{border-left:3px solid #c8a84b;background:linear-gradient(90deg,rgba(200,168,75,0.08),var(--bg2))}
+.next-event.is-repet{border-left:3px solid #4a90c8;background:linear-gradient(90deg,rgba(74,144,200,0.08),var(--bg2))}
+.next-event.is-empty{opacity:.55;cursor:default;border-left-color:var(--muted)}
+.next-event.is-empty:hover{transform:none;border-color:var(--border)}
+.next-event-icon{font-size:22px;line-height:1;flex-shrink:0}
+.next-event-body{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.next-event-label{font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.next-event-date{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text);text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.next-event-meta{font-size:11px;color:var(--dim);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.next-event-countdown{font-family:'Oswald',sans-serif;font-size:11px;color:var(--gold);background:rgba(200,168,75,0.1);padding:3px 8px;border-radius:4px;flex-shrink:0;letter-spacing:.04em}
+.next-event.is-repet .next-event-countdown{color:#aecadf;background:rgba(74,144,200,0.12)}
+.next-event.is-imminent .next-event-countdown{color:#fff;background:var(--accent)}
+.agenda-nav{display:flex;align-items:center;gap:6px}
+.agenda-nav-btn{background:var(--bg2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
+.agenda-nav-btn:hover{border-color:var(--gold);color:var(--gold)}
+.agenda-title{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text);text-transform:capitalize;letter-spacing:.06em;min-width:140px;text-align:center}
+.agenda-legend{display:flex;gap:18px;font-size:11px;color:var(--dim);margin-bottom:12px;padding:6px 2px}
+.agenda-legend-dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.agenda-legend-dot.concert{background:#c8a84b}
+.agenda-legend-dot.repet{background:#4a90c8}
+.agenda-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.agenda-day-header{background:var(--bg3);padding:8px 4px;text-align:center;color:var(--dim);font-size:10px;font-family:'Oswald',sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.agenda-day{background:var(--bg2);padding:8px;min-height:120px;display:flex;flex-direction:column;gap:4px;cursor:default;position:relative}
+.agenda-day.other-month{background:#0a0a0a;opacity:.55}
+.agenda-day.today{background:rgba(200,168,75,.08);box-shadow:inset 0 0 0 2px rgba(200,168,75,.55)}
+.agenda-day-num{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text);margin-bottom:4px;font-weight:600}
+.agenda-day.today .agenda-day-num{color:var(--gold);font-weight:700;font-size:15px}
+.agenda-event{font-size:11px;padding:5px 8px;border-radius:4px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;transition:all .15s;font-weight:500}
+.agenda-event:hover{transform:translateX(1px);filter:brightness(1.15)}
+.agenda-event.concert{background:rgba(200,168,75,.28);color:#f0d484;border-left:3px solid #c8a84b}
+.agenda-event.repet{background:rgba(74,144,200,.28);color:#c4dceb;border-left:3px solid #4a90c8}
+@media(max-width:680px){
+  .agenda-day{min-height:80px;padding:5px}
+  .agenda-day-header{padding:6px 2px;font-size:9px;letter-spacing:.06em}
+  .agenda-event{font-size:10px;padding:3px 5px}
+  .agenda-day-num{font-size:12px}
+}
 .cs-switch{background:var(--bg2);border:1px solid var(--border);color:var(--dim);padding:1px 5px;font-size:9px;border-radius:3px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:.05em}
 .cs-switch:hover{border-color:var(--gold);color:var(--gold)}
 .concert-card-song{break-inside:avoid;padding:7px 0;border-top:1px solid rgba(255,255,255,.05)}
@@ -352,10 +393,13 @@ textarea{resize:vertical;min-height:72px}
 <button data-page="repertoire" onclick="showPage('repertoire')">Répertoire</button>
 <button data-page="planning" onclick="showPage('planning')">Planning</button>
 <button data-page="stats" onclick="showPage('stats')">Stats</button>
+<button data-page="agenda" onclick="showPage('agenda')">Agenda</button>
 <button data-page="repet" onclick="showPage('repet')">Répet</button>
 <button data-page="concerts" onclick="showPage('concerts')">Concerts</button>
 <button data-page="feu-de-camp" onclick="showPage('feu-de-camp')">Feu de camp</button>
 </nav>
+
+<div id="next-events-banner"></div>
 
 <div id="page-home" class="page active">
 <div class="grid">
@@ -493,6 +537,27 @@ textarea{resize:vertical;min-height:72px}
 <div class="stat-block">
 <div class="stat-title">Progression tempo</div>
 <div id="stats-bpm"></div>
+</div>
+</div>
+
+<div id="page-agenda" class="page">
+<div class="card">
+<div class="ch">
+<div class="cl">Agenda</div>
+<div class="agenda-nav">
+<button type="button" class="agenda-nav-btn" onclick="agendaPrev()" title="Mois précédent">‹</button>
+<div id="agenda-title" class="agenda-title">—</div>
+<button type="button" class="agenda-nav-btn" onclick="agendaNext()" title="Mois suivant">›</button>
+<button type="button" class="bo" onclick="agendaToday()" style="margin-left:8px">Aujourd'hui</button>
+</div>
+</div>
+<div style="padding:14px">
+<div class="agenda-legend">
+<span><span class="agenda-legend-dot concert"></span> Concert</span>
+<span><span class="agenda-legend-dot repet"></span> Répétition</span>
+</div>
+<div id="agenda-grid" class="agenda-grid"></div>
+</div>
 </div>
 </div>
 
@@ -887,6 +952,7 @@ let currentProfile=null;
 let currentRole='band_member';
 let currentMemberId=null;
 let currentEditingType='concert';
+let agendaMonth=new Date();
 let canEdit=false;
 let authMode='locked';
 let bandMembers=[];
@@ -917,7 +983,7 @@ function updateUserBadge(){const el=document.getElementById('user-badge'); if(!e
 function openLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.add('open');}
 function closeLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.remove('open');}
 function setLoginError(message=''){const box=document.getElementById('login-error'); if(!box) return; box.textContent=message||''; box.style.display=message?'block':'none';}
-function getAllowedPages(){return currentRole==='admin'?['home','repertoire','planning','stats','repet','concerts','feu-de-camp']:['repertoire','repet','concerts'];}
+function getAllowedPages(){return currentRole==='admin'?['home','repertoire','planning','stats','agenda','repet','concerts','feu-de-camp']:['repertoire','agenda','repet','concerts'];}
 function applyNavigationVisibility(){const allowed=new Set(getAllowedPages()); document.querySelectorAll('#main-nav [data-page]').forEach(btn=>{const ok=allowed.has(btn.dataset.page); btn.style.display=ok?'':'none';});}
 function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display='none'; const logoutBtn=document.getElementById('btn-logout'); if(logoutBtn) logoutBtn.style.display=authMode==='supabase'?'inline-block':'none'; applyNavigationVisibility(); updateUserBadge();}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
@@ -925,7 +991,7 @@ function getCurrentBandMemberId(){ if(currentMemberId) return currentMemberId; c
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); currentMemberId=data.band_member_id||null; }
 async function initAuth(){ try{ const { data: { session }, error } = await supabaseClient.auth.getSession(); if(error) throw error; if(!session?.user){ authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); openLoginOverlay(); return false; } await hydrateProfileFromSession(session.user); authMode='supabase'; setLoginError(''); closeLoginOverlay(); setEditabilityState(); return true; }catch(err){ console.error('initAuth',err); lastAuthError=err?.message||String(err); authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); setLoginError(lastAuthError); openLoginOverlay(); return false; } }
 async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage(currentRole==='admin'?'home':'repertoire'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
-async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); openLoginOverlay(); showPage('repertoire'); }
+async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); const b=document.getElementById('next-events-banner'); if(b) b.innerHTML=''; openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, gear:r.gear||null})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
@@ -1401,6 +1467,8 @@ async function loadData(skipAuth=false){
   renderStatsPage();
   renderConcerts();
   renderRepets();
+  renderAgenda();
+  renderNextEventsBanner();
   return true;
 }
 
@@ -1465,6 +1533,7 @@ function showPage(id){
   if(id==='stats') renderStatsPage();
   if(id==='repet') renderRepets();
   if(id==='concerts') renderConcerts();
+  if(id==='agenda') renderAgenda();
   if(id==='feu-de-camp') {
     if(!campfireStorageAttempted && !campfirePdfDoc){
       loadCampfirePdfFromStorage();
@@ -1883,6 +1952,120 @@ function renderConcertsOrRepets(filterType){
     </div>`;
   }).join('');
 }
+
+function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function renderNextEventsBanner(){
+  const banner = document.getElementById('next-events-banner');
+  if(!banner) return;
+  if(authMode !== 'supabase'){ banner.innerHTML = ''; return; }
+
+  const today = ymdLocal(new Date());
+  const upcoming = (c)=> (c.date||'') >= today;
+  const sortByDate = (a,b)=> (a.date||'').localeCompare(b.date||'') || (a.heure_debut||'').localeCompare(b.heure_debut||'');
+
+  const nextRepet = concerts.filter(c=>(c.type||'concert')==='repet' && upcoming(c)).sort(sortByDate)[0];
+  const nextConcert = concerts.filter(c=>(c.type||'concert')==='concert' && upcoming(c)).sort(sortByDate)[0];
+
+  function daysUntil(dateStr){
+    if(!dateStr) return null;
+    const a = new Date(dateStr+'T12:00:00');
+    const b = new Date(today+'T12:00:00');
+    return Math.round((a - b) / 86400000);
+  }
+  function countdownLabel(days){
+    if(days===0) return "Aujourd'hui";
+    if(days===1) return 'Demain';
+    return 'J−' + days;
+  }
+  function block(kind, ev){
+    if(!ev){
+      const label = kind==='repet' ? 'Prochaine répét' : 'Prochain concert';
+      const empty = kind==='repet' ? 'Aucune répétition planifiée' : 'Aucun concert prévu';
+      return `<div class="next-event is-empty is-${kind}">
+        <div class="next-event-icon">${kind==='repet'?'🔁':'🎤'}</div>
+        <div class="next-event-body">
+          <span class="next-event-label">${label}</span>
+          <span class="next-event-meta">${empty}</span>
+        </div>
+      </div>`;
+    }
+    const days = daysUntil(ev.date);
+    const datePretty = formatConcertDate(ev.date);
+    const heure = ev.heure_debut ? ev.heure_debut.substring(0,5) : '';
+    const place = ev.lieu || '';
+    const meta = [heure, place].filter(Boolean).join(' · ');
+    const imminent = days!==null && days<=4 ? ' is-imminent' : '';
+    return `<div class="next-event is-${kind}${imminent}" onclick="openConcertModal('${ev.id}')">
+      <div class="next-event-icon">${kind==='repet'?'🔁':'🎤'}</div>
+      <div class="next-event-body">
+        <span class="next-event-label">${kind==='repet'?'Prochaine répét':'Prochain concert'}</span>
+        <span class="next-event-date">${escapeHtml(datePretty)}</span>
+        ${meta?`<span class="next-event-meta">${escapeHtml(meta)}</span>`:''}
+      </div>
+      ${days!==null?`<span class="next-event-countdown">${countdownLabel(days)}</span>`:''}
+    </div>`;
+  }
+
+  banner.innerHTML = block('repet', nextRepet) + block('concert', nextConcert);
+}
+function renderAgenda(){
+  const grid = document.getElementById('agenda-grid');
+  const titleEl = document.getElementById('agenda-title');
+  if(!grid || !titleEl) return;
+
+  const monthStart = new Date(agendaMonth.getFullYear(), agendaMonth.getMonth(), 1);
+  titleEl.textContent = monthStart.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+
+  // Lundi = 1er jour de la semaine
+  const firstDayOfWeek = monthStart.getDay() || 7;
+  const startDate = new Date(monthStart);
+  startDate.setDate(monthStart.getDate() - (firstDayOfWeek - 1));
+
+  const days = [];
+  for(let i=0; i<42; i++){
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate()+i);
+    days.push(d);
+  }
+
+  const eventsByDate = {};
+  concerts.forEach(c=>{ if(!c.date) return; (eventsByDate[c.date]=eventsByDate[c.date]||[]).push(c); });
+
+  const headers = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  let html = headers.map(h=>`<div class="agenda-day-header">${h}</div>`).join('');
+
+  const todayStr = ymdLocal(new Date());
+  const currentMonth = monthStart.getMonth();
+
+  days.forEach(d=>{
+    const dateStr = ymdLocal(d);
+    const isOtherMonth = d.getMonth() !== currentMonth;
+    const isToday = dateStr === todayStr;
+    const events = (eventsByDate[dateStr]||[]).sort((a,b)=>(a.heure_debut||'').localeCompare(b.heure_debut||''));
+
+    const eventsHtml = events.map(e=>{
+      const type = (e.type||'concert');
+      const heure = e.heure_debut ? e.heure_debut.substring(0,5)+' ' : '';
+      const label = type==='repet' ? (heure+'Répét') : (heure+(e.nom||'Concert'));
+      const tooltip = type==='repet' ? ('Répétition'+(e.heure_debut?' à '+e.heure_debut.substring(0,5):'')) : ((e.nom||'Concert')+(e.lieu?' — '+e.lieu:''));
+      return `<div class="agenda-event ${type}" onclick="openConcertModal('${e.id}')" title="${escapeHtml(tooltip)}">${escapeHtml(label)}</div>`;
+    }).join('');
+
+    const classes = ['agenda-day'];
+    if(isOtherMonth) classes.push('other-month');
+    if(isToday) classes.push('today');
+
+    html += `<div class="${classes.join(' ')}">
+      <div class="agenda-day-num">${d.getDate()}</div>
+      ${eventsHtml}
+    </div>`;
+  });
+
+  grid.innerHTML = html;
+}
+function agendaPrev(){ agendaMonth = new Date(agendaMonth.getFullYear(), agendaMonth.getMonth()-1, 1); renderAgenda(); }
+function agendaNext(){ agendaMonth = new Date(agendaMonth.getFullYear(), agendaMonth.getMonth()+1, 1); renderAgenda(); }
+function agendaToday(){ agendaMonth = new Date(); renderAgenda(); }
 
 function openConcertModal(id, explicitType){
   document.getElementById('ov-concert').classList.add('open');
