@@ -630,34 +630,6 @@ textarea{resize:vertical;min-height:72px}
         </div>
 
         <div class="fr2">
-          <div class="fg" id="fg-inst">
-            <label>Instrument</label>
-            <select id="f-inst">
-              <option value=""></option>
-              <option value="Guitare">Guitare</option>
-              <option value="Guitare acoustique">Guitare acoustique</option>
-              <option value="Basse">Basse</option>
-              <option value="Batterie">Batterie</option>
-              <option value="Sans instrument">Sans instrument</option>
-            </select>
-          </div>
-
-          <div class="fg" id="fg-chant">
-            <label>Chant</label>
-            <div style="display:flex;gap:10px;padding-top:8px">
-              <label class="check-row">
-                <input type="checkbox" id="f-chant-lead">
-                <span>Lead</span>
-              </label>
-              <label class="check-row">
-                <input type="checkbox" id="f-chant-coeur">
-                <span>Chœur</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="fr2">
           <div class="fg" id="fg-statut">
             <label>Statut</label>
             <select id="f-statut">
@@ -818,16 +790,15 @@ let bandMembers=[];
 let songAssignments=[];
 let activeSongAssignments=[];
 const BAND_ROLE_OPTIONS = [
+  {value:'batterie', label:'Batterie'},
+  {value:'basse', label:'Basse'},
+  {value:'guitare', label:'Guitare', allowGear:true, multi:true},
   {value:'chant_lead', label:'Chant lead'},
   {value:'choeur_1', label:'Chœur 1'},
   {value:'choeur_2', label:'Chœur 2'},
-  {value:'guitare_1', label:'Guitare 1'},
-  {value:'guitare_2', label:'Guitare 2'},
-  {value:'guitare_acoustique', label:'Guitare acoustique'},
-  {value:'basse', label:'Basse'},
-  {value:'accordeon', label:'Accordéon'},
-  {value:'batterie', label:'Batterie'}
+  {value:'accordeon', label:'Accordéon'}
 ];
+const GEAR_OPTIONS = ['POD GO','GE200','HD500X','Marshall','Acoustique'];
 let lastAuthError='';
 
 const supabaseUrl='https://sgmdswnspwfaavqvfjtc.supabase.co';
@@ -851,44 +822,91 @@ async function initAuth(){ try{ const { data: { session }, error } = await supab
 async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage(currentRole==='admin'?'home':'repertoire'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
 async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
-async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
+async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, gear:r.gear||null})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
-function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>`${a.member_name} · ${a.role||'rôle'}`).join(' • '); }
-function buildAssignmentsForAllMembers(songId=null){ const existing=songId?getAssignmentsForSong(songId):[]; activeSongAssignments=bandMembers.map(member=>{ const found=existing.find(x=>String(x.band_member_id)===String(member.id)); return { band_member_id:member.id, role:found?.role||'' }; }); }
-function renderAssignmentsEditor(){ const box=document.getElementById('song-assignments-box'); if(!box) return; if(!canEdit){ const arr=getAssignmentsForSong(document.getElementById('f-id')?.value||''); if(!arr.length){box.innerHTML='<div class="empty-hist">Aucune affectation.</div>';return;} box.innerHTML='<div class="fg full"><label>Affectations groupe</label><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+ arr.map(a=>`<div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;display:flex;justify-content:space-between"><span>${escapeHtml(a.member_name)}</span><span style="color:var(--gold)">${escapeHtml(a.role||'')}</span></div>`).join('')+'</div></div>'; return; } if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; } if(!activeSongAssignments.length || activeSongAssignments.length!==bandMembers.length){ buildAssignmentsForAllMembers(); } const rows=activeSongAssignments.map((row,idx)=>{ const member=bandMembers.find(m=>String(m.id)===String(row.band_member_id)); return `<div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:8px;align-items:center;margin-bottom:6px"><div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px">${escapeHtml((member&&member.name)||'Membre')}</div><div class="fg" style="gap:0"><select onchange="updateAssignmentRow(${idx},'role',this.value)"><option value="">—</option>${BAND_ROLE_OPTIONS.map(r => `
-  <option value="${escapeHtml(r.value)}" ${row.role === r.value ? 'selected' : ''}>
-    ${escapeHtml(r.label)}
-  </option>
-`).join('')}</select></div></div>`; }).join(''); box.innerHTML=`<div class="fg full"><label>Affectations groupe</label><div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Tous les membres sont affichés. Laisse vide si non concerné.</div>${rows}</div>`; }
-function addAssignmentRow(){ renderAssignmentsEditor(); }
+function roleLabelFor(roleValue){ const def=BAND_ROLE_OPTIONS.find(r=>r.value===roleValue); return def?def.label:(roleValue||'rôle'); }
+function assignmentsSummary(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; return arr.map(a=>{ const label=roleLabelFor(a.role); const gear=a.gear?` (${a.gear})`:''; return `${a.member_name} · ${label}${gear}`; }).join(' • '); }
+function assignedRolesCompact(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; const seen=new Set(); const labels=[]; arr.forEach(a=>{ const key=a.role; if(seen.has(key)) return; seen.add(key); labels.push(roleLabelFor(a.role)); }); return labels.join(' · '); }
+function buildAssignmentsForAllRoles(songId=null){
+  const existing = songId ? getAssignmentsForSong(songId) : [];
+  activeSongAssignments = [];
+  BAND_ROLE_OPTIONS.forEach(roleDef=>{
+    const matches = existing.filter(x=>x.role===roleDef.value);
+    if(matches.length){
+      matches.forEach(m=>activeSongAssignments.push({ role:roleDef.value, band_member_id:m.band_member_id||'', gear:m.gear||'' }));
+    }else{
+      activeSongAssignments.push({ role:roleDef.value, band_member_id:'', gear:'' });
+    }
+  });
+}
+function renderAssignmentsEditor(){
+  const box = document.getElementById('song-assignments-box');
+  if(!box) return;
+
+  if(!canEdit){
+    const arr = getAssignmentsForSong(document.getElementById('f-id')?.value || '');
+    if(!arr.length){ box.innerHTML='<div class="empty-hist">Aucune affectation.</div>'; return; }
+    const ordered = [...arr].sort((a,b)=>{ const ai=BAND_ROLE_OPTIONS.findIndex(r=>r.value===a.role); const bi=BAND_ROLE_OPTIONS.findIndex(r=>r.value===b.role); return (ai<0?99:ai)-(bi<0?99:bi); });
+    box.innerHTML = '<div class="fg full"><label>Affectations groupe</label><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+
+      ordered.map(a=>{ const label=roleLabelFor(a.role); const gearTxt=a.gear?` (${escapeHtml(a.gear)})`:''; return `<div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;display:flex;justify-content:space-between"><span style="color:var(--gold)">${escapeHtml(label)}${gearTxt}</span><span>${escapeHtml(a.member_name)}</span></div>`; }).join('')+
+      '</div></div>';
+    return;
+  }
+
+  if(!bandMembers.length){ box.innerHTML='<div class="empty-hist">Aucun membre chargé.</div>'; return; }
+  if(!activeSongAssignments.length){ buildAssignmentsForAllRoles(); }
+
+  let html='';
+  BAND_ROLE_OPTIONS.forEach(roleDef=>{
+    const rows = activeSongAssignments.map((a,idx)=>({...a,idx})).filter(a=>a.role===roleDef.value);
+    if(!rows.length) return;
+    rows.forEach((row,rowPos)=>{
+      const isFirst = rowPos===0;
+      const memberOpts = bandMembers.map(m=>`<option value="${escapeHtml(m.id)}" ${String(row.band_member_id)===String(m.id)?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
+      const gearCell = roleDef.allowGear
+        ? `<select onchange="updateAssignmentRow(${row.idx},'gear',this.value)"><option value="">— Matos —</option>${GEAR_OPTIONS.map(g=>`<option value="${escapeHtml(g)}" ${row.gear===g?'selected':''}>${escapeHtml(g)}</option>`).join('')}</select>`
+        : '<div></div>';
+      const removeBtn = (roleDef.multi && rows.length>1)
+        ? `<button type="button" class="bo" style="padding:2px 8px;font-size:12px" onclick="removeAssignmentRowByIdx(${row.idx})">×</button>`
+        : '<div></div>';
+      const gridCols = roleDef.allowGear ? '110px minmax(0,1fr) 130px 32px' : '110px minmax(0,1fr) 32px';
+      html += `<div style="display:grid;grid-template-columns:${gridCols};gap:8px;align-items:center;margin-bottom:6px">
+        <div style="font-size:11px;color:var(--gold);font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.06em">${isFirst?escapeHtml(roleDef.label):''}</div>
+        <select onchange="updateAssignmentRow(${row.idx},'band_member_id',this.value)"><option value="">— Membre —</option>${memberOpts}</select>
+        ${roleDef.allowGear ? gearCell : ''}
+        ${removeBtn}
+      </div>`;
+    });
+    if(roleDef.multi){
+      html += `<div style="margin:0 0 12px 118px"><button type="button" class="bo" style="padding:4px 10px;font-size:11px" onclick="addAssignmentRowForRole('${roleDef.value}')">+ Ajouter une ${roleDef.label.toLowerCase()}</button></div>`;
+    }
+  });
+
+  box.innerHTML = `<div class="fg full"><label>Affectations groupe</label>
+    <div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Choisis le membre qui joue chaque rôle. Laisse vide si non concerné. Pour la guitare, précise le matos et ajoute des lignes si plusieurs guitaristes.</div>
+    ${html}</div>`;
+}
+function addAssignmentRowForRole(roleValue){ activeSongAssignments.push({ role:roleValue, band_member_id:'', gear:'' }); renderAssignmentsEditor(); }
+function removeAssignmentRowByIdx(idx){ if(!activeSongAssignments[idx]) return; activeSongAssignments.splice(idx,1); renderAssignmentsEditor(); }
 function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
-function removeAssignmentRow(idx){ renderAssignmentsEditor(); }
 async function persistSongAssignments(songId){
   if(!canEdit) return;
   try{
-    await supabaseClient
-      .from('song_assignments')
-      .delete()
-      .eq('song_id', songId);
-
+    await supabaseClient.from('song_assignments').delete().eq('song_id', songId);
     if(activeSongAssignments.length){
       const payload = activeSongAssignments
-        .filter(x => x.band_member_id && x.role)   // <= important
+        .filter(x => x.band_member_id && x.role)
         .map(x => ({
           song_id: songId,
           band_member_id: x.band_member_id,
-          role: x.role
+          role: x.role,
+          gear: x.gear || null
         }));
-
       if(payload.length){
-        const { error } = await supabaseClient
-          .from('song_assignments')
-          .insert(payload);
-
+        const { error } = await supabaseClient.from('song_assignments').insert(payload);
         if(error) throw error;
       }
     }
-
     await loadSongAssignments();
   }catch(err){
     console.error('persistSongAssignments', err);
@@ -1188,9 +1206,6 @@ async function loadData(skipAuth=false){
     user:r.user||'',
     titre:r.titre,
     artiste:r.artiste,
-    inst:r.inst,
-    chantLead:r.chant_lead,
-    chantCoeur:r.chant_coeur,
     statut:r.statut,
     diff:r.diff,
     bpm:r.bpm,
@@ -1351,7 +1366,7 @@ function renderPriorityList(){
     const hasVideos=!!(s.urlS||s.urlL||s.urlT);
     return `<div class="prio-item" onclick="openModal('${s.id}')">
 <div class="prio-title">${s.titre}</div>
-<div class="prio-meta">${[s.artiste,s.inst].filter(Boolean).join(' · ')}</div>
+<div class="prio-meta">${[s.artiste,assignedRolesCompact(s.id)].filter(Boolean).join(' · ')}</div>
 ${hasVideos?`<div class="video-links">
 ${s.urlS?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlS}')">🎬 Studio</span>`:''}
 ${s.urlL?`<span class="video-link" onclick="event.stopPropagation();openVideo('${s.urlL}')">🎬 Live</span>`:''}
@@ -1791,9 +1806,10 @@ function renderSongs() {
     const meta = [];
 
     if (canEdit) {
-      meta.push(`<span class="song-chip inst">${escapeHtml(s.inst || 'Sans instrument')}</span>`);
-              }
-    
+      const rolesCompact = assignedRolesCompact(s.id);
+      if (rolesCompact) meta.push(`<span class="song-chip inst">${escapeHtml(rolesCompact)}</span>`);
+    }
+
     if (s.assignmentSummary) meta.push(`<span class="song-chip">${escapeHtml(s.assignmentSummary)}</span>`);
     if (s.duree) meta.push(`<span class="song-chip duration">${formatDuration(s.duree)}</span>`);
 
@@ -1839,12 +1855,7 @@ function openModal(id) {
 
   const isAdminView = canEdit;
 
-  const adminOnlyFields = [
-'fg-inst',
-    'fg-chant',
-        'fg-statut',
-    'fg-diff'
-  ];
+  const adminOnlyFields = ['fg-statut','fg-diff'];
 
   adminOnlyFields.forEach(id => {
     const el = document.getElementById(id);
@@ -1852,7 +1863,7 @@ function openModal(id) {
   });
 
   activeSongAssignments = [];
-  buildAssignmentsForAllMembers();
+  buildAssignmentsForAllRoles();
   renderAssignmentsEditor();
 
   if (id !== 'new') {
@@ -1862,9 +1873,6 @@ function openModal(id) {
     document.getElementById('f-id').value = s.id;
     document.getElementById('f-titre').value = s.titre || '';
     document.getElementById('f-artiste').value = s.artiste || '';
-    if (document.getElementById('f-inst')) document.getElementById('f-inst').value = s.inst || '';
-    document.getElementById('f-chant-lead').checked = !!s.chantLead;
-    document.getElementById('f-chant-coeur').checked = !!s.chantCoeur;
     document.getElementById('f-statut').value = s.statut || 'adecouvrir';
     document.getElementById('f-diff').value = s.diff || 3;
     document.getElementById('f-bpm').value = s.bpm || '';
@@ -1876,7 +1884,7 @@ function openModal(id) {
     document.getElementById('f-url-audio').value = s.urlAudio || '';
     document.getElementById('f-notes').value = s.notes || '';
 
-    buildAssignmentsForAllMembers(s.id);
+    buildAssignmentsForAllRoles(s.id);
     renderAssignmentsEditor();
 
     document.getElementById('btn-del').style.display = isAdminView ? 'inline-block' : 'none';
@@ -1995,11 +2003,6 @@ async function save(e) {
     user: currentUser,
     titre: document.getElementById('f-titre').value.trim(),
     artiste: document.getElementById('f-artiste').value.trim() || null,
-    inst: document.getElementById('f-inst')
-      ? (document.getElementById('f-inst').value || null)
-      : null,
-    chant_lead: document.getElementById('f-chant-lead').checked,
-    chant_coeur: document.getElementById('f-chant-coeur').checked,
     statut: document.getElementById('f-statut').value || 'adecouvrir',
     diff: parseInt(document.getElementById('f-diff').value || '3', 10),
     bpm: document.getElementById('f-bpm').value
