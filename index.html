@@ -1840,6 +1840,66 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   </div>`;
 }
 
+function printSetlist(concertId){
+  const c = concerts.find(x=>x.id===concertId);
+  if(!c){ alert('Concert introuvable.'); return; }
+  const items = getConcertSetlist(concertId);
+  if(!items.length){ alert('Setlist vide, rien à imprimer.'); return; }
+
+  const isRepet = (c.type||'concert')==='repet';
+  const p1 = items.filter(it=>(it.partie||1)===1);
+  const p2 = items.filter(it=>(it.partie||1)===2);
+  const datePretty = formatConcertDate(c.date);
+  const place = c.lieu || '';
+  const heure = c.heure_debut ? c.heure_debut.substring(0,5) : '';
+  const headerTitle = c.nom || (isRepet ? 'Répétition' : 'Concert');
+  const totalDur = items.reduce((s,it)=>s+(parseInt(it.duree,10)||0),0);
+  const totalDurStr = totalDur ? formatDuration(totalDur) : '';
+
+  function rowsHtml(arr, startNum){
+    return arr.map((it,i)=>{
+      const num = startNum + i;
+      const titre = it.titre || 'Sans titre';
+      const artiste = it.artiste ? '<span class="artiste">— '+escapeHtml(it.artiste)+'</span>' : '';
+      const duree = it.duree ? formatDuration(it.duree) : '';
+      return '<tr><td class="num">'+num+'.</td><td class="titre">'+escapeHtml(titre)+' '+artiste+'</td><td class="duree">'+duree+'</td></tr>';
+    }).join('');
+  }
+
+  const html = '<!DOCTYPE html>\n<html lang="fr"><head><meta charset="UTF-8"><title>Setlist — '+escapeHtml(headerTitle)+'</title><style>'
+    +'@page { size: A4; margin: 12mm 14mm; }'
+    +'body { font-family: "Helvetica Neue", Arial, sans-serif; color:#000; background:#fff; padding:0; margin:0; }'
+    +'.wrap { max-width: 800px; margin: 0 auto; padding: 0; }'
+    +'.header { text-align:center; padding:0 0 10px; margin-bottom:14px; border-bottom:1px solid #000; }'
+    +'h1 { font-size:15px; margin:0 0 4px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }'
+    +'.meta { font-size:12px; color:#444; }'
+    +'table { width:100%; border-collapse:collapse; }'
+    +'td { padding:7px 6px; font-size:15px; border-bottom:1px solid #e5e5e5; vertical-align:baseline; }'
+    +'td.num { width:42px; font-weight:bold; font-size:16px; color:#000; }'
+    +'td.titre { font-weight:600; }'
+    +'td.titre .artiste { font-weight:400; color:#666; font-size:13px; margin-left:4px; }'
+    +'td.duree { width:60px; text-align:right; font-variant-numeric:tabular-nums; color:#444; font-size:13px; }'
+    +'.entracte { padding:10px 0 0; border-bottom:2px solid #000; height:0; }'
+    +'.footer { margin-top:16px; padding:10px 0 0; border-top:1px solid #000; text-align:center; font-size:13px; font-weight:bold; letter-spacing:.04em; }'
+    +'.no-print { text-align:center; margin:14px 0; }'
+    +'.no-print button { padding:8px 18px; font-size:13px; background:#000; color:#fff; border:none; border-radius:4px; cursor:pointer; margin:0 4px; }'
+    +'@media print { .no-print { display:none; } body { padding:0; } }'
+    +'</style></head><body><div class="wrap">'
+    +'<div class="header"><h1>'+escapeHtml(headerTitle)+'</h1>'
+    +'<div class="meta">'+escapeHtml(datePretty)+(heure?' · '+heure:'')+(place?' · '+escapeHtml(place):'')+'</div></div>'
+    +'<table>'+rowsHtml(p1,1)
+    +(p2.length?'<tr><td colspan="3" class="entracte"></td></tr>':'')
+    +rowsHtml(p2, p1.length+1)+'</table>'
+    +'<div class="footer">'+items.length+' morceau'+(items.length>1?'x':'')+(totalDurStr?' · '+totalDurStr:'')+'</div>'
+    +'<div class="no-print"><button onclick="window.print()">Imprimer</button> <button onclick="window.close()">Fermer</button></div>'
+    +'</div><script>setTimeout(function(){window.focus();window.print();},400);</'+'script></body></html>';
+
+  const win = window.open('', '_blank', 'width=900,height=1100');
+  if(!win){ alert("Le navigateur a bloqué l'ouverture de la fenêtre d'impression. Autorise les pop-ups pour ce site."); return; }
+  win.document.write(html);
+  win.document.close();
+}
+
 function renderConcertCardSetlistInner(concertId){
   const allItems = getConcertSetlist(concertId);
   if(!allItems.length){
@@ -1947,6 +2007,7 @@ function renderConcertsOrRepets(filterType){
         </details>
       </div>
       <div class="concert-actions">
+        ${setlistItems.length ? `<button class="bo" type="button" onclick="printSetlist('${c.id}')" title="Imprimer la setlist">🖨 Imprimer</button>` : ''}
         <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
       </div>
     </div>`;
