@@ -40,8 +40,10 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 .bdd{background:none;border:1px solid #2a1010;color:#664040;padding:6px 13px;font-size:10px;margin-right:auto}
 .bdd:hover{border-color:var(--accent);color:var(--accent)}
 #sl{display:flex;flex-direction:column;gap:6px}
-.si{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .15s}
+.si{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .15s;position:relative}
 .si:hover{border-color:#3d3d3d;background:var(--bg3)}
+.si.mine{box-shadow:inset 4px 0 0 var(--gold);background:linear-gradient(90deg,rgba(200,168,75,0.08) 0%,var(--bg2) 40%)}
+.si.mine:hover{background:linear-gradient(90deg,rgba(200,168,75,0.12) 0%,var(--bg3) 40%)}
 .stt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600}
 .sm{font-size:11px;color:var(--dim);margin-top:2px}
   .song-meta{
@@ -1787,6 +1789,19 @@ function renderSongs() {
   if (count) count.textContent = `${mine.length} morceau${mine.length > 1 ? 'x' : ''}`;
   if (totalBox) totalBox.textContent = formatDurationLong(totalDurationSeconds);
 
+  let highlightMemberId = filterMember;
+  if (!highlightMemberId) {
+    const me = bandMembers.find(m => normalizeText(m.name) === normalizeText(currentUser));
+    highlightMemberId = me ? me.id : null;
+  }
+  const highlightSongIds = highlightMemberId
+    ? new Set(
+        songAssignments
+          .filter(a => String(a.band_member_id) === String(highlightMemberId))
+          .map(a => String(a.song_id))
+      )
+    : new Set();
+
   const labels = {
     adecouvrir: 'À découvrir',
     encours: 'En cours',
@@ -1815,7 +1830,7 @@ function renderSongs() {
 
     return `
       <div>
-        <div class="si" onclick="openModal('${s.id}')">
+        <div class="si ${highlightSongIds.has(String(s.id)) ? 'mine' : ''}" onclick="openModal('${s.id}')">
           <div>
             <div class="stt">
               ${escapeHtml(s.titre)}
