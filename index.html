@@ -792,10 +792,9 @@ let activeSongAssignments=[];
 const BAND_ROLE_OPTIONS = [
   {value:'batterie', label:'Batterie'},
   {value:'basse', label:'Basse'},
-  {value:'guitare', label:'Guitare', allowGear:true, multi:true},
-  {value:'chant_lead', label:'Chant lead'},
-  {value:'choeur_1', label:'Chœur 1'},
-  {value:'choeur_2', label:'Chœur 2'},
+  {value:'guitare', label:'Guitare', allowGear:true, multi:true, addLabel:'+ Ajouter une guitare'},
+  {value:'chant_lead', label:'Chant lead', multi:true, addLabel:'+ Ajouter un chanteur lead'},
+  {value:'choeur_1', label:'Chœur', multi:true, addLabel:'+ Ajouter un choriste'},
   {value:'accordeon', label:'Accordéon'}
 ];
 const GEAR_OPTIONS = ['POD GO','GE200','HD500X','Marshall','Acoustique'];
@@ -878,12 +877,13 @@ function renderAssignmentsEditor(){
       </div>`;
     });
     if(roleDef.multi){
-      html += `<div style="margin:0 0 12px 118px"><button type="button" class="bo" style="padding:4px 10px;font-size:11px" onclick="addAssignmentRowForRole('${roleDef.value}')">+ Ajouter une ${roleDef.label.toLowerCase()}</button></div>`;
+      const addText = roleDef.addLabel || ('+ Ajouter un membre — '+roleDef.label);
+      html += `<div style="margin:0 0 12px 118px"><button type="button" class="bo" style="padding:4px 10px;font-size:11px" onclick="addAssignmentRowForRole('${roleDef.value}')">${addText}</button></div>`;
     }
   });
 
   box.innerHTML = `<div class="fg full"><label>Affectations groupe</label>
-    <div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Choisis le membre qui joue chaque rôle. Laisse vide si non concerné. Pour la guitare, précise le matos et ajoute des lignes si plusieurs guitaristes.</div>
+    <div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Choisis le membre qui joue chaque rôle. Laisse vide si non concerné. Pour la guitare, le chant lead et le chœur, tu peux ajouter plusieurs membres avec le bouton "+ Ajouter".</div>
     ${html}</div>`;
 }
 function addAssignmentRowForRole(roleValue){ activeSongAssignments.push({ role:roleValue, band_member_id:'', gear:'' }); renderAssignmentsEditor(); }
