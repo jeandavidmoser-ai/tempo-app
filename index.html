@@ -203,8 +203,9 @@ textarea{resize:vertical;min-height:72px}
 .concert-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .concert-count{font-size:11px;color:var(--dim)}
 .concert-list{display:flex;flex-direction:column;gap:8px}
-.concert-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;transition:all .15s}
+.concert-item{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px;display:block;transition:all .15s}
 .concert-item:hover{border-color:#3d3d3d}
+.concert-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .concert-main{display:flex;flex-direction:column;gap:6px;min-width:0}
 .concert-title{font-family:'Oswald',sans-serif;font-size:16px;color:var(--text);letter-spacing:.03em}
 .concert-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--dim)}
@@ -218,7 +219,14 @@ textarea{resize:vertical;min-height:72px}
 .concert-card-setlist-details[open] > summary::before{content:'▼ '}
 .concert-card-setlist-details[open] > summary{margin-bottom:10px}
 .concert-card-setlist{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.concert-card-setlist.single{display:block}
 @media(max-width:768px){.concert-card-setlist{grid-template-columns:1fr}}
+.concert-card-song-affs{display:none}
+.concert-card-setlist.show-affs .concert-card-song-affs{display:block}
+.setlist-toolbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+.setlist-toolbar button{background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.04em;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all .15s}
+.setlist-toolbar button:hover{border-color:var(--gold);color:var(--gold)}
+.setlist-toolbar button.active{background:rgba(200,168,75,.15);border-color:var(--gold);color:var(--gold)}
 .concert-card-partie{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
 .concert-card-partie-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .concert-card-partie-title{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
@@ -312,7 +320,7 @@ textarea{resize:vertical;min-height:72px}
 .cs-title{flex:1;font-family:'Oswald',sans-serif;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cs-title small{font-family:'Inter',sans-serif;color:var(--dim);font-weight:400;font-size:10px;margin-left:6px}
 .cs-dur{color:var(--dim);font-size:10px;font-family:'Oswald',sans-serif}
-.cs-moves{display:inline-flex;gap:2px}
+.cs-moves{display:inline-flex;gap:2px;margin-left:14px}
 .cs-moves button{background:var(--bg2);border:1px solid var(--border);color:var(--dim);padding:1px 5px;font-size:10px;border-radius:3px;cursor:pointer;font-family:'Oswald',sans-serif}
 .cs-moves button:hover:not(:disabled){border-color:var(--accent);color:var(--text)}
 .cs-moves button:disabled{opacity:.3;cursor:not-allowed}
@@ -1772,28 +1780,28 @@ async function moveConcertSong(setlistId,direction,explicitConcertId){
   if(targetIdx<0 || targetIdx>=sameParticeItems.length) return;
 
   const targetItem = sameParticeItems[targetIdx];
+  const currentOrder = parseInt(currentItem.ordre,10) || 0;
+  const targetOrder = parseInt(targetItem.ordre,10) || 0;
 
-  const currentOrder=parseInt(currentItem.ordre,10)||0;
-  const targetOrder=parseInt(targetItem.ordre,10)||0;
-
-  const { error: err1 } = await supabaseClient
-    .from('concert_setlist')
-    .update({ordre:targetOrder})
-    .eq('id',currentItem.id);
-
-  const { error: err2 } = await supabaseClient
-    .from('concert_setlist')
-    .update({ordre:currentOrder})
-    .eq('id',targetItem.id);
-
-  if(err1 || err2){
-    console.error('Erreur Supabase (concert_setlist.update ordre):',err1,err2);
-    alert('Erreur lors du déplacement du morceau.');
-    return;
-  }
-
-  await loadData();
+  // Update optimiste local: on échange les ordres tout de suite
+  const localCurrent = concertSetlist.find(x=>x.id===currentItem.id);
+  const localTarget = concertSetlist.find(x=>x.id===targetItem.id);
+  if(localCurrent) localCurrent.ordre = targetOrder;
+  if(localTarget) localTarget.ordre = currentOrder;
+  renderConcerts();
+  renderRepets();
   renderConcertSetlist(concertId);
+
+  // Envoi serveur en parallèle (background)
+  const [r1, r2] = await Promise.all([
+    supabaseClient.from('concert_setlist').update({ordre:targetOrder}).eq('id',currentItem.id),
+    supabaseClient.from('concert_setlist').update({ordre:currentOrder}).eq('id',targetItem.id)
+  ]);
+  if(r1.error || r2.error){
+    console.error('Erreur Supabase (concert_setlist.update ordre):', r1.error, r2.error);
+    alert('Erreur côté serveur lors du déplacement. Je recharge pour recaler.');
+    await loadData();
+  }
 }
 
 async function removeSongFromConcert(setlistId){
@@ -1813,6 +1821,8 @@ async function removeSongFromConcert(setlistId){
 }
 
 function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
+  const c = concerts.find(x=>x.id===concertId);
+  const isRepet = c && (c.type||'concert')==='repet';
   const affs = getAssignmentsForSong(item.song_id);
   const orderedAffs = [...affs].sort((a,b)=>{ const ai=BAND_ROLE_OPTIONS.findIndex(r=>r.value===a.role); const bi=BAND_ROLE_OPTIONS.findIndex(r=>r.value===b.role); return (ai<0?99:ai)-(bi<0?99:bi); });
   const affsHtml = orderedAffs.length
@@ -1821,12 +1831,16 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   const upDisabled = idxInPartie===0 ? 'disabled' : '';
   const downDisabled = idxInPartie===sameParticeItems.length-1 ? 'disabled' : '';
   const targetPartie = item.partie === 2 ? 1 : 2;
-  const switchLabel = targetPartie === 2 ? '→ P2' : '← P1';
+  const switchLabel = targetPartie === 2 ? '→' : '←';
+  const switchTitle = targetPartie === 2 ? 'Déplacer en Partie 2' : 'Déplacer en Partie 1';
+  const switchBtn = (!isRepet && canEdit)
+    ? `<button type="button" class="cs-switch" onclick="moveSongToPartie('${item.id}',${targetPartie},'${concertId}')" title="${switchTitle}">${switchLabel}</button>`
+    : '';
   const movesHtml = canEdit
     ? `<span class="cs-moves">
          <button type="button" onclick="moveConcertSong('${item.id}',-1,'${concertId}')" ${upDisabled}>↑</button>
          <button type="button" onclick="moveConcertSong('${item.id}',1,'${concertId}')" ${downDisabled}>↓</button>
-         <button type="button" class="cs-switch" onclick="moveSongToPartie('${item.id}',${targetPartie},'${concertId}')" title="Basculer dans l'autre partie">${switchLabel}</button>
+         ${switchBtn}
        </span>`
     : '';
   return `<div class="concert-card-song">
@@ -1838,6 +1852,40 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
     </div>
     <div class="concert-card-song-affs">${affsHtml}</div>
   </div>`;
+}
+
+function askAIForSetlistOrder(concertId){
+  const c = concerts.find(x=>x.id===concertId);
+  if(!c){ alert('Concert introuvable.'); return; }
+  const items = getConcertSetlist(concertId);
+  if(!items.length){ alert("La setlist est vide, pas de quoi demander un ordre."); return; }
+
+  const isRepet = (c.type||'concert')==='repet';
+  const heure = c.heure_debut ? c.heure_debut.substring(0,5) : '';
+  const datePretty = formatConcertDate(c.date);
+  const place = c.lieu || '';
+
+  const songLines = items.map(it=>{
+    const parts = [];
+    if(it.titre) parts.push(it.titre);
+    if(it.artiste) parts.push('('+it.artiste+')');
+    if(it.accordage) parts.push('ton '+it.accordage);
+    if(it.duree) parts.push('durée '+formatDuration(it.duree));
+    return '- ' + parts.join(', ');
+  }).join('\n');
+
+  const total = items.reduce((s,it)=>s+(parseInt(it.duree,10)||0),0);
+  const totalStr = total ? formatDuration(total) : 'inconnue';
+
+  let prompt;
+  if(isRepet){
+    prompt = "J'ai une répétition de groupe prévue le "+datePretty+(heure?' à '+heure:'')+". Mon groupe BROKEN ARMS doit travailler les "+items.length+" morceaux suivants pour un total d'environ "+totalStr+" :\n"+songLines+"\n\nPropose-moi un ordre de travail pertinent pour cette répétition : par quoi commencer (échauffement), comment enchaîner (gain de temps si même tonalité ou tempo proche, alternance des intensités), quoi garder pour la fin. Explique brièvement tes choix.";
+  } else {
+    const at = place ? ' à '+place : '';
+    prompt = "Je joue un concert le "+datePretty+(heure?' à '+heure:'')+at+". Mon groupe BROKEN ARMS a "+items.length+" morceaux dans la setlist pour un total d'environ "+totalStr+" :\n"+songLines+"\n\nPropose-moi un ordre pertinent pour ce concert, en tenant compte du rythme du set (ouverture marquante, montée en énergie, respirations, climax, fin/rappel), des changements de tonalité entre morceaux, et des transitions d'énergie. Explique-moi tes choix.";
+  }
+
+  window.open('https://www.perplexity.ai/search?q=' + encodeURIComponent(prompt), '_blank');
 }
 
 function printSetlist(concertId){
@@ -1901,10 +1949,26 @@ function printSetlist(concertId){
 }
 
 function renderConcertCardSetlistInner(concertId){
+  const c = concerts.find(x=>x.id===concertId);
+  const isRepet = c && (c.type||'concert')==='repet';
   const allItems = getConcertSetlist(concertId);
   if(!allItems.length){
     return '<div class="concert-card-no-setlist">Aucun morceau dans la setlist.</div>';
   }
+
+  const toolbar = `<div class="setlist-toolbar"><button type="button" onclick="toggleSetlistAffs(this)">Afficher les affectations</button></div>`;
+  const grandTotalDur = allItems.reduce((s,it)=>s+(parseInt(it.duree,10)||0),0);
+  const grandTotalLabel = isRepet ? 'Total répétition' : 'Total concert';
+  const grandTotal = `<div class="concert-card-grandtotal">
+    <span class="concert-card-grandtotal-label">${grandTotalLabel}</span>
+    <span class="concert-card-grandtotal-value">${allItems.length} morceau${allItems.length>1?'x':''}${grandTotalDur?' · '+formatDurationLong(grandTotalDur):''}</span>
+  </div>`;
+
+  if(isRepet){
+    const body = allItems.map((it,i)=>renderSetlistSongRow(it,i,allItems,concertId)).join('');
+    return `${toolbar}<div class="concert-card-setlist single">${body}</div>${grandTotal}`;
+  }
+
   const p1 = allItems.filter(it=>(it.partie||1)===1);
   const p2 = allItems.filter(it=>(it.partie||1)===2);
   function partieBlock(num, items){
@@ -1918,12 +1982,16 @@ function renderConcertCardSetlistInner(concertId){
       : `<div class="concert-card-partie-empty">Vide${num===2?' (entracte non placé)':''}</div>`;
     return `<div class="concert-card-partie">${head}${body}</div>`;
   }
-  const grandTotalDur = allItems.reduce((s,it)=>s+(parseInt(it.duree,10)||0),0);
-  const grandTotal = `<div class="concert-card-grandtotal">
-    <span class="concert-card-grandtotal-label">Total concert</span>
-    <span class="concert-card-grandtotal-value">${allItems.length} morceau${allItems.length>1?'x':''}${grandTotalDur?' · '+formatDurationLong(grandTotalDur):''}</span>
-  </div>`;
-  return `<div class="concert-card-setlist">${partieBlock(1,p1)}${partieBlock(2,p2)}</div>${grandTotal}`;
+  return `${toolbar}<div class="concert-card-setlist">${partieBlock(1,p1)}${partieBlock(2,p2)}</div>${grandTotal}`;
+}
+function toggleSetlistAffs(btn){
+  const details = btn.closest('.concert-card-setlist-details');
+  if(!details) return;
+  const wrap = details.querySelector('.concert-card-setlist');
+  if(!wrap) return;
+  const shown = wrap.classList.toggle('show-affs');
+  btn.textContent = shown ? 'Masquer les affectations' : 'Afficher les affectations';
+  btn.classList.toggle('active', shown);
 }
 
 async function moveSongToPartie(setlistId, targetPartie, concertId){
@@ -1933,17 +2001,25 @@ async function moveSongToPartie(setlistId, targetPartie, concertId){
   const item = all.find(x=>x.id===setlistId);
   if(!item) return;
   const maxOrdre = all.filter(x=>(x.partie||1)===targetPartie).reduce((m,x)=>Math.max(m,parseInt(x.ordre,10)||0),0);
+  const newOrdre = maxOrdre + 1;
+
+  // Update optimiste local
+  const local = concertSetlist.find(x=>x.id===setlistId);
+  if(local){ local.partie = targetPartie; local.ordre = newOrdre; }
+  renderConcerts();
+  renderRepets();
+  renderConcertSetlist(concertId);
+
+  // Envoi serveur en background
   const { error } = await supabaseClient
     .from('concert_setlist')
-    .update({ partie: targetPartie, ordre: maxOrdre+1 })
+    .update({ partie: targetPartie, ordre: newOrdre })
     .eq('id', setlistId);
   if(error){
     console.error('Erreur Supabase (concert_setlist.update partie):', error);
-    alert('Erreur lors du changement de partie.');
-    return;
+    alert('Erreur côté serveur lors du changement de partie. Je recharge pour recaler.');
+    await loadData();
   }
-  await loadData();
-  renderConcertSetlist(concertId);
 }
 
 function renderConcerts(){
@@ -1997,19 +2073,22 @@ function renderConcertsOrRepets(filterType){
         </div>`;
 
     return `<div class="concert-item">
-      <div class="concert-main">
-        <div class="concert-title">${escapeHtml(titleText)}</div>
-        ${summaryHtml}
-        ${c.notes?`<div class="concert-notes">${escapeHtml(c.notes)}</div>`:''}
-        <details class="concert-card-setlist-details" data-concert-id="${c.id}"${openAttr}>
-          <summary>${summaryLabel}</summary>
-          ${renderConcertCardSetlistInner(c.id)}
-        </details>
+      <div class="concert-item-head">
+        <div class="concert-main">
+          <div class="concert-title">${escapeHtml(titleText)}</div>
+          ${summaryHtml}
+          ${c.notes?`<div class="concert-notes">${escapeHtml(c.notes)}</div>`:''}
+        </div>
+        <div class="concert-actions">
+          ${setlistItems.length ? `<button class="bo" type="button" onclick="askAIForSetlistOrder('${c.id}')" title="Demander un ordre à l'IA (Perplexity)">🧠 IA</button>` : ''}
+          ${setlistItems.length ? `<button class="bo" type="button" onclick="printSetlist('${c.id}')" title="Imprimer la setlist">🖨 Imprimer</button>` : ''}
+          <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
+        </div>
       </div>
-      <div class="concert-actions">
-        ${setlistItems.length ? `<button class="bo" type="button" onclick="printSetlist('${c.id}')" title="Imprimer la setlist">🖨 Imprimer</button>` : ''}
-        <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
-      </div>
+      <details class="concert-card-setlist-details" data-concert-id="${c.id}"${openAttr}>
+        <summary>${summaryLabel}</summary>
+        ${renderConcertCardSetlistInner(c.id)}
+      </details>
     </div>`;
   }).join('');
 }
