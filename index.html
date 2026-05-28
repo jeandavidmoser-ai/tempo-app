@@ -1804,6 +1804,9 @@ function renderConcerts(){
     return;
   }
 
+  const openCardIds = new Set();
+  list.querySelectorAll('.concert-card-setlist-details[open]').forEach(d=>{ if(d.dataset.concertId) openCardIds.add(d.dataset.concertId); });
+
   list.innerHTML=sorted.map(c=>{
     const datePretty = formatConcertDate(c.date);
     const placePretty = c.lieu || '';
@@ -1813,6 +1816,7 @@ function renderConcerts(){
     const summaryLabel = setlistItems.length
       ? `Setlist (${setlistItems.length} morceau${setlistItems.length>1?'x':''} · ${formatDurationLong(totalDur)})`
       : 'Setlist (vide)';
+    const openAttr = openCardIds.has(c.id) ? ' open' : '';
 
     return `<div class="concert-item">
       <div class="concert-main">
@@ -1822,7 +1826,7 @@ function renderConcerts(){
           ${placePretty ? `<span class="concert-summary-sep">·</span><span class="concert-summary-place">${escapeHtml(placePretty)}</span>` : ''}
         </div>
         ${c.notes?`<div class="concert-notes">${escapeHtml(c.notes)}</div>`:''}
-        <details class="concert-card-setlist-details">
+        <details class="concert-card-setlist-details" data-concert-id="${c.id}"${openAttr}>
           <summary>${summaryLabel}</summary>
           ${renderConcertCardSetlistInner(c.id)}
         </details>
