@@ -282,12 +282,14 @@ textarea{resize:vertical;min-height:72px}
 .priority-btn:hover{border-color:#3d3d3d;color:var(--text)}
 .priority-btn .pdot{width:12px;height:12px;border-radius:50%;display:inline-block}
 .priority-btn.priority-vert .pdot{background:#1eb450;box-shadow:0 0 0 1px rgba(30,180,80,.4)}
+.priority-btn.priority-jaune .pdot{background:#e6c84b;box-shadow:0 0 0 1px rgba(230,200,75,.4)}
 .priority-btn.priority-orange .pdot{background:#d28a3a;box-shadow:0 0 0 1px rgba(180,110,40,.4)}
 .priority-btn.priority-rouge .pdot{background:#c41e3a;box-shadow:0 0 0 1px rgba(196,30,58,.4)}
 .priority-btn.priority-none .pdot{background:transparent;border:1px dashed var(--muted)}
 .priority-btn.active{background:var(--bg);border-color:var(--gold);color:var(--text);box-shadow:inset 0 0 0 1px var(--gold)}
 .song-prio-dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
 .song-prio-dot.vert{background:#1eb450;box-shadow:0 0 0 1px rgba(30,180,80,.5)}
+.song-prio-dot.jaune{background:#e6c84b;box-shadow:0 0 0 1px rgba(230,200,75,.5)}
 .song-prio-dot.orange{background:#d28a3a;box-shadow:0 0 0 1px rgba(180,110,40,.5)}
 .song-prio-dot.rouge{background:#c41e3a;box-shadow:0 0 0 1px rgba(196,30,58,.5)}
 .si-left{flex:1;min-width:0;padding-right:12px}
@@ -300,6 +302,7 @@ textarea{resize:vertical;min-height:72px}
 .prio-filter-btn:hover{border-color:#3d3d3d;color:var(--text)}
 .prio-filter-btn.active.rouge{background:rgba(196,30,58,.2);border-color:#c41e3a;color:#ff6b81}
 .prio-filter-btn.active.orange{background:rgba(180,110,40,.22);border-color:#d28a3a;color:#e7a35a}
+.prio-filter-btn.active.jaune{background:rgba(230,200,75,.18);border-color:#e6c84b;color:#f0d484}
 .prio-filter-btn.active.vert{background:rgba(30,180,80,.18);border-color:#1eb450;color:#57d98c}
 .concert-summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:4px;font-size:13px}
 .concert-summary-date{font-family:'Oswald',sans-serif;color:var(--text);text-transform:capitalize}
@@ -423,6 +426,28 @@ textarea{resize:vertical;min-height:72px}
 .campfire-loading{padding:18px 14px;color:var(--gold);font-size:12px}
 @media (max-width: 980px){.campfire-wrap{grid-template-columns:1fr}.campfire-list{max-height:280px}.campfire-stage{min-height:55vh}}
 
+/* HOME WIDGETS */
+.home-hello{font-family:'Oswald',sans-serif;font-size:18px;color:var(--gold);margin:14px 0 16px;letter-spacing:.04em;text-transform:capitalize}
+.home-widgets{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.home-widgets .widget{margin-bottom:0}
+@media(max-width:768px){.home-widgets{grid-template-columns:1fr}}
+
+.home-towork-item, .home-upcoming-item, .home-recent-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.home-towork-item:hover, .home-upcoming-item:hover, .home-recent-item:hover{border-color:#3d3d3d;background:var(--bg2)}
+.home-towork-main, .home-upcoming-main{flex:1;min-width:0}
+.home-towork-title, .home-upcoming-title, .home-recent-title{font-family:'Oswald',sans-serif;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-towork-meta, .home-upcoming-meta, .home-recent-meta{font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-upcoming-icon{font-size:18px;flex-shrink:0}
+.home-upcoming-item.home-upcoming-concert{border-left:3px solid #c8a84b}
+.home-upcoming-item.home-upcoming-repet{border-left:3px solid #4a90c8}
+
+.home-stats-total{font-family:'Oswald',sans-serif;font-size:32px;color:var(--gold);font-weight:700;line-height:1;margin-bottom:14px}
+.home-stats-total span{font-size:12px;color:var(--dim);font-weight:400;letter-spacing:.1em;text-transform:uppercase;margin-left:6px}
+.home-stats-bars{display:flex;flex-direction:column;gap:6px}
+.home-stat-bar{display:flex;align-items:center;gap:10px;padding:6px 8px;background:var(--bg3);border-radius:5px;font-size:12px}
+.home-stat-label{flex:1;color:var(--text);font-size:12px}
+.home-stat-val{font-family:'Oswald',sans-serif;color:var(--gold);font-weight:700;font-size:14px;min-width:30px;text-align:right}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
@@ -455,66 +480,74 @@ textarea{resize:vertical;min-height:72px}
 <button data-page="feu-de-camp" onclick="showPage('feu-de-camp')">Feu de camp</button>
 </nav>
 
-<div id="next-events-banner"></div>
 
 <div id="page-home" class="page active">
-<div class="grid">
-<div>
-<div class="card">
-<div class="ch"><div class="cl">Coach Broken Arms</div></div>
-<div style="padding:20px">
-<p style="font-size:13px;color:var(--dim);margin-bottom:14px">Salut. Prêt à bosser ? Pose-moi une question ou demande-moi ce que tu dois travailler aujourd'hui.</p>
-<div class="ai-row">
-<input type="text" id="agent-in" placeholder="Pose une question à ton coach…" onkeydown="if(event.key==='Enter')askCoach()">
-<button class="br" onclick="askCoach()">Envoyer</button>
-</div>
-</div>
-</div>
-<div class="card">
-<div class="ch"><div class="cl">Session</div></div>
-<div style="padding:20px">
-<div class="session-bar">
-<div class="timer" id="timer-display">00:00</div>
-<div style="flex:1;font-size:11px;color:var(--muted)" id="session-info">Aucune session active</div>
-</div>
-<div style="margin-top:16px;display:flex;gap:8px">
-  <button class="br" id="btn-start" onclick="startSession()">▶ Démarrer 20 min</button>
-  <button class="bo" id="btn-plus" style="display:none" onclick="addBlock()">+20 min</button>
-  <button class="bo" id="btn-stop" style="display:none" onclick="openStopModal()">■ Stop & Logger</button>
+<div id="next-events-banner"></div>
+<div class="home-hello" id="home-hello">Salut, voici ton tableau de bord</div>
+<div class="home-widgets">
+  <div class="card widget widget-towork">
+    <div class="ch"><div class="cl">Tes morceaux à travailler</div><a href="#" onclick="togglePriorityFilter('rouge');showPage('repertoire');return false" style="font-size:9px;color:var(--accent);text-decoration:none">Voir tout</a></div>
+    <div id="home-to-work" style="padding:14px"></div>
+  </div>
+  <div class="card widget widget-stats">
+    <div class="ch"><div class="cl">Répertoire en chiffres</div></div>
+    <div id="home-repertoire-stats" style="padding:14px"></div>
+  </div>
+  <div class="card widget widget-upcoming">
+    <div class="ch"><div class="cl">À venir dans les 14 jours</div><a href="#" onclick="showPage('agenda');return false" style="font-size:9px;color:var(--accent);text-decoration:none">Voir agenda</a></div>
+    <div id="home-upcoming" style="padding:14px"></div>
+  </div>
+  <div class="card widget widget-recent">
+    <div class="ch"><div class="cl">Récemment ajoutés au répertoire</div></div>
+    <div id="home-recent-songs" style="padding:14px"></div>
+  </div>
+  <div class="card widget widget-coach">
+    <div class="ch"><div class="cl">Coach Broken Arms</div></div>
+    <div style="padding:20px">
+      <p style="font-size:13px;color:var(--dim);margin-bottom:14px">Pose une question à l'IA, elle prend le contexte de ton répertoire et te répond via Perplexity.</p>
+      <div class="ai-row" style="padding:0">
+        <input type="text" id="agent-in" placeholder="Pose une question à ton coach…" onkeydown="if(event.key==='Enter')askCoach()">
+        <button class="br" onclick="askCoach()">Envoyer</button>
+      </div>
+    </div>
+  </div>
+  <div class="card widget widget-quick">
+    <div class="ch"><div class="cl">Accès rapide</div></div>
+    <div style="padding:14px;display:flex;flex-wrap:wrap;gap:8px">
+      <button class="br" onclick="startSession()">▶ Démarrer une session</button>
+      <button class="bo" onclick="showPage('repertoire')">📋 Répertoire</button>
+      <button class="bo" onclick="showPage('agenda')">📅 Agenda</button>
+      <button class="bo" onclick="showPage('repet')">🔁 Répétitions</button>
+      <button class="bo" onclick="showPage('concerts')">🎤 Concerts</button>
+    </div>
+  </div>
+  <div class="card widget widget-session" id="widget-session" style="display:none">
+    <div class="ch"><div class="cl">Session en cours</div></div>
+    <div style="padding:20px">
+      <div class="session-bar">
+        <div class="timer" id="timer-display">00:00</div>
+        <div style="flex:1;font-size:11px;color:var(--muted)" id="session-info">Aucune session active</div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="bo" id="btn-plus" style="display:none" onclick="addBlock()">+20 min</button>
+        <button class="bo" id="btn-stop" style="display:none" onclick="openStopModal()">■ Stop & Logger</button>
+      </div>
+      <div id="session-song-box" style="display:none;margin-top:16px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:100%">
+        <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.12em;color:var(--dim);text-transform:uppercase;margin-bottom:8px">Morceau en cours</div>
+        <div id="session-song-title" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-bottom:4px">—</div>
+        <div id="session-song-meta" style="font-size:11px;color:var(--dim);margin-bottom:12px">—</div>
+        <div id="session-video"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div id="session-song-box" style="display:none;margin-top:16px;padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;width:100%">
-  <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.12em;color:var(--dim);text-transform:uppercase;margin-bottom:8px">Morceau en cours</div>
-  <div id="session-song-title" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-bottom:4px">—</div>
-  <div id="session-song-meta" style="font-size:11px;color:var(--dim);margin-bottom:12px">—</div>
-  <div id="session-video"></div>
-</div>
-</div>
-</div>
-</div>
-<div>
-<div class="card">
-<div class="ch"><div class="cl">Morceaux prioritaires</div><a href="#" onclick="showPage('repertoire');return false" style="font-size:9px;color:var(--accent);text-decoration:none">Voir tout</a></div>
-<div id="prio-list" style="padding:14px"></div>
-</div>
-<div class="sc">
-<div class="sn" id="stat-streak">0🔥</div>
-<div class="sl2">jours consécutifs</div>
-</div>
-<div class="sc">
-<div class="pl">Morceaux actifs</div>
-<div class="pv" id="stat-count">0</div>
-</div>
-<div class="sc">
-<div class="pl">Priorité du jour</div>
-<div class="pv" id="stat-p">—</div>
-</div>
-<div class="sc">
-<div class="pl">Temps total ce mois</div>
-<div class="pv" id="stat-month">0 min</div>
-</div>
-</div>
-</div>
+<button id="btn-start" onclick="startSession()" style="display:none"></button>
+<div id="prio-list" style="display:none"></div>
+<div id="stat-streak" style="display:none"></div>
+<div id="stat-count" style="display:none"></div>
+<div id="stat-p" style="display:none"></div>
+<div id="stat-month" style="display:none"></div>
 </div>
 
 <div id="page-repertoire" class="page">
@@ -526,6 +559,8 @@ textarea{resize:vertical;min-height:72px}
     <div style="padding:14px">
 <div class="filter-row" style="justify-content:space-between;flex-wrap:wrap;align-items:center">
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <input type="text" id="filter-search" placeholder="🔍 Rechercher un titre ou artiste…" oninput="renderSongs()" style="width:auto;min-width:220px;padding:5px 10px;font-size:11px" />
+
     <label class="check-row" style="margin:0">
       <input type="checkbox" id="filter-my-songs" onchange="renderSongs()" />
       <span style="font-size:11px">Mes morceaux</span>
@@ -551,7 +586,8 @@ textarea{resize:vertical;min-height:72px}
     <div class="prio-filter-row">
       <button type="button" class="prio-filter-btn rouge" data-prio="rouge" onclick="togglePriorityFilter('rouge')"><span class="song-prio-dot rouge"></span>À travailler</button>
       <button type="button" class="prio-filter-btn orange" data-prio="orange" onclick="togglePriorityFilter('orange')"><span class="song-prio-dot orange"></span>Pas ouf</button>
-      <button type="button" class="prio-filter-btn vert" data-prio="vert" onclick="togglePriorityFilter('vert')"><span class="song-prio-dot vert"></span>Maîtrisé</button>
+      <button type="button" class="prio-filter-btn jaune" data-prio="jaune" onclick="togglePriorityFilter('jaune')"><span class="song-prio-dot jaune"></span>Pas mal</button>
+      <button type="button" class="prio-filter-btn vert" data-prio="vert" onclick="togglePriorityFilter('vert')"><span class="song-prio-dot vert"></span>Validé</button>
     </div>
             
 </div>
@@ -861,7 +897,8 @@ textarea{resize:vertical;min-height:72px}
             <span class="priority-row-label">Priorité de travail</span>
             <button type="button" class="priority-btn priority-rouge" data-prio="rouge" onclick="setSongPriority('rouge')"><span class="pdot"></span>À travailler</button>
             <button type="button" class="priority-btn priority-orange" data-prio="orange" onclick="setSongPriority('orange')"><span class="pdot"></span>Pas ouf</button>
-            <button type="button" class="priority-btn priority-vert" data-prio="vert" onclick="setSongPriority('vert')"><span class="pdot"></span>Maîtrisé</button>
+            <button type="button" class="priority-btn priority-jaune" data-prio="jaune" onclick="setSongPriority('jaune')"><span class="pdot"></span>Pas mal</button>
+            <button type="button" class="priority-btn priority-vert" data-prio="vert" onclick="setSongPriority('vert')"><span class="pdot"></span>Validé</button>
           </div>
         </div>
 
@@ -1064,7 +1101,7 @@ function updateUserBadge(){const el=document.getElementById('user-badge'); if(!e
 function openLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.add('open');}
 function closeLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.remove('open');}
 function setLoginError(message=''){const box=document.getElementById('login-error'); if(!box) return; box.textContent=message||''; box.style.display=message?'block':'none';}
-function getAllowedPages(){return currentRole==='admin'?['home','repertoire','planning','stats','agenda','repet','concerts','feu-de-camp']:['repertoire','agenda','repet','concerts'];}
+function getAllowedPages(){return currentRole==='admin'?['home','repertoire','planning','stats','agenda','repet','concerts','feu-de-camp']:['home','repertoire','agenda','repet','concerts'];}
 function applyNavigationVisibility(){const allowed=new Set(getAllowedPages()); document.querySelectorAll('#main-nav [data-page]').forEach(btn=>{const ok=allowed.has(btn.dataset.page); btn.style.display=ok?'':'none';});}
 function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display='none'; const logoutBtn=document.getElementById('btn-logout'); if(logoutBtn) logoutBtn.style.display=authMode==='supabase'?'inline-block':'none'; applyNavigationVisibility(); updateUserBadge();}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
@@ -1550,6 +1587,7 @@ async function loadData(skipAuth=false){
   renderRepets();
   renderAgenda();
   renderNextEventsBanner();
+  renderHome();
   return true;
 }
 
@@ -1610,7 +1648,7 @@ function showPage(id){
 
   if(id==='repertoire') renderSongs();
   if(id==='planning') renderPlanning();
-  if(id==='home') renderStats();
+  if(id==='home'){ renderStats(); renderHome(); }
   if(id==='stats') renderStatsPage();
   if(id==='repet') renderRepets();
   if(id==='concerts') renderConcerts();
@@ -1927,6 +1965,59 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   </div>`;
 }
 
+async function cloneConcert(concertId){
+  if(!ensureAdminAction()) return;
+  const c = concerts.find(x => x.id === concertId);
+  if(!c){ alert('Concert introuvable.'); return; }
+  const isRepet = (c.type||'concert')==='repet';
+  const what = isRepet ? 'cette répétition' : 'ce concert';
+  if(!confirm('Dupliquer '+what+' avec sa setlist ?\nLa copie aura la date du jour et pas d\'heure.')) return;
+
+  const newId = crypto.randomUUID();
+  const today = new Date().toISOString().split('T')[0];
+  const newConcert = {
+    id: newId,
+    type: c.type || 'concert',
+    nom: (c.nom || '') + ' (copie)',
+    date: today,
+    heure_debut: null,
+    duree_prevue: c.duree_prevue,
+    lieu: c.lieu,
+    adresse: c.adresse,
+    notes: c.notes,
+    statut: 'a venir'
+  };
+  const { error: err1 } = await supabaseClient.from('concerts').insert(newConcert);
+  if(err1){
+    console.error('Erreur clone concert:', err1);
+    alert('Erreur lors de la duplication : ' + (err1.message||err1));
+    return;
+  }
+
+  const items = getConcertSetlist(concertId);
+  if(items.length){
+    const newItems = items.map(item => ({
+      id: crypto.randomUUID(),
+      concert_id: newId,
+      song_id: item.song_id,
+      ordre: item.ordre,
+      partie: item.partie || 1,
+      titre: item.titre,
+      artiste: item.artiste,
+      accordage: item.accordage,
+      duree: item.duree
+    }));
+    const { error: err2 } = await supabaseClient.from('concert_setlist').insert(newItems);
+    if(err2){
+      console.error('Erreur clone setlist:', err2);
+      alert('La copie a été créée mais la setlist n\'a pas pu être clonée.');
+    }
+  }
+
+  await loadData();
+  openConcertModal(newId);
+}
+
 function askAIForSetlistOrder(concertId){
   const c = concerts.find(x=>x.id===concertId);
   if(!c){ alert('Concert introuvable.'); return; }
@@ -1977,14 +2068,59 @@ function printSetlist(concertId){
   const totalDur = items.reduce((s,it)=>s+(parseInt(it.duree,10)||0),0);
   const totalDurStr = totalDur ? formatDuration(totalDur) : '';
 
+  // Heure de début (pour calcul cumulé)
+  let startMin = 0;
+  let hasStartTime = false;
+  if(c.heure_debut){
+    const parts = c.heure_debut.split(':').map(n=>parseInt(n,10)||0);
+    startMin = (parts[0]||0)*60 + (parts[1]||0);
+    hasStartTime = true;
+  }
+  const TRANSITION_SEC = 60;
+  const ENTRACTE_SEC = 15 * 60;
+  function fmtHM(totalMin){
+    const h = Math.floor(totalMin / 60) % 24;
+    const m = Math.floor(totalMin) % 60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  }
+
+  let cumulativeSec = 0;
   function rowsHtml(arr, startNum){
-    return arr.map((it,i)=>{
+    let out = '';
+    arr.forEach((it, i) => {
       const num = startNum + i;
       const titre = it.titre || 'Sans titre';
       const artiste = it.artiste ? '<span class="artiste">— '+escapeHtml(it.artiste)+'</span>' : '';
       const duree = it.duree ? formatDuration(it.duree) : '';
-      return '<tr><td class="num">'+num+'.</td><td class="titre">'+escapeHtml(titre)+' '+artiste+'</td><td class="duree">'+duree+'</td></tr>';
-    }).join('');
+      const accordage = (it.accordage || '').trim();
+      const songInDb = songs.find(s => s.id === it.song_id);
+      const songNotes = songInDb ? ((songInDb.notes || '').trim()) : '';
+      const hasExtras = accordage || songNotes;
+
+      out += '<tr class="song-row'+(hasExtras?' has-extras':'')+'"><td class="num">'+num+'.</td><td class="titre">'+escapeHtml(titre)+' '+artiste+'</td><td class="duree">'+duree+'</td></tr>';
+
+      if(hasExtras){
+        const extras = [];
+        if(accordage) extras.push('<span class="x-acc">'+escapeHtml(accordage)+'</span>');
+        if(songNotes) extras.push('<span class="x-notes">'+escapeHtml(songNotes)+'</span>');
+        out += '<tr class="extras-row"><td></td><td colspan="2">'+extras.join('<span class="x-sep">•</span>')+'</td></tr>';
+      }
+
+      cumulativeSec += (parseInt(it.duree,10)||0) + TRANSITION_SEC;
+
+      if(hasStartTime && (num % 5 === 0) && i < arr.length - 1){
+        const cumMin = startMin + Math.floor(cumulativeSec / 60);
+        out += '<tr class="time-marker"><td colspan="3">vers ' + fmtHM(cumMin) + '</td></tr>';
+      }
+    });
+    return out;
+  }
+
+  let mainBody = rowsHtml(p1, 1);
+  if(p2.length){
+    cumulativeSec += ENTRACTE_SEC;
+    mainBody += '<tr><td colspan="3" class="entracte"></td></tr>';
+    mainBody += rowsHtml(p2, p1.length + 1);
   }
 
   const html = '<!DOCTYPE html>\n<html lang="fr"><head><meta charset="UTF-8"><title>Setlist — '+escapeHtml(headerTitle)+'</title><style>'
@@ -1995,11 +2131,18 @@ function printSetlist(concertId){
     +'h1 { font-size:15px; margin:0 0 4px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }'
     +'.meta { font-size:12px; color:#444; }'
     +'table { width:100%; border-collapse:collapse; }'
-    +'td { padding:7px 6px; font-size:15px; border-bottom:1px solid #e5e5e5; vertical-align:baseline; }'
-    +'td.num { width:42px; font-weight:bold; font-size:16px; color:#000; }'
+    +'td { padding:6px 6px; font-size:14px; vertical-align:baseline; }'
+    +'tr.song-row td { border-bottom:1px solid #e5e5e5; padding-bottom:5px; }'
+    +'tr.song-row.has-extras td { border-bottom:none; padding-bottom:2px; }'
+    +'tr.extras-row td { padding:0 6px 6px 6px; border-bottom:1px solid #e5e5e5; font-size:11px; color:#555; line-height:1.4 }'
+    +'tr.extras-row .x-acc { color:#000; font-weight:600 }'
+    +'tr.extras-row .x-notes { color:#666; font-style:italic }'
+    +'tr.extras-row .x-sep { margin:0 8px; color:#bbb }'
+    +'tr.time-marker td { text-align:right; padding:4px 10px; color:#888; font-size:11px; font-style:italic; background:#f7f7f7; border-top:1px dashed #bbb; border-bottom:1px dashed #bbb; }'
+    +'td.num { width:42px; font-weight:bold; font-size:15px; color:#000; }'
     +'td.titre { font-weight:600; }'
-    +'td.titre .artiste { font-weight:400; color:#666; font-size:13px; margin-left:4px; }'
-    +'td.duree { width:60px; text-align:right; font-variant-numeric:tabular-nums; color:#444; font-size:13px; }'
+    +'td.titre .artiste { font-weight:400; color:#666; font-size:12px; margin-left:4px; }'
+    +'td.duree { width:60px; text-align:right; font-variant-numeric:tabular-nums; color:#444; font-size:12px; }'
     +'.entracte { padding:10px 0 0; border-bottom:2px solid #000; height:0; }'
     +'.footer { margin-top:16px; padding:10px 0 0; border-top:1px solid #000; text-align:center; font-size:13px; font-weight:bold; letter-spacing:.04em; }'
     +'.no-print { text-align:center; margin:14px 0; }'
@@ -2008,9 +2151,7 @@ function printSetlist(concertId){
     +'</style></head><body><div class="wrap">'
     +'<div class="header"><h1>'+escapeHtml(headerTitle)+'</h1>'
     +'<div class="meta">'+escapeHtml(datePretty)+(heure?' · '+heure:'')+(place?' · '+escapeHtml(place):'')+'</div></div>'
-    +'<table>'+rowsHtml(p1,1)
-    +(p2.length?'<tr><td colspan="3" class="entracte"></td></tr>':'')
-    +rowsHtml(p2, p1.length+1)+'</table>'
+    +'<table>'+mainBody+'</table>'
     +'<div class="footer">'+items.length+' morceau'+(items.length>1?'x':'')+(totalDurStr?' · '+totalDurStr:'')+'</div>'
     +'<div class="no-print"><button onclick="window.print()">Imprimer</button> <button onclick="window.close()">Fermer</button></div>'
     +'</div><script>setTimeout(function(){window.focus();window.print();},400);</'+'script></body></html>';
@@ -2155,6 +2296,7 @@ function renderConcertsOrRepets(filterType){
         <div class="concert-actions">
           ${setlistItems.length ? `<button class="bo" type="button" onclick="askAIForSetlistOrder('${c.id}')" title="Demander un ordre à l'IA (Perplexity)">🧠 IA</button>` : ''}
           ${setlistItems.length ? `<button class="bo" type="button" onclick="printSetlist('${c.id}')" title="Imprimer la setlist">🖨 Imprimer</button>` : ''}
+          ${canEdit ? `<button class="bo" type="button" onclick="cloneConcert('${c.id}')" title="Dupliquer">📋 Dupliquer</button>` : ''}
           <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
         </div>
       </div>
@@ -2167,6 +2309,104 @@ function renderConcertsOrRepets(filterType){
 }
 
 function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function renderHomeHello(){
+  const el = document.getElementById('home-hello');
+  if(!el) return;
+  let name = 'membre du groupe';
+  if(currentMemberId){
+    const m = bandMembers.find(x => x.id === currentMemberId);
+    if(m) name = m.name;
+  } else if(currentUser && currentUser !== 'user' && !currentUser.includes('@')){
+    name = currentUser;
+  }
+  el.textContent = `Salut ${name}, voici ton tableau de bord`;
+}
+function renderHomeToWork(){
+  const el = document.getElementById('home-to-work');
+  if(!el) return;
+  const myId = getCurrentBandMemberId();
+  let candidates = songs.filter(s => s.priority === 'rouge' || s.priority === 'orange');
+  if(myId){
+    const mySongIds = new Set(songAssignments.filter(a => String(a.band_member_id) === String(myId)).map(a => String(a.song_id)));
+    candidates = candidates.filter(s => mySongIds.has(String(s.id)));
+  }
+  const prioOrder = {rouge:0, orange:1};
+  candidates.sort((a,b) => (prioOrder[a.priority]??9) - (prioOrder[b.priority]??9) || (a.titre||'').localeCompare(b.titre||'','fr'));
+  const top = candidates.slice(0, 5);
+  if(!top.length){
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Rien à travailler en priorité 🙌</div>';
+    return;
+  }
+  el.innerHTML = top.map(s => `<div class="home-towork-item" onclick="openModal('${s.id}')">
+    <span class="song-prio-dot ${escapeHtml(s.priority)}"></span>
+    <div class="home-towork-main">
+      <div class="home-towork-title">${escapeHtml(s.titre||'')}</div>
+      <div class="home-towork-meta">${escapeHtml(s.artiste||'')}</div>
+    </div>
+  </div>`).join('');
+}
+function renderHomeRepertoireStats(){
+  const el = document.getElementById('home-repertoire-stats');
+  if(!el) return;
+  const counts = {rouge:0, orange:0, jaune:0, vert:0};
+  songs.forEach(s => { if(counts[s.priority]!==undefined) counts[s.priority]++; });
+  const total = songs.length;
+  el.innerHTML = `<div class="home-stats-total">${total}<span>morceau${total>1?'x':''}</span></div>
+    <div class="home-stats-bars">
+      <div class="home-stat-bar"><span class="song-prio-dot rouge"></span><span class="home-stat-label">À travailler</span><span class="home-stat-val">${counts.rouge}</span></div>
+      <div class="home-stat-bar"><span class="song-prio-dot orange"></span><span class="home-stat-label">Pas ouf</span><span class="home-stat-val">${counts.orange}</span></div>
+      <div class="home-stat-bar"><span class="song-prio-dot jaune"></span><span class="home-stat-label">Pas mal</span><span class="home-stat-val">${counts.jaune}</span></div>
+      <div class="home-stat-bar"><span class="song-prio-dot vert"></span><span class="home-stat-label">Validé</span><span class="home-stat-val">${counts.vert}</span></div>
+    </div>`;
+}
+function renderHomeUpcoming(){
+  const el = document.getElementById('home-upcoming');
+  if(!el) return;
+  const today = ymdLocal(new Date());
+  const in14 = new Date(); in14.setDate(in14.getDate()+14);
+  const limit = ymdLocal(in14);
+  const upcoming = concerts
+    .filter(c => c.date && c.date >= today && c.date <= limit)
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || (a.heure_debut||'').localeCompare(b.heure_debut||''));
+  if(!upcoming.length){
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Rien de prévu sur les 14 prochains jours</div>';
+    return;
+  }
+  el.innerHTML = upcoming.map(c => {
+    const type = c.type || 'concert';
+    const datePretty = formatConcertDate(c.date);
+    const heure = c.heure_debut ? c.heure_debut.substring(0,5) : '';
+    const label = c.nom || (type==='repet' ? 'Répétition' : 'Concert');
+    return `<div class="home-upcoming-item home-upcoming-${type}" onclick="openConcertModal('${c.id}')">
+      <span class="home-upcoming-icon">${type==='repet'?'🔁':'🎤'}</span>
+      <div class="home-upcoming-main">
+        <div class="home-upcoming-title">${escapeHtml(label)}</div>
+        <div class="home-upcoming-meta">${escapeHtml(datePretty)}${heure?' · '+heure:''}${c.lieu?' · '+escapeHtml(c.lieu):''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderHomeRecentSongs(){
+  const el = document.getElementById('home-recent-songs');
+  if(!el) return;
+  const recent = [...songs].slice(-5).reverse();
+  if(!recent.length){
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Aucun morceau dans le répertoire</div>';
+    return;
+  }
+  el.innerHTML = recent.map(s => `<div class="home-recent-item" onclick="openModal('${s.id}')">
+    <div class="home-recent-title">${escapeHtml(s.titre||'')}</div>
+    <div class="home-recent-meta">${escapeHtml(s.artiste||'')}</div>
+  </div>`).join('');
+}
+function renderHome(){
+  renderHomeHello();
+  renderHomeToWork();
+  renderHomeRepertoireStats();
+  renderHomeUpcoming();
+  renderHomeRecentSongs();
+  renderNextEventsBanner();
+}
 function renderNextEventsBanner(){
   const banner = document.getElementById('next-events-banner');
   if(!banner) return;
@@ -2439,10 +2679,18 @@ function renderSongs() {
 
   let mine = [...songs].sort((a, b) => (a.titre || '').localeCompare(b.titre || '', 'fr'));
 
+  const filterSearch = (document.getElementById('filter-search')?.value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
   const filterMySongs = document.getElementById('filter-my-songs')?.checked;
   const filterRole = document.getElementById('filter-role')?.value || '';
   const filterMember = document.getElementById('filter-member')?.value || '';
   const filterPriority = activePriorityFilter || '';
+
+  if (filterSearch) {
+    mine = mine.filter(s => {
+      const t = ((s.titre||'')+' '+(s.artiste||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+      return t.includes(filterSearch);
+    });
+  }
 
   if (filterMySongs) {
     const myId = getCurrentBandMemberId();
@@ -2791,6 +3039,8 @@ function confirmStartSession(){
   timerSeconds=0;
   timerBlocks=1;
 
+  const widgetSession=document.getElementById('widget-session');
+  if(widgetSession) widgetSession.style.display='block';
   document.getElementById('btn-start').style.display='none';
   document.getElementById('btn-plus').style.display='inline-block';
   document.getElementById('btn-stop').style.display='inline-block';
@@ -2879,7 +3129,9 @@ select.value=currentSessionSongId||'';
 
 function closeLogModal(){
   document.getElementById('ov-log').classList.remove('open');
-  document.getElementById('btn-start').style.display='inline-block';
+  const widgetSession=document.getElementById('widget-session');
+  if(widgetSession) widgetSession.style.display='none';
+  document.getElementById('btn-start').style.display='none';
   document.getElementById('btn-plus').style.display='none';
   document.getElementById('btn-stop').style.display='none';
   document.getElementById('timer-display').textContent='00:00';
