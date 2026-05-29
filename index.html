@@ -16,6 +16,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .logo{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:0.14em}
 .logo span{color:var(--accent)}
 .logo-img-right{height:44px;width:auto;display:block}
+.logo-img-left{height:44px;width:auto;display:block;margin-right:10px}
 @media(max-width:560px){.logo-img-right{display:none}}
 .usw{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:3px;border-radius:6px}
 .usw button{background:none;border:none;color:var(--dim);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.1em;padding:5px 14px;border-radius:4px;cursor:pointer;transition:all .15s}
@@ -47,8 +48,11 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 .lh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .st{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.15em;color:var(--dim);text-transform:uppercase}
 .btn{font-family:'Oswald',sans-serif;letter-spacing:0.08em;border:none;border-radius:6px;cursor:pointer;transition:all .15s}
-.br{background:var(--accent);color:#fff;padding:8px 16px;font-size:11px}
+.br{background:var(--accent);color:#fff;padding:8px 16px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:.08em}
 .br:hover{opacity:.9}
+.btn-add{background:none;border:1px dashed var(--muted);color:var(--dim);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.08em;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px}
+.btn-add::before{content:'＋';font-size:14px;line-height:1;font-weight:300}
+.btn-add:hover{background:var(--bg3);border-color:var(--text);color:var(--text)}
 .bo{background:none;border:1px solid var(--border);color:var(--dim);padding:6px 13px;font-size:10px}
 .bo:hover{border-color:var(--accent);color:var(--text)}
 .bdd{background:none;border:1px solid #2a1010;color:#664040;padding:6px 13px;font-size:10px;margin-right:auto}
@@ -58,7 +62,7 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 .si:hover{border-color:#3d3d3d;background:var(--bg3)}
 .si.mine{box-shadow:inset 4px 0 0 var(--gold);background:linear-gradient(90deg,rgba(200,168,75,0.08) 0%,var(--bg2) 40%)}
 .si.mine:hover{background:linear-gradient(90deg,rgba(200,168,75,0.12) 0%,var(--bg3) 40%)}
-.stt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600}
+.stt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:400}
 .sm{font-size:11px;color:var(--dim);margin-top:2px}
   .song-meta{
   display:flex;
@@ -129,7 +133,7 @@ nav button.active{color:var(--text);border-bottom-color:var(--accent)}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg.full{grid-column:1/-1}
 label{font-family:'Oswald',sans-serif;font-size:9px;color:var(--dim);text-transform:uppercase}
-input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;width:100%}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;font-weight:300;outline:none;width:100%}
 input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 textarea{resize:vertical;min-height:72px}
 .check-row{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text)}
@@ -303,7 +307,7 @@ textarea{resize:vertical;min-height:72px}
 .si-affs .aff-member{color:var(--text);font-size:11px}
 #sl.show-affs .si-affs{display:block}
 #btn-toggle-affs-rep.active{background:rgba(200,168,75,.15);border-color:var(--gold);color:var(--gold)}
-.si-duration{color:var(--gold);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.04em}
+.si-duration{color:var(--dim);font-family:'Inter',sans-serif;font-size:11px;font-weight:400}
 .prio-filter-row{display:inline-flex;gap:6px;align-items:center}
 .prio-filter-btn{background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.05em;padding:4px 10px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
 .prio-filter-btn:hover{border-color:#3d3d3d;color:var(--text)}
@@ -325,8 +329,8 @@ textarea{resize:vertical;min-height:72px}
 #next-events-banner:empty{display:none}
 .next-event{flex:1;min-width:240px;display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s}
 .next-event:hover{border-color:#3d3d3d;transform:translateY(-1px)}
-.next-event.is-concert{border-left:3px solid #c8a84b;background:linear-gradient(90deg,rgba(200,168,75,0.08),var(--bg2))}
-.next-event.is-repet{border-left:3px solid #4a90c8;background:linear-gradient(90deg,rgba(74,144,200,0.08),var(--bg2))}
+.next-event.is-concert{border-left:3px solid var(--gold)}
+.next-event.is-repet{border-left:3px solid var(--border)}
 .next-event.is-empty{opacity:.55;cursor:default;border-left-color:var(--muted)}
 .next-event.is-empty:hover{transform:none;border-color:var(--border)}
 .next-event-icon{font-size:22px;line-height:1;flex-shrink:0}
@@ -335,7 +339,7 @@ textarea{resize:vertical;min-height:72px}
 .next-event-date{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text);text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .next-event-meta{font-size:11px;color:var(--dim);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .next-event-countdown{font-family:'Oswald',sans-serif;font-size:11px;color:var(--gold);background:rgba(200,168,75,0.1);padding:3px 8px;border-radius:4px;flex-shrink:0;letter-spacing:.04em}
-.next-event.is-repet .next-event-countdown{color:#aecadf;background:rgba(74,144,200,0.12)}
+.next-event.is-repet .next-event-countdown{color:var(--dim);background:var(--bg3)}
 .next-event.is-imminent .next-event-countdown{color:#fff;background:var(--accent)}
 .agenda-nav{display:flex;align-items:center;gap:6px}
 .agenda-nav-btn{background:var(--bg2);border:1px solid var(--border);color:var(--dim);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center;transition:all .15s}
@@ -437,6 +441,12 @@ textarea{resize:vertical;min-height:72px}
 .home-hello{font-family:'Oswald',sans-serif;font-size:18px;color:var(--gold);margin:14px 0 16px;letter-spacing:.04em;text-transform:capitalize}
 .home-widgets{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
 .home-widgets .widget{margin-bottom:0}
+.fiche-row4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:560px){.fiche-row4{grid-template-columns:1fr 1fr}}
+.mh-prio-row{display:inline-flex;gap:4px;align-items:center}
+.mh-prio-btn{background:none;border:1px solid var(--border);color:var(--dim);font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.06em;padding:3px 7px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.mh-prio-btn:hover{color:var(--text);border-color:#3d3d3d}
+.mh-prio-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,.1)}
 @media(max-width:768px){.home-widgets{grid-template-columns:1fr}}
 
 .home-towork-item, .home-upcoming-item, .home-recent-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .15s}
@@ -473,18 +483,25 @@ textarea{resize:vertical;min-height:72px}
 /* ALERTE ABSENCE DANS SETLIST */
 .cs-absent-warning{display:block;font-size:10px;color:#ff6b81;background:rgba(196,30,58,.15);border-left:3px solid #c41e3a;padding:4px 8px;margin-top:4px;border-radius:3px;font-family:'Oswald',sans-serif;letter-spacing:.04em}
 .cs-absent-warning::before{content:'⚠ '}
+.concert-card-song[draggable]{cursor:grab}
+.concert-card-song[draggable]:active{cursor:grabbing}
+.concert-card-song.dragging{opacity:.35;background:var(--bg2)}
+.concert-card-song.drag-over-top{box-shadow:0 -2px 0 var(--gold)}
+.concert-card-song.drag-over-bottom{box-shadow:0 2px 0 var(--gold)}
+.setlist-drop-zone{min-height:24px;border:1px dashed transparent;border-radius:5px;transition:all .15s;margin-top:4px}
+.setlist-drop-zone.drag-over{border-color:var(--gold);background:rgba(200,168,75,.06)}
 
 /* WIDGET NEXT REPET */
-.home-next-head{display:flex;align-items:center;gap:14px;padding:12px;background:linear-gradient(90deg,rgba(74,144,200,.1),var(--bg3));border:1px solid rgba(74,144,200,.3);border-left:3px solid #4a90c8;border-radius:6px;cursor:pointer;transition:all .15s;margin-bottom:10px}
-.home-next-head:hover{border-color:#4a90c8}
+.home-next-head{display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s;margin-bottom:10px}
+.home-next-head:hover{border-color:#3d3d3d}
 .home-next-icon{font-size:28px;flex-shrink:0}
 .home-next-main{flex:1;min-width:0}
 .home-next-date{font-family:'Oswald',sans-serif;font-size:16px;color:var(--text);text-transform:capitalize}
 .home-next-place{font-size:12px;color:var(--dim);margin-top:2px}
 .home-next-meta{font-family:'Oswald',sans-serif;font-size:11px;color:var(--gold);letter-spacing:.06em;flex-shrink:0;text-align:right}
 .home-next-presence{padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;font-family:'Oswald',sans-serif;letter-spacing:.04em}
-.home-next-presence.ok{background:rgba(30,180,80,.12);border:1px solid rgba(30,180,80,.4);color:#57d98c}
-.home-next-presence.warn{background:rgba(196,30,58,.12);border:1px solid rgba(196,30,58,.4);color:#ff6b81}
+.home-next-presence.ok{background:var(--bg3);border:1px solid var(--border);color:var(--dim)}
+.home-next-presence.warn{background:var(--bg3);border:1px solid var(--accent);color:var(--accent)}
 .home-next-prio-title{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
 .home-next-prio-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
 .home-next-prio-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;transition:all .15s}
@@ -503,12 +520,12 @@ textarea{resize:vertical;min-height:72px}
 <body>
 <header>
 <div class="logo-wrap" onclick="showPage('home')">
-<div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
+<img src="logo_v2.png" alt="BA" class="logo-img-left" onerror="this.style.display='none'">
+<div id="logo" class="logo">BROKEN ARMS<span>.</span> 💀</div>
 </div>
 <div id="session-controls" style="display:flex;align-items:center;gap:12px">
 <button id="btn-logout" class="bo" type="button" onclick="handleLogout()" style="display:none">Déconnexion</button>
 <div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Connexion requise</div>
-<img src="logo_v2.png" alt="" class="logo-img-right" onerror="this.style.display='none'">
 </div>
 
 </header>
@@ -517,9 +534,9 @@ textarea{resize:vertical;min-height:72px}
 <button data-page="repertoire" onclick="showPage('repertoire')">Répertoire</button>
 <button data-page="planning" onclick="showPage('planning')">Planning</button>
 <button data-page="stats" onclick="showPage('stats')">Stats</button>
-<button data-page="agenda" onclick="showPage('agenda')">Agenda</button>
 <button data-page="repet" onclick="showPage('repet')">Répet</button>
 <button data-page="concerts" onclick="showPage('concerts')">Concerts</button>
+<button data-page="agenda" onclick="showPage('agenda')">Agenda</button>
 <button data-page="feu-de-camp" onclick="showPage('feu-de-camp')">Feu de camp</button>
 </nav>
 
@@ -585,13 +602,11 @@ textarea{resize:vertical;min-height:72px}
   <div class="card">
     <div class="ch">
       <div class="cl">Ton répertoire</div>
-      <button class="br" data-admin-only onclick="openModal('new')">+ Ajouter</button>
+      <button class="btn-add" data-admin-only onclick="openModal('new')">Morceau</button>
     </div>
     <div style="padding:14px">
 <div class="filter-row" style="justify-content:space-between;flex-wrap:wrap;align-items:center">
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <input type="text" id="filter-search" placeholder="🔍 Rechercher un titre ou artiste…" oninput="renderSongs()" style="width:auto;min-width:220px;padding:5px 10px;font-size:11px" />
-
     <label class="check-row" style="margin:0">
       <input type="checkbox" id="filter-my-songs" onchange="renderSongs()" />
       <span style="font-size:11px">Mes morceaux</span>
@@ -626,6 +641,7 @@ textarea{resize:vertical;min-height:72px}
 </div>
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+  <input type="text" id="filter-search" placeholder="🔍 Rechercher…" oninput="renderSongs()" style="flex:1;max-width:260px;padding:5px 10px;font-size:11px" />
   <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
   <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
 </div>
@@ -689,7 +705,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="card repet-card">
 <div class="ch">
 <div class="cl">Répétitions</div>
-<button class="br" data-admin-only onclick="openConcertModal('new','repet')">+ Nouvelle</button>
+<button class="btn-add" data-admin-only onclick="openConcertModal('new','repet')">Répétition</button>
 </div>
 <div style="padding:14px">
 <div class="concert-toolbar">
@@ -704,7 +720,7 @@ textarea{resize:vertical;min-height:72px}
 <div class="card">
 <div class="ch">
 <div class="cl">Concerts</div>
-<button class="br" data-admin-only onclick="openConcertModal('new','concert')">+ Nouveau</button>
+<button class="btn-add" data-admin-only onclick="openConcertModal('new','concert')">Concert</button>
 </div>
 <div style="padding:14px">
 <div class="concert-toolbar">
@@ -773,7 +789,7 @@ textarea{resize:vertical;min-height:72px}
       <div class="concert-setlist-title">Setlist</div>
       <div id="concert-setlist-total" class="concert-setlist-total">0 morceau · 0 heure, 0 minute, 0 seconde</div>
     </div>
-    <button type="button" class="bo" data-admin-only onclick="openConcertSetlistPicker()">+ Ajouter un morceau</button>
+    <button type="button" class="btn-add" data-admin-only onclick="openConcertSetlistPicker()">Ajouter un morceau</button>
   </div>
   <div id="concert-setlist-list" class="concert-setlist-list"></div>
 </div>
@@ -924,15 +940,14 @@ textarea{resize:vertical;min-height:72px}
   <div class="modal">
     <div class="mh">
       <div id="mt" class="mt">Nouveau morceau</div>
-      <button
-        style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer"
-        onclick="closeModal()"
-      >×</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="mh-priority" class="mh-prio-row"></div>
+        <button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeModal()">×</button>
+      </div>
     </div>
 
     <div class="modal-tabs">
       <button class="modal-tab active" onclick="switchModalTab('fiche')">Fiche</button>
-      <button class="modal-tab" onclick="switchModalTab('historique')">Historique</button>
       <button class="modal-tab" onclick="switchModalTab('videos')">Vidéos</button>
     </div>
 
@@ -940,16 +955,7 @@ textarea{resize:vertical;min-height:72px}
       <div id="panel-fiche" class="modal-panel active">
         <input type="hidden" id="f-id">
 
-        <div class="fg full" id="fg-priority">
-          <div class="priority-row">
-            <span class="priority-row-label">Priorité de travail</span>
-            <button type="button" class="priority-btn priority-rouge" data-prio="rouge" onclick="setSongPriority('rouge')"><span class="pdot"></span>À travailler</button>
-            <button type="button" class="priority-btn priority-orange" data-prio="orange" onclick="setSongPriority('orange')"><span class="pdot"></span>Pas ouf</button>
-            <button type="button" class="priority-btn priority-jaune" data-prio="jaune" onclick="setSongPriority('jaune')"><span class="pdot"></span>Pas mal</button>
-            <button type="button" class="priority-btn priority-vert" data-prio="vert" onclick="setSongPriority('vert')"><span class="pdot"></span>Validé</button>
-          </div>
-        </div>
-
+        <!-- Titre + Artiste -->
         <div class="fr2">
           <div class="fg">
             <label>Titre</label>
@@ -961,7 +967,10 @@ textarea{resize:vertical;min-height:72px}
           </div>
         </div>
 
-        <div class="fr2">
+        <div id="fg-priority" style="display:none"></div>
+
+        <!-- Statut / Difficulté / Durée / Accordage sur 1 ligne -->
+        <div class="fiche-row4">
           <div class="fg" id="fg-statut">
             <label>Statut</label>
             <select id="f-statut">
@@ -971,52 +980,48 @@ textarea{resize:vertical;min-height:72px}
               <option value="maitrise">Maîtrisé</option>
             </select>
           </div>
-
           <div class="fg" id="fg-diff">
-            <label>Difficulté 1-5</label>
+            <label>Difficulté</label>
             <input type="number" id="f-diff" min="1" max="5" value="3">
           </div>
-        </div>
-
-        <div class="fr2">
-          <div class="fg" style="display:none">
-            <label>BPM cible</label>
-            <input type="number" id="f-bpm">
-          </div>
-
           <div class="fg">
             <label>Durée mm:ss</label>
-            <input type="text" id="f-duree" placeholder="ex : 03:45">
+            <input type="text" id="f-duree" placeholder="03:45">
+          </div>
+          <div class="fg">
+            <label>Accordage / Capo</label>
+            <input type="text" id="f-ton">
           </div>
         </div>
+        <input type="number" id="f-bpm" style="display:none">
+        <input type="url" id="f-url-audio" style="display:none">
 
+        <!-- URLs groupées -->
         <div class="fg full">
-          <label>Accordage / Capo</label>
-          <input type="text" id="f-ton">
-        </div>
-
-        <div class="fg full">
-          <label style="display:none">URL Audio</label>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <input type="url" id="f-url-audio" placeholder="https..." style="display:none">
-            <button type="button" class="bo" onclick="searchYoutube()" style="white-space:nowrap">YouTube</button>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <label style="margin:0">URLs</label>
+            <button type="button" class="bo" onclick="searchYoutube()" style="padding:2px 8px;font-size:10px">🔍 YouTube</button>
+            <button type="button" class="bo" id="btn-add-url-l" onclick="toggleUrlField('l')" style="padding:2px 8px;font-size:10px">+ Live</button>
+            <button type="button" class="bo" id="btn-add-url-t" onclick="toggleUrlField('t')" style="padding:2px 8px;font-size:10px">+ Tuto</button>
           </div>
+          <input type="url" id="f-url-s" placeholder="Studio — https://youtube.com/...">
         </div>
 
         <div class="fr2">
-          <div class="fg">
-            <label>URL Studio</label>
-            <input type="url" id="f-url-s" placeholder="https://youtube.com/...">
-          </div>
-          <div class="fg">
-            <label>URL Live</label>
+          <div class="fg" id="fg-url-l" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <label style="margin:0">Live</label>
+              <button type="button" class="bo" onclick="toggleUrlField('l')" style="padding:1px 6px;font-size:10px;color:var(--accent);border-color:var(--accent)">×</button>
+            </div>
             <input type="url" id="f-url-l" placeholder="https://youtube.com/...">
           </div>
-        </div>
-
-        <div class="fg full">
-          <label>URL Tuto</label>
-          <input type="url" id="f-url-t" placeholder="https://youtube.com/...">
+          <div class="fg" id="fg-url-t" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <label style="margin:0">Tuto</label>
+              <button type="button" class="bo" onclick="toggleUrlField('t')" style="padding:1px 6px;font-size:10px;color:var(--accent);border-color:var(--accent)">×</button>
+            </div>
+            <input type="url" id="f-url-t" placeholder="https://youtube.com/...">
+          </div>
         </div>
 
         <div class="fg full">
@@ -1118,6 +1123,7 @@ let currentProfile=null;
 let currentRole='band_member';
 let currentMemberId=null;
 let currentEditingType='concert';
+let dragSrcId=null;
 let agendaMonth=new Date();
 let canEdit=false;
 let authMode='locked';
@@ -1149,7 +1155,7 @@ function updateUserBadge(){const el=document.getElementById('user-badge'); if(!e
 function openLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.add('open');}
 function closeLoginOverlay(){const ov=document.getElementById('login-overlay'); if(ov) ov.classList.remove('open');}
 function setLoginError(message=''){const box=document.getElementById('login-error'); if(!box) return; box.textContent=message||''; box.style.display=message?'block':'none';}
-function getAllowedPages(){return currentRole==='admin'?['home','repertoire','planning','stats','agenda','repet','concerts','feu-de-camp']:['home','repertoire','agenda','repet','concerts'];}
+function getAllowedPages(){return currentRole==='admin'?['home','repertoire','repet','concerts','agenda','feu-de-camp']:['home','repertoire','repet','concerts','agenda','feu-de-camp'];}
 function applyNavigationVisibility(){const allowed=new Set(getAllowedPages()); document.querySelectorAll('#main-nav [data-page]').forEach(btn=>{const ok=allowed.has(btn.dataset.page); btn.style.display=ok?'':'none';});}
 function setEditabilityState(){canEdit = currentRole==='admin'; document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=canEdit?'':'none';}); document.querySelectorAll('[data-readonly-lock]').forEach(el=>{el.disabled=!canEdit;}); const sw=document.getElementById('user-switcher'); if(sw) sw.style.display='none'; const logoutBtn=document.getElementById('btn-logout'); if(logoutBtn) logoutBtn.style.display=authMode==='supabase'?'inline-block':'none'; applyNavigationVisibility(); updateUserBadge();}
 function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée aux admins.'); return false; }
@@ -1239,18 +1245,22 @@ function renderAssignmentsEditor(){
     }
   });
 
-  box.innerHTML = `<div class="fg full"><label>Affectations groupe</label>
-    <div style="font-size:10px;color:var(--dim);margin:2px 0 10px">Choisis le membre qui joue chaque rôle. Laisse vide si non concerné. Pour la guitare, le chant lead et le chœur, tu peux ajouter plusieurs membres avec le bouton "+ Ajouter".</div>
-    ${html}</div>`;
+  box.innerHTML = `<div class="fg full"><label>Affectations</label><div style="border:1px solid var(--border);border-radius:6px;padding:10px;margin-top:6px">${html}</div></div>`;
 }
 function addAssignmentRowForRole(roleValue){ activeSongAssignments.push({ role:roleValue, band_member_id:'', gear:'' }); renderAssignmentsEditor(); }
 function removeAssignmentRowByIdx(idx){ if(!activeSongAssignments[idx]) return; activeSongAssignments.splice(idx,1); renderAssignmentsEditor(); }
 function updateAssignmentRow(idx,key,val){ if(!activeSongAssignments[idx]) return; activeSongAssignments[idx][key]=val; }
+const PRIO_LABELS = {rouge:'À travailler', orange:'Pas ouf', jaune:'Pas mal', vert:'Validé'};
+function renderMhPriority(){
+  const el = document.getElementById('mh-priority');
+  if(!el) return;
+  el.innerHTML = ['rouge','orange','jaune','vert'].map(p=>
+    `<button type="button" class="mh-prio-btn${activeSongPriority===p?' active':''}" onclick="setSongPriority('${p}')"><span class="song-prio-dot ${p}" style="width:8px;height:8px"></span>${PRIO_LABELS[p]}</button>`
+  ).join('');
+}
 function setSongPriority(val){
   activeSongPriority = val || 'rouge';
-  document.querySelectorAll('.priority-btn').forEach(b=>{
-    b.classList.toggle('active', (b.dataset.prio || '') === activeSongPriority);
-  });
+  renderMhPriority();
 }
 function togglePriorityFilter(val){
   activePriorityFilter = activePriorityFilter === val ? '' : val;
@@ -1260,6 +1270,40 @@ function togglePriorityFilter(val){
   renderSongs();
 }
 let repertoireShowAffs = false;
+function toggleUrlField(type){
+  const field = document.getElementById('fg-url-'+type);
+  const btn = document.getElementById('btn-add-url-'+type);
+  if(!field) return;
+  const isVisible = field.style.display !== 'none';
+  if(isVisible){
+    document.getElementById('f-url-'+type).value = '';
+    field.style.display = 'none';
+    if(btn) btn.style.display = 'inline-block';
+  } else {
+    field.style.display = 'flex';
+    if(btn) btn.style.display = 'none';
+  }
+}
+function initUrlFields(urlL, urlT){
+  const fieldL = document.getElementById('fg-url-l');
+  const fieldT = document.getElementById('fg-url-t');
+  const btnL = document.getElementById('btn-add-url-l');
+  const btnT = document.getElementById('btn-add-url-t');
+  if(urlL){
+    fieldL.style.display = 'flex';
+    if(btnL) btnL.style.display = 'none';
+  } else {
+    fieldL.style.display = 'none';
+    if(btnL) btnL.style.display = 'inline-block';
+  }
+  if(urlT){
+    fieldT.style.display = 'flex';
+    if(btnT) btnT.style.display = 'none';
+  } else {
+    fieldT.style.display = 'none';
+    if(btnT) btnT.style.display = 'inline-block';
+  }
+}
 function toggleRepertoireAffs(){
   repertoireShowAffs = !repertoireShowAffs;
   const list = document.getElementById('sl');
@@ -2025,17 +2069,11 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   const targetPartie = item.partie === 2 ? 1 : 2;
   const switchLabel = targetPartie === 2 ? '→' : '←';
   const switchTitle = targetPartie === 2 ? 'Déplacer en Partie 2' : 'Déplacer en Partie 1';
-  const switchBtn = (!isRepet && canEdit)
-    ? `<button type="button" class="cs-switch" onclick="moveSongToPartie('${item.id}',${targetPartie},'${concertId}')" title="${switchTitle}">${switchLabel}</button>`
+  const movesHtml = '';
+  const dragAttrs = canEdit
+    ? `draggable="true" ondragstart="slDragStart(event,'${item.id}')" ondragend="slDragEnd(event)" ondragover="slDragOver(event)" ondragleave="slDragLeaveZone(event)" ondrop="slDropOnSong(event,'${item.id}','${concertId}')"`
     : '';
-  const movesHtml = canEdit
-    ? `<span class="cs-moves">
-         <button type="button" onclick="moveConcertSong('${item.id}',-1,'${concertId}')" ${upDisabled}>↑</button>
-         <button type="button" onclick="moveConcertSong('${item.id}',1,'${concertId}')" ${downDisabled}>↓</button>
-         ${switchBtn}
-       </span>`
-    : '';
-  return `<div class="concert-card-song">
+  return `<div class="concert-card-song" ${dragAttrs}>
     <div class="concert-card-song-head">
       <span class="cs-order">#${idxInPartie+1}</span>
       <span class="cs-title">${escapeHtml(item.titre || 'Sans titre')}${item.artiste?`<small>${escapeHtml(item.artiste)}</small>`:''}</span>
@@ -2167,33 +2205,28 @@ function printSetlist(concertId){
   }
 
   let cumulativeSec = 0;
+  let globalRowIdx = 0;
   function rowsHtml(arr, startNum){
     let out = '';
     arr.forEach((it, i) => {
       const num = startNum + i;
       const titre = it.titre || 'Sans titre';
       const artiste = it.artiste ? '<span class="artiste">— '+escapeHtml(it.artiste)+'</span>' : '';
-      const duree = it.duree ? formatDuration(it.duree) : '';
       const accordage = (it.accordage || '').trim();
       const songInDb = songs.find(s => s.id === it.song_id);
       const songNotes = songInDb ? ((songInDb.notes || '').trim()) : '';
-      const hasExtras = accordage || songNotes;
 
-      out += '<tr class="song-row'+(hasExtras?' has-extras':'')+'"><td class="num">'+num+'.</td><td class="titre">'+escapeHtml(titre)+' '+artiste+'</td><td class="duree">'+duree+'</td></tr>';
-
-      if(hasExtras){
-        const extras = [];
-        if(accordage) extras.push('<span class="x-acc">'+escapeHtml(accordage)+'</span>');
-        if(songNotes) extras.push('<span class="x-notes">'+escapeHtml(songNotes)+'</span>');
-        out += '<tr class="extras-row"><td></td><td colspan="2">'+extras.join('<span class="x-sep">•</span>')+'</td></tr>';
-      }
-
+      const timeStr = hasStartTime ? fmtHM(startMin + Math.floor(cumulativeSec / 60)) : '';
       cumulativeSec += (parseInt(it.duree,10)||0) + TRANSITION_SEC;
 
-      if(hasStartTime && (num % 5 === 0) && i < arr.length - 1){
-        const cumMin = startMin + Math.floor(cumulativeSec / 60);
-        out += '<tr class="time-marker"><td colspan="3">vers ' + fmtHM(cumMin) + '</td></tr>';
-      }
+      const extraParts = [];
+      if(accordage) extraParts.push('<span class="x-acc">'+escapeHtml(accordage)+'</span>');
+      if(songNotes) extraParts.push('<span class="x-notes">'+escapeHtml(songNotes)+'</span>');
+      const extraCell = extraParts.length ? '<span class="x-extras">'+extraParts.join('<span class="x-sep">|</span>')+'</span>' : '';
+
+      const zebra = globalRowIdx % 2 === 1 ? ' zebra' : '';
+      globalRowIdx++;
+      out += '<tr class="song-row'+zebra+'"><td class="num">'+num+'.</td><td class="titre">'+escapeHtml(titre)+' '+artiste+' '+extraCell+'</td><td class="duree">'+(timeStr?timeStr:'')+'</td></tr>';
     });
     return out;
   }
@@ -2217,14 +2250,15 @@ function printSetlist(concertId){
     +'tr.song-row td { border-bottom:1px solid #e5e5e5; padding-bottom:5px; }'
     +'tr.song-row.has-extras td { border-bottom:none; padding-bottom:2px; }'
     +'tr.extras-row td { padding:0 6px 6px 6px; border-bottom:1px solid #e5e5e5; font-size:11px; color:#555; line-height:1.4 }'
-    +'tr.extras-row .x-acc { color:#000; font-weight:600 }'
-    +'tr.extras-row .x-notes { color:#666; font-style:italic }'
-    +'tr.extras-row .x-sep { margin:0 8px; color:#bbb }'
-    +'tr.time-marker td { text-align:right; padding:4px 10px; color:#888; font-size:11px; font-style:italic; background:#f7f7f7; border-top:1px dashed #bbb; border-bottom:1px dashed #bbb; }'
+    +'tr.song-row.zebra td { background:#f5f5f5; }'
+    +'.x-extras { margin-left:12px; font-size:11px; font-weight:400; border-left:1px solid #ddd; padding-left:10px; }'
+    +'.x-acc { color:#333; font-style:italic; }'
+    +'.x-notes { color:#999; font-style:italic; }'
+    +'.x-sep { margin:0 7px; color:#ccc; font-style:normal; }'
     +'td.num { width:42px; font-weight:bold; font-size:15px; color:#000; }'
     +'td.titre { font-weight:600; }'
     +'td.titre .artiste { font-weight:400; color:#666; font-size:12px; margin-left:4px; }'
-    +'td.duree { width:60px; text-align:right; font-variant-numeric:tabular-nums; color:#444; font-size:12px; }'
+    +'td.duree { width:70px; text-align:right; font-variant-numeric:tabular-nums; color:#555; font-size:12px; white-space:nowrap; }'
     +'.entracte { padding:10px 0 0; border-bottom:2px solid #000; height:0; }'
     +'.footer { margin-top:16px; padding:10px 0 0; border-top:1px solid #000; text-align:center; font-size:13px; font-weight:bold; letter-spacing:.04em; }'
     +'.no-print { text-align:center; margin:14px 0; }'
@@ -2276,10 +2310,99 @@ function renderConcertCardSetlistInner(concertId){
     const body = items.length
       ? items.map((it,i)=>renderSetlistSongRow(it,i,items,concertId)).join('')
       : `<div class="concert-card-partie-empty">Vide${num===2?' (entracte non placé)':''}</div>`;
-    return `<div class="concert-card-partie">${head}${body}</div>`;
+    const dropZone = canEdit
+      ? `<div class="setlist-drop-zone" ondragover="slDragOverZone(event)" ondragleave="slDragLeaveZone(event)" ondrop="slDropOnZone(event,${num},'${concertId}')"></div>`
+      : '';
+    return `<div class="concert-card-partie">${head}${body}${dropZone}</div>`;
   }
   return `${toolbar}<div class="concert-card-setlist">${partieBlock(1,p1)}${partieBlock(2,p2)}</div>${grandTotal}`;
 }
+function slDragStart(e, itemId){
+  dragSrcId = itemId;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', itemId);
+  setTimeout(()=>{ const el=e.currentTarget; if(el) el.classList.add('dragging'); }, 0);
+}
+function slDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.concert-card-song, .setlist-drop-zone').forEach(el=>{
+    el.classList.remove('drag-over-top','drag-over-bottom','drag-over');
+  });
+}
+function slDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.concert-card-song').forEach(el=>el.classList.remove('drag-over-top','drag-over-bottom'));
+  const rect = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.classList.add(e.clientY < rect.top + rect.height/2 ? 'drag-over-top' : 'drag-over-bottom');
+}
+function slDragOverZone(e){
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function slDragLeaveZone(e){ e.currentTarget.classList.remove('drag-over','drag-over-top','drag-over-bottom'); }
+
+async function slDropOnSong(e, targetId, concertId){
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelectorAll('.concert-card-song,.setlist-drop-zone').forEach(el=>el.classList.remove('drag-over-top','drag-over-bottom','drag-over','dragging'));
+  if(!dragSrcId || dragSrcId===targetId){ dragSrcId=null; return; }
+
+  const allItems = getConcertSetlist(concertId);
+  const src = allItems.find(x=>x.id===dragSrcId);
+  const tgt = allItems.find(x=>x.id===targetId);
+  if(!src||!tgt){ dragSrcId=null; return; }
+
+  const rect = e.currentTarget.getBoundingClientRect();
+  const insertBefore = e.clientY < rect.top + rect.height/2;
+  const targetPartie = tgt.partie||1;
+
+  await reorderSetlistItem(src, targetPartie, tgt, insertBefore, allItems, concertId);
+  dragSrcId=null;
+}
+async function slDropOnZone(e, targetPartie, concertId){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!dragSrcId){ dragSrcId=null; return; }
+
+  const allItems = getConcertSetlist(concertId);
+  const src = allItems.find(x=>x.id===dragSrcId);
+  if(!src){ dragSrcId=null; return; }
+
+  await reorderSetlistItem(src, parseInt(targetPartie), null, false, allItems, concertId);
+  dragSrcId=null;
+}
+async function reorderSetlistItem(src, targetPartie, tgt, insertBefore, allItems, concertId){
+  if(!canEdit) return;
+  const partieItems = allItems.filter(x=>(x.partie||1)===targetPartie && x.id!==src.id)
+    .sort((a,b)=>(parseInt(a.ordre)||0)-(parseInt(b.ordre)||0));
+
+  let insertIdx = partieItems.length;
+  if(tgt){
+    const tgtIdx = partieItems.findIndex(x=>x.id===tgt.id);
+    insertIdx = insertBefore ? tgtIdx : tgtIdx+1;
+  }
+  partieItems.splice(insertIdx, 0, src);
+
+  // Optimistic update
+  const localSrc = concertSetlist.find(x=>x.id===src.id);
+  if(localSrc) localSrc.partie = targetPartie;
+  partieItems.forEach((item,i)=>{
+    const local = concertSetlist.find(x=>x.id===item.id);
+    if(local) local.ordre = i+1;
+  });
+  renderConcerts(); renderRepets(); renderConcertSetlist(concertId);
+
+  // Persist
+  const updates = partieItems.map((item,i)=>
+    supabaseClient.from('concert_setlist').update({ordre:i+1, partie:targetPartie===item.partie||item.id===src.id?targetPartie:(item.partie||1)}).eq('id',item.id)
+  );
+  const results = await Promise.all(updates);
+  if(results.some(r=>r.error)){
+    console.error('Erreur drag drop setlist'); await loadData();
+  }
+}
+
 function toggleSetlistAffs(btn){
   const details = btn.closest('.concert-card-setlist-details');
   if(!details) return;
@@ -2391,6 +2514,12 @@ function renderConcertsOrRepets(filterType){
 }
 
 function ymdLocal(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const a = new Date(dateStr+'T12:00:00');
+  const b = new Date(ymdLocal(new Date())+'T12:00:00');
+  return Math.round((a - b) / 86400000);
+}
 function renderHomeHello(){
   const el = document.getElementById('home-hello');
   if(!el) return;
@@ -2583,7 +2712,7 @@ function renderHomeNextRepet(){
   }
 
   const prioHtml = prioItems.length
-    ? '<div class="home-next-prio-title">Morceaux à travailler en priorité :</div><div class="home-next-prio-list">'
+    ? '<div class="home-next-prio-title">🔥 Morceaux à travailler en priorité</div><div class="home-next-prio-list">'
       + prioItems.slice(0,8).map(it => {
           const s = songs.find(x => x.id === it.song_id);
           const prio = s ? s.priority : 'rouge';
@@ -2593,6 +2722,9 @@ function renderHomeNextRepet(){
       + '</div>'
     : '<div class="home-next-prio-title">Aucun morceau prioritaire dans cette setlist.</div>';
 
+  const days = daysUntil(next.date);
+  const cdLabel = days === 0 ? "Aujourd'hui" : days === 1 ? 'Demain' : 'J−'+days;
+  const cdClass = days !== null && days <= 4 ? 'style="color:#fff;background:var(--accent)"' : '';
   el.innerHTML = `
     <div class="home-next-head" onclick="openConcertModal('${next.id}')">
       <div class="home-next-icon">🔁</div>
@@ -2600,7 +2732,10 @@ function renderHomeNextRepet(){
         <div class="home-next-date">${escapeHtml(datePretty)}${heure?' · '+heure:''}</div>
         <div class="home-next-place">${escapeHtml(next.lieu || 'Lieu non précisé')}</div>
       </div>
-      <div class="home-next-meta">${items.length} morceau${items.length>1?'x':''}</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="home-next-meta">${items.length} morceau${items.length>1?'x':''}</div>
+        ${days!==null?`<span class="next-event-countdown" ${cdClass}>${cdLabel}</span>`:''}
+      </div>
     </div>
     ${absHtml}
     ${prioHtml}
@@ -2628,12 +2763,6 @@ function renderNextEventsBanner(){
   const nextRepet = concerts.filter(c=>(c.type||'concert')==='repet' && upcoming(c)).sort(sortByDate)[0];
   const nextConcert = concerts.filter(c=>(c.type||'concert')==='concert' && upcoming(c)).sort(sortByDate)[0];
 
-  function daysUntil(dateStr){
-    if(!dateStr) return null;
-    const a = new Date(dateStr+'T12:00:00');
-    const b = new Date(today+'T12:00:00');
-    return Math.round((a - b) / 86400000);
-  }
   function countdownLabel(days){
     if(days===0) return "Aujourd'hui";
     if(days===1) return 'Demain';
@@ -2668,7 +2797,7 @@ function renderNextEventsBanner(){
     </div>`;
   }
 
-  banner.innerHTML = block('repet', nextRepet) + block('concert', nextConcert);
+  banner.innerHTML = block('concert', nextConcert);
 }
 function renderAgenda(){
   const grid = document.getElementById('agenda-grid');
@@ -2867,6 +2996,15 @@ function toggleInlineAudio(songId, event){
   if(!row) return;
   row.style.display = row.style.display === 'block' ? 'none' : 'block';
 }
+function toggleInlineVideo(songId, event){
+  if(event) event.stopPropagation();
+  const row = document.getElementById('video-row-' + songId);
+  if(!row) return;
+  const isOpen = row.style.display === 'block';
+  // Ferme tous les autres lecteurs vidéo ouverts
+  document.querySelectorAll('[id^="video-row-"]').forEach(el => el.style.display = 'none');
+  row.style.display = isOpen ? 'none' : 'block';
+}
 
 function calcStreak(){
   if(!logs.length)return 0;
@@ -2985,11 +3123,16 @@ function renderSongs() {
             ${s.assignmentSummary ? `<div class="si-affs">${assignmentsSummaryHtml(s.id)}</div>` : ''}
           </div>
           <div class="si-right">
+            ${s.urlS ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineVideo('${s.id}', event)">▶ Studio</button>` : ''}
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
             <span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité : ${escapeHtml(prio)}"></span>
           </div>
         </div>
+        ${s.urlS ? `
+          <div id="video-row-${s.id}" style="display:none;padding:8px 12px 12px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;margin-top:-6px;margin-bottom:6px">
+            ${(()=>{ const match=(s.urlS||'').match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/); const vid=match?match[1]:''; return vid?`<div class="video-wrap"><iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`:`<a href="${s.urlS}" target="_blank" style="color:var(--accent);font-size:12px">Ouvrir la vidéo</a>`; })()}
+          </div>` : ''}
         ${s.urlAudio ? `
           <div id="audio-row-${s.id}" style="display:none;padding:8px 12px 12px;background:var(--bg2);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;margin-top:-6px;margin-bottom:6px">
             ${/\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(s.urlAudio)
@@ -3028,6 +3171,7 @@ function openModal(id) {
   buildAssignmentsForAllRoles();
   renderAssignmentsEditor();
   setSongPriority('rouge');
+  renderMhPriority();
 
   if (id !== 'new') {
     const s = songs.find(x => x.id === id);
@@ -3038,6 +3182,7 @@ function openModal(id) {
     document.getElementById('f-artiste').value = s.artiste || '';
     document.getElementById('f-statut').value = s.statut || 'adecouvrir';
     setSongPriority(s.priority || 'rouge');
+    renderMhPriority();
     document.getElementById('f-diff').value = s.diff || 3;
     document.getElementById('f-bpm').value = s.bpm || '';
     document.getElementById('f-duree').value = formatDuration(s.duree);
@@ -3045,6 +3190,7 @@ function openModal(id) {
     document.getElementById('f-url-s').value = s.urlS || '';
     document.getElementById('f-url-l').value = s.urlL || '';
     document.getElementById('f-url-t').value = s.urlT || '';
+    initUrlFields(s.urlL, s.urlT);
     document.getElementById('f-url-audio').value = s.urlAudio || '';
     document.getElementById('f-notes').value = s.notes || '';
 
@@ -3059,6 +3205,7 @@ function openModal(id) {
   } else {
     document.getElementById('btn-del').style.display = 'none';
     document.getElementById('mt').textContent = isAdminView ? 'Nouveau morceau' : 'Fiche morceau';
+    initUrlFields('', '');
     renderHistorique(null);
     renderVideos(null);
   }
@@ -3106,12 +3253,8 @@ function switchModalTab(tab){
     document.querySelectorAll('.modal-tab')[0].classList.add('active');
     document.getElementById('panel-fiche').classList.add('active');
     document.getElementById('btn-save').style.display='inline-block';
-  }else if(tab==='historique'){
-    document.querySelectorAll('.modal-tab')[1].classList.add('active');
-    document.getElementById('panel-historique').classList.add('active');
-    document.getElementById('btn-save').style.display='none';
   }else if(tab==='videos'){
-    document.querySelectorAll('.modal-tab')[2].classList.add('active');
+    document.querySelectorAll('.modal-tab')[1].classList.add('active');
     document.getElementById('panel-videos').classList.add('active');
     document.getElementById('btn-save').style.display='none';
   }
