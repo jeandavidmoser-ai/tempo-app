@@ -448,6 +448,42 @@ textarea{resize:vertical;min-height:72px}
 .home-stat-label{flex:1;color:var(--text);font-size:12px}
 .home-stat-val{font-family:'Oswald',sans-serif;color:var(--gold);font-weight:700;font-size:14px;min-width:30px;text-align:right}
 
+/* ABSENCES */
+.absence-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.absence-row:hover{border-color:#3d3d3d}
+.absence-row.absent{background:rgba(196,30,58,.1);border-color:rgba(196,30,58,.45)}
+.absence-row.absence-concert{border-left:3px solid #c8a84b}
+.absence-row.absence-repet{border-left:3px solid #4a90c8}
+.absence-row.absent{border-left-color:#c41e3a}
+.absence-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.absence-icon{font-size:18px;flex-shrink:0}
+.absence-main{flex:1;min-width:0}
+.absence-title{font-family:'Oswald',sans-serif;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.absence-meta{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.absence-flag{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.06em;color:var(--dim);flex-shrink:0;text-transform:uppercase}
+.absence-row.absent .absence-flag{color:#ff6b81;font-weight:600}
+
+/* ALERTE ABSENCE DANS SETLIST */
+.cs-absent-warning{display:block;font-size:10px;color:#ff6b81;background:rgba(196,30,58,.15);border-left:3px solid #c41e3a;padding:4px 8px;margin-top:4px;border-radius:3px;font-family:'Oswald',sans-serif;letter-spacing:.04em}
+.cs-absent-warning::before{content:'⚠ '}
+
+/* WIDGET NEXT REPET */
+.home-next-head{display:flex;align-items:center;gap:14px;padding:12px;background:linear-gradient(90deg,rgba(74,144,200,.1),var(--bg3));border:1px solid rgba(74,144,200,.3);border-left:3px solid #4a90c8;border-radius:6px;cursor:pointer;transition:all .15s;margin-bottom:10px}
+.home-next-head:hover{border-color:#4a90c8}
+.home-next-icon{font-size:28px;flex-shrink:0}
+.home-next-main{flex:1;min-width:0}
+.home-next-date{font-family:'Oswald',sans-serif;font-size:16px;color:var(--text);text-transform:capitalize}
+.home-next-place{font-size:12px;color:var(--dim);margin-top:2px}
+.home-next-meta{font-family:'Oswald',sans-serif;font-size:11px;color:var(--gold);letter-spacing:.06em;flex-shrink:0;text-align:right}
+.home-next-presence{padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;font-family:'Oswald',sans-serif;letter-spacing:.04em}
+.home-next-presence.ok{background:rgba(30,180,80,.12);border:1px solid rgba(30,180,80,.4);color:#57d98c}
+.home-next-presence.warn{background:rgba(196,30,58,.12);border:1px solid rgba(196,30,58,.4);color:#ff6b81}
+.home-next-prio-title{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+.home-next-prio-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
+.home-next-prio-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;transition:all .15s}
+.home-next-prio-item:hover{border-color:#3d3d3d}
+.home-next-prio-name{font-family:'Oswald',sans-serif;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
@@ -497,6 +533,10 @@ textarea{resize:vertical;min-height:72px}
     <div class="ch"><div class="cl">À venir dans les 14 jours</div><a href="#" onclick="showPage('agenda');return false" style="font-size:9px;color:var(--accent);text-decoration:none">Voir agenda</a></div>
     <div id="home-upcoming" style="padding:14px"></div>
   </div>
+  <div class="card widget widget-next-repet" style="grid-column:1 / -1">
+    <div class="ch"><div class="cl">Prochaine répétition</div></div>
+    <div id="home-next-repet" style="padding:14px"></div>
+  </div>
   <div class="card widget widget-recent">
     <div class="ch"><div class="cl">Récemment ajoutés au répertoire</div></div>
     <div id="home-recent-songs" style="padding:14px"></div>
@@ -514,7 +554,8 @@ textarea{resize:vertical;min-height:72px}
   <div class="card widget widget-quick">
     <div class="ch"><div class="cl">Accès rapide</div></div>
     <div style="padding:14px;display:flex;flex-wrap:wrap;gap:8px">
-      <button class="br" onclick="startSession()">▶ Démarrer une session</button>
+      <button class="br" onclick="openAbsencesModal()">🙅 Signaler une absence</button>
+      <button class="bo" onclick="startSession()">▶ Démarrer une session</button>
       <button class="bo" onclick="showPage('repertoire')">📋 Répertoire</button>
       <button class="bo" onclick="showPage('agenda')">📅 Agenda</button>
       <button class="bo" onclick="showPage('repet')">🔁 Répétitions</button>
@@ -796,6 +837,22 @@ textarea{resize:vertical;min-height:72px}
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="ov-absences" class="ov">
+  <div class="modal" style="max-width:520px">
+    <div class="mh">
+      <div class="mt">Signaler une absence</div>
+      <button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closeAbsencesModal()">✕</button>
+    </div>
+    <div class="mb">
+      <div style="font-size:12px;color:var(--dim);margin-bottom:8px">Coche les répétitions et concerts auxquels tu ne seras pas présent. Décoche pour annuler ton absence.</div>
+      <div id="absences-list"></div>
+    </div>
+    <div class="mfoot">
+      <button type="button" class="bo" onclick="closeAbsencesModal()">Fermer</button>
     </div>
   </div>
 </div>
@@ -1109,9 +1166,13 @@ function getCurrentBandMemberId(){ if(currentMemberId) return currentMemberId; c
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); currentMemberId=data.band_member_id||null; }
 async function initAuth(){ try{ const { data: { session }, error } = await supabaseClient.auth.getSession(); if(error) throw error; if(!session?.user){ authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); openLoginOverlay(); return false; } await hydrateProfileFromSession(session.user); authMode='supabase'; setLoginError(''); closeLoginOverlay(); setEditabilityState(); return true; }catch(err){ console.error('initAuth',err); lastAuthError=err?.message||String(err); authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); setLoginError(lastAuthError); openLoginOverlay(); return false; } }
 async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage(currentRole==='admin'?'home':'repertoire'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
-async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); const b=document.getElementById('next-events-banner'); if(b) b.innerHTML=''; openLoginOverlay(); showPage('repertoire'); }
+async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; absences=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); const b=document.getElementById('next-events-banner'); if(b) b.innerHTML=''; openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, gear:r.gear||null})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
+async function loadAbsences(){ try{ const { data, error } = await supabaseClient.from('absences').select('*'); if(error) throw error; absences=(data||[]).map(r=>({ id:r.id, band_member_id:r.band_member_id, concert_id:r.concert_id })); }catch(err){ console.warn('absences unavailable:',err); absences=[]; } }
+function getAbsentMemberIdsForConcert(concertId){ return absences.filter(a=>a.concert_id===concertId).map(a=>a.band_member_id); }
+function getAbsenceForMemberAndConcert(memberId, concertId){ return absences.find(a=>a.band_member_id===memberId && a.concert_id===concertId); }
+function memberNameById(id){ const m=bandMembers.find(b=>b.id===id); return m?m.name:'Membre'; }
 function getAssignmentsForSong(songId){ return songAssignments.filter(x=>x.song_id===songId).map(x=>{ const member=bandMembers.find(b=>b.id===x.band_member_id); return {...x, member_name: member?member.name:'Membre'}; }); }
 function roleLabelFor(roleValue){ const def=BAND_ROLE_OPTIONS.find(r=>r.value===roleValue); return def?def.label:(roleValue||'rôle'); }
 function assignmentsSummary(songId){
@@ -1221,7 +1282,7 @@ async function persistSongAssignments(songId){
     alert('Affectations non sauvegardées: ' + (err?.message || err));
   }
 }
-let songs=[],sessions=[],logs=[],planning={},concerts=[],concertSetlist=[];
+let songs=[],sessions=[],logs=[],planning={},concerts=[],concertSetlist=[],absences=[];
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null
 let campfirePdfBytes=null,campfirePdfName='',campfirePdfDoc=null,campfireSongs=[],campfireFilteredSongs=[],campfireSelectedIndex=-1,campfireObjectUrl=null
 let campfireStorageAttempted=false
@@ -1506,7 +1567,7 @@ async function loadData(skipAuth=false){
     const ok = await initAuth();
     if(!ok) return false;
   }
-  await Promise.all([loadBandMembers(), loadSongAssignments()]);
+  await Promise.all([loadBandMembers(), loadSongAssignments(), loadAbsences()]);
   const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
   if(s)songs=s.map(r=>({
@@ -1811,8 +1872,8 @@ function renderConcertSetlistPicker(){
 
   const existing=new Set(getConcertSetlist(concertId).map(item=>String(item.song_id || '')));
 
+  const prioOrder = {rouge:0, orange:1, jaune:2, vert:3};
   const pool=songs
-    .filter(s=>s.user===currentUser)
     .filter(s=>!existing.has(String(s.id)))
     .filter(s=>{
       if(!q) return true;
@@ -1822,7 +1883,7 @@ function renderConcertSetlistPicker(){
         .replace(/[\u0300-\u036f]/g,'');
       return txt.includes(q);
     })
-    .sort((a,b)=>(a.titre||'').localeCompare(b.titre||'','fr'));
+    .sort((a,b)=>(prioOrder[a.priority]??9)-(prioOrder[b.priority]??9) || (a.titre||'').localeCompare(b.titre||'','fr'));
 
   if(!pool.length){
     wrap.innerHTML='<div class="concert-set-empty">Aucun morceau disponible à ajouter.</div>';
@@ -1830,9 +1891,12 @@ function renderConcertSetlistPicker(){
   }
 
   wrap.innerHTML=pool.map(song=>`<div class="concert-picker-item">
-    <div class="concert-picker-main">
-      <div class="concert-picker-title">${escapeHtml(song.titre || 'Sans titre')}</div>
-      <div class="concert-picker-meta">${escapeHtml([song.artiste,song.inst,song.duree?formatDuration(song.duree):''].filter(Boolean).join(' · '))}</div>
+    <div class="concert-picker-main" style="display:flex;align-items:center;gap:10px">
+      <span class="song-prio-dot ${escapeHtml(song.priority||'rouge')}"></span>
+      <div style="min-width:0;flex:1">
+        <div class="concert-picker-title">${escapeHtml(song.titre || 'Sans titre')}</div>
+        <div class="concert-picker-meta">${escapeHtml([song.artiste,song.duree?formatDuration(song.duree):''].filter(Boolean).join(' · '))}</div>
+      </div>
     </div>
     <button type="button" class="br" onclick="addSongToConcert('${song.id}')">Ajouter</button>
   </div>`).join('');
@@ -1936,8 +2000,13 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   const isRepet = c && (c.type||'concert')==='repet';
   const affs = getAssignmentsForSong(item.song_id);
   const orderedAffs = [...affs].sort((a,b)=>{ const ai=BAND_ROLE_OPTIONS.findIndex(r=>r.value===a.role); const bi=BAND_ROLE_OPTIONS.findIndex(r=>r.value===b.role); return (ai<0?99:ai)-(bi<0?99:bi); });
+  const absentIds = new Set(getAbsentMemberIdsForConcert(concertId).map(String));
+  const absentAffs = orderedAffs.filter(a => absentIds.has(String(a.band_member_id)));
+  const absentWarning = absentAffs.length
+    ? `<div class="cs-absent-warning">Attention, ${absentAffs.map(a=>escapeHtml(a.member_name)+' ('+escapeHtml(roleLabelFor(a.role))+')').join(', ')} ${absentAffs.length>1?'ne seront pas là':"ne sera pas là"} !</div>`
+    : '';
   const affsHtml = orderedAffs.length
-    ? orderedAffs.map(a=>{ const label=roleLabelFor(a.role); const gear=a.gear?` (${escapeHtml(a.gear)})`:''; return `<span class="aff-gold">${escapeHtml(label)}${gear}</span> · ${escapeHtml(a.member_name)}`; }).join(' &nbsp;·&nbsp; ')
+    ? orderedAffs.map(a=>{ const label=roleLabelFor(a.role); const gear=a.gear?` (${escapeHtml(a.gear)})`:''; const isAbsent = absentIds.has(String(a.band_member_id)); const nameStyle = isAbsent ? ' style="text-decoration:line-through;color:#ff6b81"' : ''; return `<span class="aff-gold">${escapeHtml(label)}${gear}</span> · <span${nameStyle}>${escapeHtml(a.member_name)}</span>`; }).join(' &nbsp;·&nbsp; ')
     : '<span style="opacity:.6">Pas d\'affectations</span>';
   const upDisabled = idxInPartie===0 ? 'disabled' : '';
   const downDisabled = idxInPartie===sameParticeItems.length-1 ? 'disabled' : '';
@@ -1961,6 +2030,7 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
       ${item.duree?`<span class="cs-dur">${escapeHtml(formatDuration(item.duree))}</span>`:''}
       ${movesHtml}
     </div>
+    ${absentWarning}
     <div class="concert-card-song-affs">${affsHtml}</div>
   </div>`;
 }
@@ -2399,8 +2469,135 @@ function renderHomeRecentSongs(){
     <div class="home-recent-meta">${escapeHtml(s.artiste||'')}</div>
   </div>`).join('');
 }
+function openAbsencesModal(){
+  const myId = getCurrentBandMemberId();
+  if(!myId){ alert("Ton compte n'est pas lié à un membre du groupe. Demande à JD de faire le lien."); return; }
+  document.getElementById('ov-absences').classList.add('open');
+  renderAbsencesList();
+}
+function closeAbsencesModal(){ document.getElementById('ov-absences').classList.remove('open'); }
+function renderAbsencesList(){
+  const list = document.getElementById('absences-list');
+  if(!list) return;
+  const myId = getCurrentBandMemberId();
+  const today = ymdLocal(new Date());
+  const upcoming = concerts
+    .filter(c => c.date && c.date >= today)
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || (a.heure_debut||'').localeCompare(b.heure_debut||''));
+  if(!upcoming.length){
+    list.innerHTML = '<div style="color:var(--muted);padding:14px;text-align:center;font-size:12px">Aucun événement à venir.</div>';
+    return;
+  }
+  list.innerHTML = upcoming.map(c => {
+    const type = c.type || 'concert';
+    const isAbsent = !!getAbsenceForMemberAndConcert(myId, c.id);
+    const datePretty = formatConcertDate(c.date);
+    const heure = c.heure_debut ? c.heure_debut.substring(0,5) : '';
+    const place = c.lieu ? ' · '+c.lieu : '';
+    const label = c.nom || (type==='repet' ? 'Répétition' : 'Concert');
+    return `<label class="absence-row absence-${type}${isAbsent?' absent':''}">
+      <input type="checkbox" ${isAbsent?'checked':''} onchange="toggleAbsence('${c.id}', this.checked)" />
+      <span class="absence-icon">${type==='repet'?'🔁':'🎤'}</span>
+      <div class="absence-main">
+        <div class="absence-title">${escapeHtml(label)}</div>
+        <div class="absence-meta">${escapeHtml(datePretty)}${heure?' · '+heure:''}${escapeHtml(place)}</div>
+      </div>
+      <span class="absence-flag">${isAbsent?'Tu es absent·e':'Tu seras là'}</span>
+    </label>`;
+  }).join('');
+}
+async function toggleAbsence(concertId, becomeAbsent){
+  const myId = getCurrentBandMemberId();
+  if(!myId){ alert("Compte non lié à un membre."); return; }
+  if(becomeAbsent){
+    const newAbsence = { id: crypto.randomUUID(), band_member_id: myId, concert_id: concertId };
+    absences.push(newAbsence);
+    renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+    const { error } = await supabaseClient.from('absences').insert({ id: newAbsence.id, band_member_id: myId, concert_id: concertId });
+    if(error){
+      console.error('Erreur absences.insert:', error);
+      absences = absences.filter(a => a.id !== newAbsence.id);
+      renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+      alert("Erreur lors de l'enregistrement de l'absence.");
+    }
+  } else {
+    const existing = getAbsenceForMemberAndConcert(myId, concertId);
+    if(!existing) return;
+    absences = absences.filter(a => a.id !== existing.id);
+    renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+    const { error } = await supabaseClient.from('absences').delete().eq('id', existing.id);
+    if(error){
+      console.error('Erreur absences.delete:', error);
+      absences.push(existing);
+      renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+      alert("Erreur lors de la suppression de l'absence.");
+    }
+  }
+}
+
+function renderHomeNextRepet(){
+  const el = document.getElementById('home-next-repet');
+  if(!el) return;
+  const today = ymdLocal(new Date());
+  const next = concerts
+    .filter(c => (c.type||'concert')==='repet' && c.date && c.date >= today)
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||'') || (a.heure_debut||'').localeCompare(b.heure_debut||''))[0];
+
+  if(!next){
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Aucune répétition planifiée.</div>';
+    return;
+  }
+
+  const datePretty = formatConcertDate(next.date);
+  const heure = next.heure_debut ? next.heure_debut.substring(0,5) : '';
+  const items = getConcertSetlist(next.id);
+  const prioItems = items.filter(it => {
+    const s = songs.find(x => x.id === it.song_id);
+    return s && (s.priority === 'rouge' || s.priority === 'orange');
+  });
+
+  const absentIds = getAbsentMemberIdsForConcert(next.id);
+  const absentNames = absentIds.map(memberNameById);
+  const allMembers = bandMembers.length;
+  const presentCount = allMembers - absentIds.length;
+
+  let absHtml;
+  if(!allMembers){
+    absHtml = '<div class="home-next-presence">Présence non renseignée</div>';
+  } else if(absentIds.length === 0){
+    absHtml = '<div class="home-next-presence ok">✓ Tout le monde sera là</div>';
+  } else {
+    absHtml = '<div class="home-next-presence warn">⚠ '+presentCount+'/'+allMembers+' présents — absent'+(absentIds.length>1?'s':'')+' : '+absentNames.map(escapeHtml).join(', ')+'</div>';
+  }
+
+  const prioHtml = prioItems.length
+    ? '<div class="home-next-prio-title">Morceaux à travailler en priorité :</div><div class="home-next-prio-list">'
+      + prioItems.slice(0,8).map(it => {
+          const s = songs.find(x => x.id === it.song_id);
+          const prio = s ? s.priority : 'rouge';
+          return '<div class="home-next-prio-item" onclick="openConcertModal(\''+next.id+'\')"><span class="song-prio-dot '+escapeHtml(prio)+'"></span><span class="home-next-prio-name">'+escapeHtml(it.titre||'')+'</span></div>';
+        }).join('')
+      + (prioItems.length > 8 ? '<div style="font-size:11px;color:var(--dim);padding:4px">… et '+(prioItems.length-8)+' de plus</div>' : '')
+      + '</div>'
+    : '<div class="home-next-prio-title">Aucun morceau prioritaire dans cette setlist.</div>';
+
+  el.innerHTML = `
+    <div class="home-next-head" onclick="openConcertModal('${next.id}')">
+      <div class="home-next-icon">🔁</div>
+      <div class="home-next-main">
+        <div class="home-next-date">${escapeHtml(datePretty)}${heure?' · '+heure:''}</div>
+        <div class="home-next-place">${escapeHtml(next.lieu || 'Lieu non précisé')}</div>
+      </div>
+      <div class="home-next-meta">${items.length} morceau${items.length>1?'x':''}</div>
+    </div>
+    ${absHtml}
+    ${prioHtml}
+  `;
+}
+
 function renderHome(){
   renderHomeHello();
+  renderHomeNextRepet();
   renderHomeToWork();
   renderHomeRepertoireStats();
   renderHomeUpcoming();
