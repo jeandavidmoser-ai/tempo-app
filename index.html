@@ -15,10 +15,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .logo-wrap{display:flex;align-items:center;cursor:pointer;user-select:none}
 .logo{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:0.14em}
 .logo span{color:var(--accent)}
-.logo-img{height:48px;width:auto;display:block}
-.home-logo-big{display:flex;justify-content:center;padding:10px 0 24px}
-.home-logo-big img{max-width:280px;width:60%;height:auto;filter:drop-shadow(0 4px 16px rgba(0,0,0,.45))}
-@media(max-width:560px){.logo-img{height:38px}.home-logo-big img{max-width:200px;width:55%}}
+.logo-img-right{height:44px;width:auto;display:block;background:#fff;padding:4px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.home-logo-big{display:flex;justify-content:flex-start;padding:6px 0 18px}
+.home-logo-big img{max-width:160px;width:30%;height:auto;background:#fff;padding:12px;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.45)}
+@media(max-width:768px){.home-logo-big{display:none}}
+@media(max-width:560px){.logo-img-right{display:none}}
 .usw{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:3px;border-radius:6px}
 .usw button{background:none;border:none;color:var(--dim);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.1em;padding:5px 14px;border-radius:4px;cursor:pointer;transition:all .15s}
 .usw button.on{background:var(--accent);color:#fff}
@@ -286,25 +287,27 @@ textarea{resize:vertical;min-height:72px}
 .priority-btn .pdot{width:12px;height:12px;border-radius:50%;display:inline-block}
 .priority-btn.priority-vert .pdot{background:#1eb450;box-shadow:0 0 0 1px rgba(30,180,80,.4)}
 .priority-btn.priority-jaune .pdot{background:#e6c84b;box-shadow:0 0 0 1px rgba(230,200,75,.4)}
-.priority-btn.priority-orange .pdot{background:#d28a3a;box-shadow:0 0 0 1px rgba(180,110,40,.4)}
+.priority-btn.priority-orange .pdot{background:#c2602a;box-shadow:0 0 0 1px rgba(194,96,42,.5)}
 .priority-btn.priority-rouge .pdot{background:#c41e3a;box-shadow:0 0 0 1px rgba(196,30,58,.4)}
 .priority-btn.priority-none .pdot{background:transparent;border:1px dashed var(--muted)}
 .priority-btn.active{background:var(--bg);border-color:var(--gold);color:var(--text);box-shadow:inset 0 0 0 1px var(--gold)}
 .song-prio-dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
 .song-prio-dot.vert{background:#1eb450;box-shadow:0 0 0 1px rgba(30,180,80,.5)}
 .song-prio-dot.jaune{background:#e6c84b;box-shadow:0 0 0 1px rgba(230,200,75,.5)}
-.song-prio-dot.orange{background:#d28a3a;box-shadow:0 0 0 1px rgba(180,110,40,.5)}
+.song-prio-dot.orange{background:#c2602a;box-shadow:0 0 0 1px rgba(194,96,42,.6)}
 .song-prio-dot.rouge{background:#c41e3a;box-shadow:0 0 0 1px rgba(196,30,58,.5)}
 .si-left{flex:1;min-width:0;padding-right:12px}
 .si-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .stt-artist{font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px}
-.si-affs{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.5}
+.si-affs{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.5;display:none}
+#sl.show-affs .si-affs{display:block}
+#btn-toggle-affs-rep.active{background:rgba(200,168,75,.15);border-color:var(--gold);color:var(--gold)}
 .si-duration{color:var(--gold);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.04em}
 .prio-filter-row{display:inline-flex;gap:6px;align-items:center}
 .prio-filter-btn{background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.05em;padding:4px 10px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
 .prio-filter-btn:hover{border-color:#3d3d3d;color:var(--text)}
 .prio-filter-btn.active.rouge{background:rgba(196,30,58,.2);border-color:#c41e3a;color:#ff6b81}
-.prio-filter-btn.active.orange{background:rgba(180,110,40,.22);border-color:#d28a3a;color:#e7a35a}
+.prio-filter-btn.active.orange{background:rgba(194,96,42,.22);border-color:#c2602a;color:#e88f4d}
 .prio-filter-btn.active.jaune{background:rgba(230,200,75,.18);border-color:#e6c84b;color:#f0d484}
 .prio-filter-btn.active.vert{background:rgba(30,180,80,.18);border-color:#1eb450;color:#57d98c}
 .concert-summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:4px;font-size:13px}
@@ -499,10 +502,10 @@ textarea{resize:vertical;min-height:72px}
 <body>
 <header>
 <div class="logo-wrap" onclick="showPage('home')">
-<img src="logo.png" alt="BROKEN ARMS" class="logo-img" onerror="this.style.display='none';document.getElementById('logo').style.display='block'">
-<div id="logo" class="logo" style="display:none">💀 BROKEN ARMS<span>.</span></div>
+<div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
 </div>
-<div id="session-controls" style="display:flex;align-items:center;gap:8px">
+<div id="session-controls" style="display:flex;align-items:center;gap:12px">
+<img src="logo_v2.png" alt="" class="logo-img-right" onerror="this.style.display='none'">
 <button id="btn-logout" class="bo" type="button" onclick="handleLogout()" style="display:none">Déconnexion</button>
 <div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Connexion requise</div>
 </div>
@@ -522,7 +525,7 @@ textarea{resize:vertical;min-height:72px}
 
 <div id="page-home" class="page active">
 <div id="next-events-banner"></div>
-<div class="home-logo-big"><img src="logo.png" alt="BROKEN ARMS" onerror="this.parentElement.style.display='none'"></div>
+<div class="home-logo-big"><img src="logo_v2.png" alt="BROKEN ARMS" onerror="this.parentElement.style.display='none'"></div>
 <div class="home-hello" id="home-hello">Salut, voici ton tableau de bord</div>
 <div class="home-widgets">
   <div class="card widget widget-next-repet" style="grid-column:1 / -1">
@@ -617,18 +620,18 @@ textarea{resize:vertical;min-height:72px}
       <button type="button" class="prio-filter-btn jaune" data-prio="jaune" onclick="togglePriorityFilter('jaune')"><span class="song-prio-dot jaune"></span>Pas mal</button>
       <button type="button" class="prio-filter-btn vert" data-prio="vert" onclick="togglePriorityFilter('vert')"><span class="song-prio-dot vert"></span>Validé</button>
     </div>
-            
+  </div>
 </div>
 
-     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">
   <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
+  <button type="button" id="btn-toggle-affs-rep" class="bo" onclick="toggleRepertoireAffs()" style="padding:4px 10px;font-size:10px">Afficher les affectations</button>
   <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
 </div>
 
-      <div id="sl"></div>
+<div id="sl"></div>
     </div>
   </div>
-</div>
 </div>
 
 <div id="page-planning" class="page">
@@ -1244,6 +1247,17 @@ function togglePriorityFilter(val){
     b.classList.toggle('active', b.dataset.prio === activePriorityFilter);
   });
   renderSongs();
+}
+let repertoireShowAffs = false;
+function toggleRepertoireAffs(){
+  repertoireShowAffs = !repertoireShowAffs;
+  const list = document.getElementById('sl');
+  if(list) list.classList.toggle('show-affs', repertoireShowAffs);
+  const btn = document.getElementById('btn-toggle-affs-rep');
+  if(btn){
+    btn.textContent = repertoireShowAffs ? 'Masquer les affectations' : 'Afficher les affectations';
+    btn.classList.toggle('active', repertoireShowAffs);
+  }
 }
 async function persistSongAssignments(songId){
   if(!canEdit) return;
@@ -2963,7 +2977,6 @@ function renderSongs() {
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
             <span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité : ${escapeHtml(prio)}"></span>
-            ${canEdit ? `<span class="badge ${colors[s.statut] || 'b0'}">${labels[s.statut] || s.statut || ''}</span>` : ''}
           </div>
         </div>
         ${s.urlAudio ? `
