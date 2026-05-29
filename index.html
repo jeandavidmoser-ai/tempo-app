@@ -356,10 +356,14 @@ textarea{resize:vertical;min-height:72px}
 .agenda-day.today{background:rgba(200,168,75,.08);box-shadow:inset 0 0 0 2px rgba(200,168,75,.55)}
 .agenda-day-num{font-family:'Oswald',sans-serif;font-size:14px;color:var(--text);margin-bottom:4px;font-weight:600}
 .agenda-day.today .agenda-day-num{color:var(--gold);font-weight:700;font-size:15px}
-.agenda-event{font-size:11px;padding:5px 8px;border-radius:4px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35;transition:all .15s;font-weight:500}
-.agenda-event:hover{transform:translateX(1px);filter:brightness(1.15)}
-.agenda-event.concert{background:rgba(200,168,75,.28);color:#f0d484;border-left:3px solid #c8a84b}
-.agenda-event.repet{background:rgba(74,144,200,.28);color:#c4dceb;border-left:3px solid #4a90c8}
+.agenda-event{font-size:11px;padding:6px 8px;border-radius:4px;cursor:pointer;overflow:hidden;line-height:1.35;transition:all .15s;font-weight:500;display:block}
+.agenda-event:hover{filter:brightness(1.15)}
+.agenda-event.concert{background:rgba(200,168,75,.35);color:#f0d484;border-left:3px solid #c8a84b}
+.agenda-event.repet{background:rgba(74,144,200,.35);color:#c4dceb;border-left:3px solid #4a90c8}
+.agenda-event-title{display:block;font-family:'Oswald',sans-serif;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agenda-event-time{display:block;font-size:10px;opacity:.75;margin-top:2px}
+.agenda-day.has-event{padding:4px}
+.agenda-day.has-event .agenda-day-num{font-size:12px;margin-bottom:3px}
 .agenda-day.clickable{cursor:pointer}
 .agenda-day.clickable:hover{background:rgba(255,255,255,.03)}
 .agenda-day.today.clickable:hover{background:rgba(200,168,75,.12)}
@@ -789,7 +793,7 @@ textarea{resize:vertical;min-height:72px}
       <div class="concert-setlist-title">Setlist</div>
       <div id="concert-setlist-total" class="concert-setlist-total">0 morceau · 0 heure, 0 minute, 0 seconde</div>
     </div>
-    <button type="button" class="btn-add" data-admin-only onclick="openConcertSetlistPicker()">Ajouter un morceau</button>
+    <button type="button" class="btn-add" onclick="openConcertSetlistPicker()">Ajouter un morceau</button>
   </div>
   <div id="concert-setlist-list" class="concert-setlist-list"></div>
 </div>
@@ -1895,7 +1899,7 @@ function renderConcertSetlist(concertId){
   list.innerHTML = p1html + p2html;
 }
 
-function openConcertSetlistPicker(){ if(!ensureAdminAction()) return; 
+function openConcertSetlistPicker(){
   const concertId = document.getElementById('concert-id')?.value || '';
   if (!concertId) {
     alert("Sauvegarde d'abord le concert pour ajouter une setlist.");
@@ -1995,7 +1999,6 @@ async function addSongToConcert(songId){
 }
 
 async function moveConcertSong(setlistId,direction,explicitConcertId){
-  if(!ensureAdminAction()) return;
   const concertId = explicitConcertId || document.getElementById('concert-id')?.value || '';
   if(!concertId) return;
 
@@ -2070,9 +2073,7 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   const switchLabel = targetPartie === 2 ? '→' : '←';
   const switchTitle = targetPartie === 2 ? 'Déplacer en Partie 2' : 'Déplacer en Partie 1';
   const movesHtml = '';
-  const dragAttrs = canEdit
-    ? `draggable="true" ondragstart="slDragStart(event,'${item.id}')" ondragend="slDragEnd(event)" ondragover="slDragOver(event)" ondragleave="slDragLeaveZone(event)" ondrop="slDropOnSong(event,'${item.id}','${concertId}')"`
-    : '';
+  const dragAttrs = `draggable="true" ondragstart="slDragStart(event,'${item.id}')" ondragend="slDragEnd(event)" ondragover="slDragOver(event)" ondragleave="slDragLeaveZone(event)" ondrop="slDropOnSong(event,'${item.id}','${concertId}')"`;
   return `<div class="concert-card-song" ${dragAttrs}>
     <div class="concert-card-song-head">
       <span class="cs-order">#${idxInPartie+1}</span>
@@ -2310,9 +2311,7 @@ function renderConcertCardSetlistInner(concertId){
     const body = items.length
       ? items.map((it,i)=>renderSetlistSongRow(it,i,items,concertId)).join('')
       : `<div class="concert-card-partie-empty">Vide${num===2?' (entracte non placé)':''}</div>`;
-    const dropZone = canEdit
-      ? `<div class="setlist-drop-zone" ondragover="slDragOverZone(event)" ondragleave="slDragLeaveZone(event)" ondrop="slDropOnZone(event,${num},'${concertId}')"></div>`
-      : '';
+    const dropZone = `<div class="setlist-drop-zone" ondragover="slDragOverZone(event)" ondragleave="slDragLeaveZone(event)" ondrop="slDropOnZone(event,${num},'${concertId}')"></div>`;
     return `<div class="concert-card-partie">${head}${body}${dropZone}</div>`;
   }
   return `${toolbar}<div class="concert-card-setlist">${partieBlock(1,p1)}${partieBlock(2,p2)}</div>${grandTotal}`;
@@ -2373,7 +2372,6 @@ async function slDropOnZone(e, targetPartie, concertId){
   dragSrcId=null;
 }
 async function reorderSetlistItem(src, targetPartie, tgt, insertBefore, allItems, concertId){
-  if(!canEdit) return;
   const partieItems = allItems.filter(x=>(x.partie||1)===targetPartie && x.id!==src.id)
     .sort((a,b)=>(parseInt(a.ordre)||0)-(parseInt(b.ordre)||0));
 
@@ -2414,7 +2412,6 @@ function toggleSetlistAffs(btn){
 }
 
 async function moveSongToPartie(setlistId, targetPartie, concertId){
-  if(!ensureAdminAction()) return;
   if(!concertId || ![1,2].includes(targetPartie)) return;
   const all = getConcertSetlist(concertId);
   const item = all.find(x=>x.id===setlistId);
@@ -2836,16 +2833,20 @@ function renderAgenda(){
 
     const eventsHtml = events.map(e=>{
       const type = (e.type||'concert');
-      const heure = e.heure_debut ? e.heure_debut.substring(0,5)+' ' : '';
-      const label = type==='repet' ? (heure+'Répét') : (heure+(e.nom||'Concert'));
-      const tooltip = type==='repet' ? ('Répétition'+(e.heure_debut?' à '+e.heure_debut.substring(0,5):'')) : ((e.nom||'Concert')+(e.lieu?' — '+e.lieu:''));
-      return `<div class="agenda-event ${type}" onclick="openConcertModal('${e.id}')" title="${escapeHtml(tooltip)}">${escapeHtml(label)}</div>`;
+      const heure = e.heure_debut ? e.heure_debut.substring(0,5) : '';
+      const label = type==='repet' ? 'Répétition' : (e.nom||'Concert');
+      const sub = [heure, type==='concert' ? e.lieu : ''].filter(Boolean).join(' · ');
+      return `<div class="agenda-event ${type}" onclick="openConcertModal('${e.id}')">
+        <span class="agenda-event-title">${escapeHtml(label)}</span>
+        ${sub ? `<span class="agenda-event-time">${escapeHtml(sub)}</span>` : ''}
+      </div>`;
     }).join('');
 
     const classes = ['agenda-day'];
     if(isOtherMonth) classes.push('other-month');
     if(isToday) classes.push('today');
     if(canEdit) classes.push('clickable');
+    if(events.length) classes.push('has-event');
 
     const clickAttr = canEdit ? ` onclick="onAgendaDayClick('${dateStr}', event)"` : '';
     html += `<div class="${classes.join(' ')}"${clickAttr}>
