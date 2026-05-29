@@ -12,10 +12,13 @@
 :root{--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--border:#272727;--accent:#C41E3A;--text:#f0f0f0;--dim:#777;--muted:#444;--gold:#c8a84b}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh}
 header{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border)}
-.logo-wrap{display:flex;flex-direction:column;cursor:pointer;user-select:none}
+.logo-wrap{display:flex;align-items:center;cursor:pointer;user-select:none}
 .logo{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:0.14em}
 .logo span{color:var(--accent)}
-.logo-sub{font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.18em;color:var(--dim);text-transform:uppercase;margin-top:3px}
+.logo-img{height:48px;width:auto;display:block}
+.home-logo-big{display:flex;justify-content:center;padding:10px 0 24px}
+.home-logo-big img{max-width:280px;width:60%;height:auto;filter:drop-shadow(0 4px 16px rgba(0,0,0,.45))}
+@media(max-width:560px){.logo-img{height:38px}.home-logo-big img{max-width:200px;width:55%}}
 .usw{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:3px;border-radius:6px}
 .usw button{background:none;border:none;color:var(--dim);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.1em;padding:5px 14px;border-radius:4px;cursor:pointer;transition:all .15s}
 .usw button.on{background:var(--accent);color:#fff}
@@ -496,8 +499,8 @@ textarea{resize:vertical;min-height:72px}
 <body>
 <header>
 <div class="logo-wrap" onclick="showPage('home')">
-<div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
-<div class="logo-sub"></div>
+<img src="logo.png" alt="BROKEN ARMS" class="logo-img" onerror="this.style.display='none';document.getElementById('logo').style.display='block'">
+<div id="logo" class="logo" style="display:none">💀 BROKEN ARMS<span>.</span></div>
 </div>
 <div id="session-controls" style="display:flex;align-items:center;gap:8px">
 <button id="btn-logout" class="bo" type="button" onclick="handleLogout()" style="display:none">Déconnexion</button>
@@ -519,27 +522,19 @@ textarea{resize:vertical;min-height:72px}
 
 <div id="page-home" class="page active">
 <div id="next-events-banner"></div>
+<div class="home-logo-big"><img src="logo.png" alt="BROKEN ARMS" onerror="this.parentElement.style.display='none'"></div>
 <div class="home-hello" id="home-hello">Salut, voici ton tableau de bord</div>
 <div class="home-widgets">
-  <div class="card widget widget-towork">
-    <div class="ch"><div class="cl">Tes morceaux à travailler</div><a href="#" onclick="togglePriorityFilter('rouge');showPage('repertoire');return false" style="font-size:9px;color:var(--accent);text-decoration:none">Voir tout</a></div>
-    <div id="home-to-work" style="padding:14px"></div>
+  <div class="card widget widget-next-repet" style="grid-column:1 / -1">
+    <div class="ch">
+      <div class="cl">Prochaine répétition</div>
+      <button class="bo" onclick="openAbsencesModal()" style="padding:5px 12px;font-size:10px">🙅 Signaler une absence</button>
+    </div>
+    <div id="home-next-repet" style="padding:14px"></div>
   </div>
   <div class="card widget widget-stats">
     <div class="ch"><div class="cl">Répertoire en chiffres</div></div>
     <div id="home-repertoire-stats" style="padding:14px"></div>
-  </div>
-  <div class="card widget widget-upcoming">
-    <div class="ch"><div class="cl">À venir dans les 14 jours</div><a href="#" onclick="showPage('agenda');return false" style="font-size:9px;color:var(--accent);text-decoration:none">Voir agenda</a></div>
-    <div id="home-upcoming" style="padding:14px"></div>
-  </div>
-  <div class="card widget widget-next-repet" style="grid-column:1 / -1">
-    <div class="ch"><div class="cl">Prochaine répétition</div></div>
-    <div id="home-next-repet" style="padding:14px"></div>
-  </div>
-  <div class="card widget widget-recent">
-    <div class="ch"><div class="cl">Récemment ajoutés au répertoire</div></div>
-    <div id="home-recent-songs" style="padding:14px"></div>
   </div>
   <div class="card widget widget-coach">
     <div class="ch"><div class="cl">Coach Broken Arms</div></div>
@@ -551,18 +546,7 @@ textarea{resize:vertical;min-height:72px}
       </div>
     </div>
   </div>
-  <div class="card widget widget-quick">
-    <div class="ch"><div class="cl">Accès rapide</div></div>
-    <div style="padding:14px;display:flex;flex-wrap:wrap;gap:8px">
-      <button class="br" onclick="openAbsencesModal()">🙅 Signaler une absence</button>
-      <button class="bo" onclick="startSession()">▶ Démarrer une session</button>
-      <button class="bo" onclick="showPage('repertoire')">📋 Répertoire</button>
-      <button class="bo" onclick="showPage('agenda')">📅 Agenda</button>
-      <button class="bo" onclick="showPage('repet')">🔁 Répétitions</button>
-      <button class="bo" onclick="showPage('concerts')">🎤 Concerts</button>
-    </div>
-  </div>
-  <div class="card widget widget-session" id="widget-session" style="display:none">
+  <div class="card widget widget-session" id="widget-session" style="display:none;grid-column:1 / -1">
     <div class="ch"><div class="cl">Session en cours</div></div>
     <div style="padding:20px">
       <div class="session-bar">
@@ -589,6 +573,9 @@ textarea{resize:vertical;min-height:72px}
 <div id="stat-count" style="display:none"></div>
 <div id="stat-p" style="display:none"></div>
 <div id="stat-month" style="display:none"></div>
+<div id="home-to-work" style="display:none"></div>
+<div id="home-upcoming" style="display:none"></div>
+<div id="home-recent-songs" style="display:none"></div>
 </div>
 
 <div id="page-repertoire" class="page">
