@@ -15,10 +15,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:16p
 .logo-wrap{display:flex;align-items:center;cursor:pointer;user-select:none}
 .logo{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:0.14em}
 .logo span{color:var(--accent)}
-.logo-img-right{height:44px;width:auto;display:block;background:#fff;padding:4px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-.home-logo-big{display:flex;justify-content:flex-start;padding:6px 0 18px}
-.home-logo-big img{max-width:160px;width:30%;height:auto;background:#fff;padding:12px;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.45)}
-@media(max-width:768px){.home-logo-big{display:none}}
+.logo-img-right{height:44px;width:auto;display:block}
 @media(max-width:560px){.logo-img-right{display:none}}
 .usw{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);padding:3px;border-radius:6px}
 .usw button{background:none;border:none;color:var(--dim);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.1em;padding:5px 14px;border-radius:4px;cursor:pointer;transition:all .15s}
@@ -299,7 +296,11 @@ textarea{resize:vertical;min-height:72px}
 .si-left{flex:1;min-width:0;padding-right:12px}
 .si-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .stt-artist{font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px}
-.si-affs{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.5;display:none}
+.si-affs{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.7;display:none}
+.si-affs .aff-pair{display:inline-block;margin-right:14px;white-space:nowrap}
+.si-affs .aff-role{font-family:'Oswald',sans-serif;font-size:9.5px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-right:5px}
+.si-affs .aff-gear{font-size:9px;color:var(--dim);font-weight:400;letter-spacing:.02em}
+.si-affs .aff-member{color:var(--text);font-size:11px}
 #sl.show-affs .si-affs{display:block}
 #btn-toggle-affs-rep.active{background:rgba(200,168,75,.15);border-color:var(--gold);color:var(--gold)}
 .si-duration{color:var(--gold);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.04em}
@@ -320,7 +321,7 @@ textarea{resize:vertical;min-height:72px}
 .repet-list .concert-summary-date{color:#aecadf}
 .repet-card .ch{border-bottom-color:rgba(74,144,200,0.3)}
 .repet-card .cl{color:#aecadf}
-#next-events-banner{max-width:1100px;margin:14px auto 0;padding:0 24px;display:flex;gap:12px;flex-wrap:wrap}
+#next-events-banner{margin:0 0 14px;display:flex;gap:12px;flex-wrap:wrap}
 #next-events-banner:empty{display:none}
 .next-event{flex:1;min-width:240px;display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s}
 .next-event:hover{border-color:#3d3d3d;transform:translateY(-1px)}
@@ -505,9 +506,9 @@ textarea{resize:vertical;min-height:72px}
 <div id="logo" class="logo">💀 BROKEN ARMS<span>.</span></div>
 </div>
 <div id="session-controls" style="display:flex;align-items:center;gap:12px">
-<img src="logo_v2.png" alt="" class="logo-img-right" onerror="this.style.display='none'">
 <button id="btn-logout" class="bo" type="button" onclick="handleLogout()" style="display:none">Déconnexion</button>
 <div id="user-badge" style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em">Connexion requise</div>
+<img src="logo_v2.png" alt="" class="logo-img-right" onerror="this.style.display='none'">
 </div>
 
 </header>
@@ -525,7 +526,6 @@ textarea{resize:vertical;min-height:72px}
 
 <div id="page-home" class="page active">
 <div id="next-events-banner"></div>
-<div class="home-logo-big"><img src="logo_v2.png" alt="BROKEN ARMS" onerror="this.parentElement.style.display='none'"></div>
 <div class="home-hello" id="home-hello">Salut, voici ton tableau de bord</div>
 <div class="home-widgets">
   <div class="card widget widget-next-repet" style="grid-column:1 / -1">
@@ -620,12 +620,13 @@ textarea{resize:vertical;min-height:72px}
       <button type="button" class="prio-filter-btn jaune" data-prio="jaune" onclick="togglePriorityFilter('jaune')"><span class="song-prio-dot jaune"></span>Pas mal</button>
       <button type="button" class="prio-filter-btn vert" data-prio="vert" onclick="togglePriorityFilter('vert')"><span class="song-prio-dot vert"></span>Validé</button>
     </div>
+
+    <button type="button" id="btn-toggle-affs-rep" class="bo" onclick="toggleRepertoireAffs()" style="padding:5px 12px;font-size:10px;margin-left:auto">👥 Afficher les affectations</button>
   </div>
 </div>
 
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">
   <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
-  <button type="button" id="btn-toggle-affs-rep" class="bo" onclick="toggleRepertoireAffs()" style="padding:4px 10px;font-size:10px">Afficher les affectations</button>
   <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
 </div>
 
@@ -1155,7 +1156,7 @@ function ensureAdminAction(){ if(canEdit) return true; alert('Action réservée 
 function getCurrentBandMemberId(){ if(currentMemberId) return currentMemberId; const me=bandMembers.find(m=>normalizeText(m.name)===normalizeText(currentUser)); return me?me.id:null; }
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); currentMemberId=data.band_member_id||null; }
 async function initAuth(){ try{ const { data: { session }, error } = await supabaseClient.auth.getSession(); if(error) throw error; if(!session?.user){ authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); openLoginOverlay(); return false; } await hydrateProfileFromSession(session.user); authMode='supabase'; setLoginError(''); closeLoginOverlay(); setEditabilityState(); return true; }catch(err){ console.error('initAuth',err); lastAuthError=err?.message||String(err); authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); setLoginError(lastAuthError); openLoginOverlay(); return false; } }
-async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage(currentRole==='admin'?'home':'repertoire'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
+async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage('home'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
 async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; absences=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); const b=document.getElementById('next-events-banner'); if(b) b.innerHTML=''; openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, gear:r.gear||null})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
@@ -1170,6 +1171,16 @@ function assignmentsSummary(songId){
   if(!arr.length) return '';
   const sorted=[...arr].sort((a,b)=>{ const ai=BAND_ROLE_OPTIONS.findIndex(r=>r.value===a.role); const bi=BAND_ROLE_OPTIONS.findIndex(r=>r.value===b.role); return (ai<0?99:ai)-(bi<0?99:bi); });
   return sorted.map(a=>{ const label=roleLabelFor(a.role); const gear=a.gear?` (${a.gear})`:''; return `${label}${gear} : ${a.member_name}`; }).join(' · ');
+}
+function assignmentsSummaryHtml(songId){
+  const arr=getAssignmentsForSong(songId);
+  if(!arr.length) return '';
+  const sorted=[...arr].sort((a,b)=>{ const ai=BAND_ROLE_OPTIONS.findIndex(r=>r.value===a.role); const bi=BAND_ROLE_OPTIONS.findIndex(r=>r.value===b.role); return (ai<0?99:ai)-(bi<0?99:bi); });
+  return sorted.map(a=>{
+    const label=escapeHtml(roleLabelFor(a.role));
+    const gear=a.gear?' <span class="aff-gear">('+escapeHtml(a.gear)+')</span>':'';
+    return '<span class="aff-pair"><span class="aff-role">'+label+gear+'</span> <span class="aff-member">'+escapeHtml(a.member_name)+'</span></span>';
+  }).join('');
 }
 function assignedRolesCompact(songId){ const arr=getAssignmentsForSong(songId); if(!arr.length) return ''; const seen=new Set(); const labels=[]; arr.forEach(a=>{ const key=a.role; if(seen.has(key)) return; seen.add(key); labels.push(roleLabelFor(a.role)); }); return labels.join(' · '); }
 function buildAssignmentsForAllRoles(songId=null){
@@ -2971,7 +2982,7 @@ function renderSongs() {
               ${escapeHtml(s.titre)}
               ${artistText ? `<span class="stt-artist">${escapeHtml(artistText)}</span>` : ''}
             </div>
-            ${s.assignmentSummary ? `<div class="si-affs">${escapeHtml(s.assignmentSummary)}</div>` : ''}
+            ${s.assignmentSummary ? `<div class="si-affs">${assignmentsSummaryHtml(s.id)}</div>` : ''}
           </div>
           <div class="si-right">
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
@@ -3195,7 +3206,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   const form=document.getElementById('login-form');
   if(form) form.addEventListener('submit', handleLogin);
   const ok = await loadData();
-  if(ok) showPage(currentRole==='admin'?'home':'repertoire');
+  if(ok) showPage('home');
 });
 
 function askCoach(){
