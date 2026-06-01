@@ -1225,7 +1225,8 @@ textarea{resize:vertical;min-height:72px}
         >Supprimer</button>
 
         <button type="button" class="bo" onclick="closeModal()">Annuler</button>
-        <button type="submit" id="btn-save" class="br">Sauvegarder</button>
+        <button type="button" id="btn-save-perso" class="bo" style="border-color:#3b82f6;color:#60a5fa" onclick="savePersonalOnly()">💾 Ma vue</button>
+        <button type="submit" id="btn-save" class="br" data-admin-only>Sauvegarder</button>
       </div>
     </form>
   </div>
@@ -3728,6 +3729,25 @@ ${videoId?`<div class="video-wrap">
 </div>`;
   }).join(''):'<div class="empty-hist">Aucune vidéo enregistrée</div>';
   document.getElementById('video-content').innerHTML=html;
+}
+
+async function savePersonalOnly() {
+  const songId = document.getElementById('f-id').value;
+  if(!songId){ alert('Impossible de sauvegarder : morceau non identifié.'); return; }
+  const myId = currentMemberId || getCurrentBandMemberId();
+  if(!myId){ alert('Impossible de sauvegarder : membre non identifié.'); return; }
+
+  const payload = {
+    song_id: songId,
+    band_member_id: myId,
+    statut: document.getElementById('f-statut').value || 'adecouvrir',
+    notes: document.getElementById('f-notes-perso').value.trim() || null
+  };
+  const { error } = await supabaseClient.from('song_personal').upsert(payload, { onConflict: 'song_id,band_member_id' });
+  if(error){ alert('Erreur sauvegarde données personnelles : ' + error.message); return; }
+  await loadSongPersonal();
+  renderSongs();
+  closeModal();
 }
 
 async function save(e) {
