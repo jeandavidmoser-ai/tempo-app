@@ -3524,6 +3524,7 @@ function renderSongs() {
             <div class="stt">
               ${escapeHtml(s.titre)}
               ${artistText ? `<span class="stt-artist">${escapeHtml(artistText)}</span>` : ''}
+              ${(()=>{ if(repertoireMode!=='perso') return ''; const pd=getPersonalData(s.id); return (pd&&pd.notes)?`<span style="font-size:10px;color:#e05;font-style:italic;margin-left:6px">→ ${escapeHtml(pd.notes)}</span>`:''; })()}
               ${(()=>{ const d=getLastPlayedDate(s.id); if(!d) return ''; const dt=new Date(d+'T12:00:00'); return `<span class="stt-played"> | Joué le ${dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>`; })()}
             </div>
             ${s.assignmentSummary ? `<div class="si-affs">${assignmentsSummaryHtml(s.id)}</div>` : ''}
