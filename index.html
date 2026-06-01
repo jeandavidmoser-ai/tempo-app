@@ -1341,7 +1341,7 @@ async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongPersonal(){
   try{
-    const myId = currentMemberId;
+    const myId = currentMemberId || getCurrentBandMemberId();
     if(!myId){ songPersonal=[]; return; }
     const { data, error } = await supabaseClient.from('song_personal').select('*').eq('band_member_id', myId);
     if(error) throw error;
@@ -1820,7 +1820,8 @@ async function loadData(skipAuth=false){
     const ok = await initAuth();
     if(!ok) return false;
   }
-  await Promise.all([loadBandMembers(), loadSongAssignments(), loadAbsences(), loadRepetPlayed(), loadSongPersonal()]);
+  await Promise.all([loadBandMembers(), loadSongAssignments(), loadAbsences(), loadRepetPlayed()]);
+  await loadSongPersonal(); // après loadBandMembers pour le fallback par nom
   const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
   if(s)songs=s.map(r=>({
@@ -3769,7 +3770,7 @@ async function save(e) {
   await persistSongAssignments(id);
 
   // Sauvegarde des données personnelles
-  const myId = currentMemberId;
+  const myId = currentMemberId || getCurrentBandMemberId();
   if(myId){
     const personalPayload = {
       song_id: id,
