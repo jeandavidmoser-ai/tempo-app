@@ -339,6 +339,7 @@ textarea{resize:vertical;min-height:72px}
 .prio-filter-row{display:inline-flex;gap:6px;align-items:center}
 .prio-filter-btn{background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.05em;padding:4px 10px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
 .prio-filter-btn:hover{border-color:#3d3d3d;color:var(--text)}
+@media(max-width:600px){.prio-label{display:none}.prio-filter-btn{padding:6px 8px}}
 .prio-filter-btn.active.rouge{background:rgba(196,30,58,.2);border-color:#c41e3a;color:#ff6b81}
 .prio-filter-btn.active.orange{background:rgba(194,96,42,.22);border-color:#c2602a;color:#e88f4d}
 .prio-filter-btn.active.jaune{background:rgba(230,200,75,.18);border-color:#e6c84b;color:#f0d484}
@@ -716,10 +717,10 @@ textarea{resize:vertical;min-height:72px}
     </select>
 
     <div class="prio-filter-row">
-      <button type="button" class="prio-filter-btn rouge" data-prio="rouge" onclick="togglePriorityFilter('rouge')"><span class="song-prio-dot rouge"></span>À travailler</button>
-      <button type="button" class="prio-filter-btn orange" data-prio="orange" onclick="togglePriorityFilter('orange')"><span class="song-prio-dot orange"></span>Pas ouf</button>
-      <button type="button" class="prio-filter-btn jaune" data-prio="jaune" onclick="togglePriorityFilter('jaune')"><span class="song-prio-dot jaune"></span>Pas mal</button>
-      <button type="button" class="prio-filter-btn vert" data-prio="vert" onclick="togglePriorityFilter('vert')"><span class="song-prio-dot vert"></span>Validé</button>
+      <button type="button" class="prio-filter-btn rouge" data-prio="rouge" onclick="togglePriorityFilter('rouge')"><span class="song-prio-dot rouge"></span><span class="prio-label">À travailler</span></button>
+      <button type="button" class="prio-filter-btn orange" data-prio="orange" onclick="togglePriorityFilter('orange')"><span class="song-prio-dot orange"></span><span class="prio-label">Pas ouf</span></button>
+      <button type="button" class="prio-filter-btn jaune" data-prio="jaune" onclick="togglePriorityFilter('jaune')"><span class="song-prio-dot jaune"></span><span class="prio-label">Pas mal</span></button>
+      <button type="button" class="prio-filter-btn vert" data-prio="vert" onclick="togglePriorityFilter('vert')"><span class="song-prio-dot vert"></span><span class="prio-label">Validé</span></button>
     </div>
 
     <button type="button" id="btn-toggle-affs-rep" class="bo" onclick="toggleRepertoireAffs()" style="padding:5px 12px;font-size:10px;margin-left:auto">👥 Afficher les affectations</button>
