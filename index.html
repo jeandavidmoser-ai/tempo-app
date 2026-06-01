@@ -3777,7 +3777,10 @@ async function save(e) {
       statut: document.getElementById('f-statut').value || 'adecouvrir',
       notes: document.getElementById('f-notes-perso').value.trim() || null
     };
-    await supabaseClient.from('song_personal').upsert(personalPayload, { onConflict: 'song_id,band_member_id' });
+    const { error: persoError } = await supabaseClient.from('song_personal').upsert(personalPayload, { onConflict: 'song_id,band_member_id' });
+    if(persoError){ console.error('Erreur song_personal:', persoError); alert('Erreur sauvegarde données personnelles : ' + persoError.message); }
+  } else {
+    console.warn('currentMemberId non défini — données personnelles non sauvegardées');
   }
 
   await loadData();
