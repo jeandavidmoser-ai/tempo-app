@@ -3751,8 +3751,8 @@ async function savePersonalOnly() {
 }
 
 async function save(e) {
-  if (!ensureAdminAction()) return;
   e.preventDefault();
+  if (!canEdit) { await savePersonalOnly(); return; }
 
   const id = document.getElementById('f-id').value || crypto.randomUUID();
   const existing = songs.find(s => s.id === id);
