@@ -311,6 +311,20 @@ textarea{resize:vertical;min-height:72px}
 #sl.show-affs .si-affs{display:block}
 #btn-toggle-affs-rep.active{background:rgba(200,168,75,.15);border-color:var(--gold);color:var(--gold)}
 .si-duration{color:var(--dim);font-family:'Inter',sans-serif;font-size:11px;font-weight:400}
+.view-toggle{display:flex;gap:4px}
+.view-toggle button{background:var(--bg3);border:1px solid var(--border);color:var(--dim);padding:5px 10px;border-radius:4px;cursor:pointer;font-size:13px;line-height:1;transition:all .15s}
+.view-toggle button.active{background:var(--gold);border-color:var(--gold);color:#000}
+.rep-table-wrap{overflow-x:auto;margin-top:2px}
+.rep-table{width:100%;border-collapse:collapse;font-size:11px}
+.rep-table th{background:var(--bg3);color:var(--gold);font-family:'Oswald',sans-serif;font-weight:400;letter-spacing:.06em;text-transform:uppercase;padding:8px 10px;border:1px solid var(--border);white-space:nowrap;text-align:left;position:sticky;top:0;z-index:1}
+.rep-table td{padding:7px 10px;border:1px solid var(--border);vertical-align:middle;color:var(--text)}
+.rep-table td.rt-num{color:var(--dim);font-size:10px;text-align:center;width:30px}
+.rep-table td.rt-title{font-family:'Oswald',sans-serif;font-size:13px;cursor:pointer}
+.rep-table td.rt-title:hover{color:var(--gold)}
+.rep-table td.rt-artist{color:var(--dim)}
+.rep-table td.rt-member{color:var(--text);white-space:nowrap}
+.rep-table tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+.rep-table tr:hover td{background:rgba(200,168,75,0.05)}
 .prio-filter-row{display:inline-flex;gap:6px;align-items:center}
 .prio-filter-btn{background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.05em;padding:4px 10px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
 .prio-filter-btn:hover{border-color:#3d3d3d;color:var(--text)}
@@ -701,6 +715,10 @@ textarea{resize:vertical;min-height:72px}
   <input type="text" id="filter-search" placeholder="🔍 Rechercher…" oninput="renderSongs()" style="flex:1;max-width:260px;padding:5px 10px;font-size:11px" />
   <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
   <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
+  <div class="view-toggle">
+    <button id="btn-view-list" class="active" title="Vue liste" onclick="setRepertoireView('list')">≡</button>
+    <button id="btn-view-table" title="Vue tableau" onclick="setRepertoireView('table')">⊞</button>
+  </div>
 </div>
 
 <div id="sl"></div>
@@ -1404,6 +1422,7 @@ function togglePriorityFilter(val){
   renderSongs();
 }
 let repertoireShowAffs = false;
+let repertoireViewMode = 'list';
 function toggleUrlField(type){
   const field = document.getElementById('fg-url-'+type);
   const btn = document.getElementById('btn-add-url-'+type);
@@ -3303,6 +3322,57 @@ function calcStreak(){
   return streak;
 }
 
+function setRepertoireView(mode) {
+  repertoireViewMode = mode;
+  document.getElementById('btn-view-list').classList.toggle('active', mode === 'list');
+  document.getElementById('btn-view-table').classList.toggle('active', mode === 'table');
+  const affsBtn = document.getElementById('btn-toggle-affs-rep');
+  if (affsBtn) affsBtn.style.display = mode === 'list' ? '' : 'none';
+  renderSongs();
+}
+
+const GRID_COLS = [
+  { label: 'Chant',      role: 'chant_lead',  gear: null },
+  { label: 'Chœur',      role: 'choeur_1',    gear: null },
+  { label: 'Accordéon',  role: 'accordeon',   gear: null },
+  { label: 'POD GO',     role: 'guitare',     gear: 'POD GO' },
+  { label: 'GE200',      role: 'guitare',     gear: 'GE200' },
+  { label: 'Basse',      role: 'basse',       gear: null },
+  { label: 'HD500X',     role: 'guitare',     gear: 'HD500X' },
+  { label: 'Marshall',   role: 'guitare',     gear: 'Marshall' },
+  { label: 'Acoustique', role: 'guitare',     gear: 'Acoustique' },
+  { label: 'Batterie',   role: 'batterie',    gear: null },
+];
+
+function renderSongsTable(filtered) {
+  const thead = `<tr>
+    <th class="rt-num">#</th>
+    <th>Titre</th>
+    <th>Groupe</th>
+    ${GRID_COLS.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}
+  </tr>`;
+
+  const rows = filtered.map((s, idx) => {
+    const affs = getAssignmentsForSong(s.id);
+    const cells = GRID_COLS.map(c => {
+      const match = affs.filter(a =>
+        a.role === c.role && (c.gear === null ? true : a.gear === c.gear)
+      );
+      const names = match.map(a => escapeHtml(a.member_name)).join(', ');
+      return `<td class="rt-member">${names}</td>`;
+    }).join('');
+
+    return `<tr>
+      <td class="rt-num">${idx + 1}</td>
+      <td class="rt-title" onclick="openModal('${s.id}')">${escapeHtml(s.titre || '')}</td>
+      <td class="rt-artist">${escapeHtml(s.artiste || '')}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  return `<div class="rep-table-wrap"><table class="rep-table"><thead>${thead}</thead><tbody>${rows}</tbody></table></div>`;
+}
+
 function renderSongs() {
   const list = document.getElementById('sl');
   const count = document.getElementById('songs-count');
@@ -3392,6 +3462,11 @@ function renderSongs() {
     acquis: 'b2',
     maitrise: 'b3'
   };
+
+  if (repertoireViewMode === 'table') {
+    list.innerHTML = mine.length ? renderSongsTable(mine) : `<div style="text-align:center;color:var(--muted);padding:20px">Aucun morceau</div>`;
+    return;
+  }
 
   list.innerHTML = mine.length ? mine.map(s => {
     const artistText = s.artiste || '';
