@@ -299,6 +299,17 @@ textarea{resize:vertical;min-height:72px}
 .song-prio-dot.jaune{background:#e6c84b;box-shadow:0 0 0 1px rgba(230,200,75,.5)}
 .song-prio-dot.orange{background:#c2602a;box-shadow:0 0 0 1px rgba(194,96,42,.6)}
 .song-prio-dot.rouge{background:#c41e3a;box-shadow:0 0 0 1px rgba(196,30,58,.5)}
+.statut-dot{width:12px;height:12px;border-radius:3px;display:inline-block;flex-shrink:0}
+.statut-dot.adecouvrir{background:#6b7280;box-shadow:0 0 0 1px rgba(107,114,128,.5)}
+.statut-dot.encours{background:#f59e0b;box-shadow:0 0 0 1px rgba(245,158,11,.5)}
+.statut-dot.acquis{background:#60a5fa;box-shadow:0 0 0 1px rgba(96,165,250,.5)}
+.statut-dot.maitrise{background:#22c55e;box-shadow:0 0 0 1px rgba(34,197,94,.5)}
+.rep-mode-bar{display:flex;gap:0;margin-bottom:14px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.rep-mode-btn{flex:1;padding:10px 0;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.07em;text-transform:uppercase;border:none;cursor:pointer;background:var(--bg3);color:var(--dim);transition:all .2s}
+.rep-mode-btn.active.groupe{background:var(--gold);color:#000}
+.rep-mode-btn.active.perso{background:#3b82f6;color:#fff}
+.perso-section{background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:14px;margin-top:14px}
+.perso-section-label{font-family:'Oswald',sans-serif;font-size:11px;color:#60a5fa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
 .si-left{flex:1;min-width:0;padding-right:12px}
 .si-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .stt-artist{font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px}
@@ -676,6 +687,10 @@ textarea{resize:vertical;min-height:72px}
       <button class="btn-add" data-admin-only onclick="openModal('new')">Morceau</button>
     </div>
     <div style="padding:14px">
+<div class="rep-mode-bar">
+  <button class="rep-mode-btn active groupe" id="btn-mode-groupe" onclick="setRepertoireMode('groupe')">👥 Vue groupe</button>
+  <button class="rep-mode-btn perso" id="btn-mode-perso" onclick="setRepertoireMode('perso')">👤 Ma vue</button>
+</div>
 <div class="filter-row" style="justify-content:space-between;flex-wrap:wrap;align-items:center">
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
     <label class="check-row" style="margin:0">
@@ -1117,17 +1132,8 @@ textarea{resize:vertical;min-height:72px}
 
         <div id="fg-priority" style="display:none"></div>
 
-        <!-- Statut / Difficulté / Durée / Accordage sur 1 ligne -->
+        <!-- Difficulté / Durée / Accordage sur 1 ligne -->
         <div class="fiche-row4">
-          <div class="fg" id="fg-statut">
-            <label>Statut</label>
-            <select id="f-statut">
-              <option value="adecouvrir">À découvrir</option>
-              <option value="encours">En cours</option>
-              <option value="acquis">Acquis</option>
-              <option value="maitrise">Maîtrisé</option>
-            </select>
-          </div>
           <div class="fg" id="fg-diff">
             <label>Difficulté</label>
             <input type="number" id="f-diff" min="1" max="5" value="3">
@@ -1173,8 +1179,27 @@ textarea{resize:vertical;min-height:72px}
         </div>
 
         <div class="fg full">
-          <label>Notes</label>
+          <label>Notes groupe</label>
           <textarea id="f-notes"></textarea>
+        </div>
+
+        <div class="perso-section">
+          <div class="perso-section-label">👤 Ma vue personnelle</div>
+          <div class="fiche-row4" style="margin-bottom:10px">
+            <div class="fg">
+              <label>Mon statut</label>
+              <select id="f-statut">
+                <option value="adecouvrir">À découvrir</option>
+                <option value="encours">En cours</option>
+                <option value="acquis">Acquis</option>
+                <option value="maitrise">Maîtrisé</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg full">
+            <label>Mes notes</label>
+            <textarea id="f-notes-perso" placeholder="Notes personnelles…"></textarea>
+          </div>
         </div>
 
         <div class="fg full" id="song-assignments-box"></div>
@@ -1314,6 +1339,23 @@ async function initAuth(){ try{ const { data: { session }, error } = await supab
 async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage('home'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
 async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; absences=[]; repetPlayed=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); const b=document.getElementById('next-events-banner'); if(b) b.innerHTML=''; openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
+async function loadSongPersonal(){
+  try{
+    const myId = currentMemberId;
+    if(!myId){ songPersonal=[]; return; }
+    const { data, error } = await supabaseClient.from('song_personal').select('*').eq('band_member_id', myId);
+    if(error) throw error;
+    songPersonal=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, statut:r.statut||'adecouvrir', notes:r.notes||'' }));
+  }catch(err){ console.warn('song_personal unavailable:',err); songPersonal=[]; }
+}
+function getPersonalData(songId){ return songPersonal.find(p=>String(p.song_id)===String(songId))||null; }
+const STATUT_LABELS = { adecouvrir:'À découvrir', encours:'En cours', acquis:'Acquis', maitrise:'Maîtrisé' };
+function setRepertoireMode(mode){
+  repertoireMode = mode;
+  document.getElementById('btn-mode-groupe').classList.toggle('active', mode==='groupe');
+  document.getElementById('btn-mode-perso').classList.toggle('active', mode==='perso');
+  renderSongs();
+}
 async function loadSongAssignments(){ try{ const { data, error } = await supabaseClient.from('song_assignments').select('*'); if(error) throw error; songAssignments=(data||[]).map(r=>({ id:r.id, song_id:r.song_id, band_member_id:r.band_member_id, role:r.role, gear:r.gear||null})); }catch(err){ console.warn('song_assignments unavailable:',err); songAssignments=[]; } }
 async function loadAbsences(){ try{ const { data, error } = await supabaseClient.from('absences').select('*'); if(error) throw error; absences=(data||[]).map(r=>({ id:r.id, band_member_id:r.band_member_id, concert_id:r.concert_id })); }catch(err){ console.warn('absences unavailable:',err); absences=[]; } }
 async function loadRepetPlayed(){ try{ const { data, error } = await supabaseClient.from('repet_played').select('*').order('played_date',{ascending:false}); if(error) throw error; repetPlayed=(data||[]).map(r=>({id:r.id,song_id:r.song_id,repet_id:r.repet_id,played_date:r.played_date})); }catch(err){ console.warn('repet_played unavailable:',err); repetPlayed=[]; } }
@@ -1423,6 +1465,8 @@ function togglePriorityFilter(val){
 }
 let repertoireShowAffs = false;
 let repertoireViewMode = 'list';
+let repertoireMode = 'groupe'; // 'groupe' | 'perso'
+let songPersonal = []; // { id, song_id, band_member_id, statut, notes }
 function toggleUrlField(type){
   const field = document.getElementById('fg-url-'+type);
   const btn = document.getElementById('btn-add-url-'+type);
@@ -1776,7 +1820,7 @@ async function loadData(skipAuth=false){
     const ok = await initAuth();
     if(!ok) return false;
   }
-  await Promise.all([loadBandMembers(), loadSongAssignments(), loadAbsences(), loadRepetPlayed()]);
+  await Promise.all([loadBandMembers(), loadSongAssignments(), loadAbsences(), loadRepetPlayed(), loadSongPersonal()]);
   const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
   if(s)songs=s.map(r=>({
@@ -3487,7 +3531,10 @@ function renderSongs() {
             ${s.urlS ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineVideo('${s.id}', event)">▶ Studio</button>` : ''}
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
-            <span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité : ${escapeHtml(prio)}"></span>
+            ${repertoireMode==='perso'
+              ? (()=>{ const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir'; return `<span class="statut-dot ${escapeHtml(st)}" title="Mon statut : ${escapeHtml(STATUT_LABELS[st]||st)}"></span>`; })()
+              : `<span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité : ${escapeHtml(prio)}"></span>`
+            }
           </div>
         </div>
         ${s.urlS ? `
@@ -3521,7 +3568,7 @@ function openModal(id) {
 
   const isAdminView = canEdit;
 
-  const adminOnlyFields = ['fg-statut','fg-diff'];
+  const adminOnlyFields = ['fg-diff'];
 
   adminOnlyFields.forEach(id => {
     const el = document.getElementById(id);
@@ -3541,7 +3588,9 @@ function openModal(id) {
     document.getElementById('f-id').value = s.id;
     document.getElementById('f-titre').value = s.titre || '';
     document.getElementById('f-artiste').value = s.artiste || '';
-    document.getElementById('f-statut').value = s.statut || 'adecouvrir';
+    const pd = getPersonalData(s.id);
+    document.getElementById('f-statut').value = pd ? pd.statut : 'adecouvrir';
+    document.getElementById('f-notes-perso').value = pd ? pd.notes : '';
     setSongPriority(s.priority || 'rouge');
     renderMhPriority();
     document.getElementById('f-diff').value = s.diff || 3;
@@ -3690,7 +3739,6 @@ async function save(e) {
     user: currentUser,
     titre: document.getElementById('f-titre').value.trim(),
     artiste: document.getElementById('f-artiste').value.trim() || null,
-    statut: document.getElementById('f-statut').value || 'adecouvrir',
     priority: activeSongPriority || 'rouge',
     diff: parseInt(document.getElementById('f-diff').value || '3', 10),
     bpm: document.getElementById('f-bpm').value
@@ -3719,6 +3767,19 @@ async function save(e) {
   }
 
   await persistSongAssignments(id);
+
+  // Sauvegarde des données personnelles
+  const myId = currentMemberId;
+  if(myId){
+    const personalPayload = {
+      song_id: id,
+      band_member_id: myId,
+      statut: document.getElementById('f-statut').value || 'adecouvrir',
+      notes: document.getElementById('f-notes-perso').value.trim() || null
+    };
+    await supabaseClient.from('song_personal').upsert(personalPayload, { onConflict: 'song_id,band_member_id' });
+  }
+
   await loadData();
   closeModal();
 }
