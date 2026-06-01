@@ -3532,7 +3532,7 @@ function renderSongs() {
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
             ${repertoireMode==='perso'
-              ? (()=>{ const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir'; return `<span class="statut-dot ${escapeHtml(st)}" title="Mon statut : ${escapeHtml(STATUT_LABELS[st]||st)}"></span>`; })()
+              ? (()=>{ const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir'; return `<span style="display:flex;align-items:center;gap:5px"><span class="statut-dot ${escapeHtml(st)}"></span><span style="font-size:10px;color:var(--dim);white-space:nowrap">${escapeHtml(STATUT_LABELS[st]||st)}</span></span>`; })()
               : `<span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité : ${escapeHtml(prio)}"></span>`
             }
           </div>
