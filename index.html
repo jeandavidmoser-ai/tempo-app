@@ -2534,7 +2534,7 @@ function renderConcertCardSetlistInner(concertId){
   const isRepet = c && (c.type||'concert')==='repet';
   const allItems = getConcertSetlist(concertId);
   if(!allItems.length){
-    return '<div class="concert-card-no-setlist">Aucun morceau dans la setlist.</div>';
+    return `<div class="setlist-toolbar"><button type="button" class="btn-add" style="padding:3px 8px;font-size:9px;border-style:dashed" onclick="openPickerForCard('${concertId}')">Morceau</button></div><div class="concert-card-no-setlist">Aucun morceau dans la setlist.</div>`;
   }
 
   const toolbar = `<div class="setlist-toolbar">
