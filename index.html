@@ -420,6 +420,11 @@ textarea{resize:vertical;min-height:72px}
 .cs-played:hover{border-color:#1eb450;color:#57d98c}
 .cs-played.done{background:rgba(30,180,80,.15);border-color:#1eb450;color:#57d98c}
 .concert-card-song.played-today{background:rgba(30,180,80,.07);border-left:3px solid #1eb450}
+.concert-card-song.is-optionnel{background:repeating-linear-gradient(135deg,transparent,transparent 6px,rgba(255,255,255,.025) 6px,rgba(255,255,255,.025) 12px);border-left:3px solid #888;opacity:.8}
+.concert-card-song.is-optionnel .cs-title{font-style:italic;color:var(--dim)}
+.cs-opt{background:none;border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 5px;border-radius:3px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:.05em;flex-shrink:0;transition:all .15s}
+.cs-opt:hover{border-color:#aaa;color:#aaa}
+.cs-opt.active{background:rgba(150,150,150,.2);border-color:#aaa;color:#ccc}
 .played-prio-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;text-align:left;color:var(--text)}
 .played-prio-opt:hover{border-color:var(--gold);background:var(--bg2)}
 .played-prio-opt span.song-prio-dot{flex-shrink:0}
@@ -1891,6 +1896,7 @@ async function loadData(skipAuth=false){
       artiste:r.artiste || '',
       accordage:r.accordage || '',
       duree:r.duree,
+      optionnel:r.optionnel || false,
       created_at:r.created_at || null
     }));
   }
@@ -2277,6 +2283,25 @@ async function moveConcertSong(setlistId,direction,explicitConcertId){
   }
 }
 
+async function toggleOptionnel(setlistId, concertId, currentVal){
+  const newVal = !currentVal;
+  const { error } = await supabaseClient.from('concert_setlist').update({optionnel: newVal}).eq('id', setlistId);
+  if(error){ console.error('Erreur Supabase (concert_setlist.update optionnel):', error); return; }
+  const item = concertSetlist.find(x => x.id === setlistId);
+  if(item) item.optionnel = newVal;
+  renderConcertCardSetlistInner_update(concertId);
+}
+
+function renderConcertCardSetlistInner_update(concertId){
+  document.querySelectorAll(`.concert-card-setlist-details[data-concert-id="${concertId}"]`).forEach(details => {
+    const summary = details.querySelector('summary');
+    const wasOpen = details.open;
+    details.innerHTML = (summary ? summary.outerHTML : '') + renderConcertCardSetlistInner(concertId);
+    details.open = wasOpen;
+  });
+  renderConcertSetlist(concertId);
+}
+
 async function removeSongFromConcert(setlistId){
   if(!confirm('Retirer ce morceau de la setlist ?')) return;
 
@@ -2321,14 +2346,17 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
     ? `<button type="button" class="cs-played${wasPlayed?' done':''}" onclick="openPlayedModal(event,'${item.song_id}','${concertId}')">${wasPlayed?'✓ Joué':'Joué ?'}</button>`
     : '';
   const playedClass = wasPlayed ? ' played-today' : '';
-  return `<div class="concert-card-song${playedClass}" ${dragAttrs}>
+  const isOpt = !!item.optionnel;
+  const optBtn = !isRepet ? `<button type="button" class="cs-opt${isOpt?' active':''}" onclick="event.stopPropagation();toggleOptionnel('${item.id}','${concertId}',${isOpt})" title="${isOpt?'Retirer le statut option':'Marquer comme option'}">OPT</button>` : '';
+  const optClass = isOpt ? ' is-optionnel' : '';
+  return `<div class="concert-card-song${playedClass}${optClass}" ${dragAttrs}>
     <div class="concert-card-song-head">
       <span class="cs-order">#${idxInPartie+1}</span>
       ${prioDot}
       <span class="cs-title">${escapeHtml(item.titre || 'Sans titre')}${item.artiste?`<small>${escapeHtml(item.artiste)}</small>`:''}</span>
       ${item.duree?`<span class="cs-dur">${escapeHtml(formatDuration(item.duree))}</span>`:''}
       ${playedBtn}
-      ${(()=>{ if(!isRepet) return removeBtn; const s=songs.find(x=>x.id===item.song_id); const studioBtn=s&&s.urlS?`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="toggleInlineVideoSetlist('${item.song_id}',event)">▶</button>`:''; const ficheBtn=`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="event.stopPropagation();openModal('${item.song_id}')">📋</button>`; return studioBtn+ficheBtn+removeBtn; })()}
+      ${(()=>{ if(!isRepet) return optBtn+removeBtn; const s=songs.find(x=>x.id===item.song_id); const studioBtn=s&&s.urlS?`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="toggleInlineVideoSetlist('${item.song_id}',event)">▶</button>`:''; const ficheBtn=`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="event.stopPropagation();openModal('${item.song_id}')">📋</button>`; return studioBtn+ficheBtn+removeBtn; })()}
     </div>
     ${absentWarning}
     <div class="concert-card-song-affs">${affsHtml}</div>
@@ -2476,8 +2504,11 @@ function printSetlist(concertId){
       const extraCell = extraParts.length ? '<span class="x-extras">'+extraParts.join('<span class="x-sep">|</span>')+'</span>' : '';
 
       const zebra = globalRowIdx % 2 === 1 ? ' zebra' : '';
+      const isOptRow = !!it.optionnel;
       globalRowIdx++;
-      out += '<tr class="song-row'+zebra+'"><td class="num">'+num+'.</td><td class="titre">'+escapeHtml(titre)+' '+artiste+' '+extraCell+'</td><td class="duree">'+(timeStr?timeStr:'')+'</td></tr>';
+      const numCell = isOptRow ? '['+num+'.]' : num+'.';
+      const optLabel = isOptRow ? ' <span class="opt-label">option</span>' : '';
+      out += '<tr class="song-row'+zebra+(isOptRow?' is-opt':'')+'"><td class="num">'+numCell+'</td><td class="titre">'+escapeHtml(titre)+' '+artiste+optLabel+' '+extraCell+'</td><td class="duree">'+(timeStr?timeStr:'')+'</td></tr>';
     });
     return out;
   }
@@ -2502,6 +2533,9 @@ function printSetlist(concertId){
     +'tr.song-row.has-extras td { border-bottom:none; padding-bottom:2px; }'
     +'tr.extras-row td { padding:0 6px 6px 6px; border-bottom:1px solid #e5e5e5; font-size:11px; color:#555; line-height:1.4 }'
     +'tr.song-row.zebra td { background:#f5f5f5; }'
+    +'tr.song-row.is-opt td { background:#f0f0f0; color:#888; font-style:italic; }'
+    +'tr.song-row.is-opt td.num { color:#aaa; }'
+    +'.opt-label { font-size:10px; font-weight:400; color:#999; margin-left:8px; border:1px solid #ccc; border-radius:3px; padding:0 4px; font-style:normal; letter-spacing:.04em; vertical-align:middle; }'
     +'.x-extras { margin-left:12px; font-size:11px; font-weight:400; border-left:1px solid #ddd; padding-left:10px; }'
     +'.x-acc { color:#333; font-style:italic; }'
     +'.x-notes { color:#999; font-style:italic; }'
