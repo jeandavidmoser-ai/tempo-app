@@ -271,7 +271,9 @@ textarea{resize:vertical;min-height:72px}
 }
 .concert-card-song-affs{display:none}
 .concert-card-setlist.show-affs .concert-card-song-affs{display:block}
-.setlist-toolbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+.setlist-toolbar{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.setlist-toolbar-filters{display:flex;align-items:center;gap:6px;flex:1}
+.song-badge-new{display:inline-block;font-size:8px;font-family:'Oswald',sans-serif;letter-spacing:.06em;text-transform:uppercase;background:rgba(74,144,200,.18);color:#aecadf;border:1px solid rgba(74,144,200,.4);border-radius:3px;padding:1px 5px;margin-left:5px;vertical-align:middle;flex-shrink:0}
 .setlist-toolbar button{background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.04em;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all .15s}
 .setlist-toolbar button:hover{border-color:var(--gold);color:var(--gold)}
 .setlist-toolbar button.active{background:rgba(200,168,75,.15);border-color:var(--gold);color:var(--gold)}
@@ -720,6 +722,11 @@ textarea{resize:vertical;min-height:72px}
     >
       <option value="">Tous les membres</option>
     </select>
+
+    <label class="check-row" style="margin:0">
+      <input type="checkbox" id="filter-recent" onchange="renderSongs()" />
+      <span style="font-size:11px">Récents</span>
+    </label>
 
     <div class="prio-filter-row">
       <button type="button" class="prio-filter-btn rouge" data-prio="rouge" onclick="togglePriorityFilter('rouge')"><span class="song-prio-dot rouge"></span><span class="prio-label">À travailler</span></button>
@@ -1189,6 +1196,11 @@ textarea{resize:vertical;min-height:72px}
           <textarea id="f-notes"></textarea>
         </div>
 
+        <div class="fg" id="fg-created-at" style="display:none">
+          <label>Date d'ajout au répertoire</label>
+          <input type="date" id="f-created-at">
+        </div>
+
         <div class="perso-section">
           <div class="perso-section-label">👤 Ma vue personnelle</div>
           <div class="fiche-row4" style="margin-bottom:10px">
@@ -1313,6 +1325,8 @@ let songAssignments=[];
 let activeSongAssignments=[];
 let activeSongPriority='rouge';
 let activePriorityFilter='';
+let repetSetlistFilterMySongs = false;
+let repetSetlistFilterMyRole = '';
 const BAND_ROLE_OPTIONS = [
   {value:'batterie', label:'Batterie'},
   {value:'basse', label:'Basse'},
@@ -1848,6 +1862,7 @@ async function loadData(skipAuth=false){
     urlAudio:r.url_audio,
     notes:r.notes,
     lastPractice:r.last_practice,
+    createdAt:r.created_at||null,
     assignmentSummary:''
   }));
   songs=songs.map(song=>({ ...song, assignmentSummary: assignmentsSummary(song.id) }));
@@ -2340,6 +2355,7 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   const dragAttrs = `draggable="true" ondragstart="slDragStart(event,'${item.id}')" ondragend="slDragEnd(event)" ondragover="slDragOver(event)" ondragleave="slDragLeaveZone(event)" ondrop="slDropOnSong(event,'${item.id}','${concertId}')"`;
   const songRef = songs.find(s=>s.id===item.song_id);
   const prioDot = (isRepet && songRef) ? `<span class="song-prio-dot ${escapeHtml(songRef.priority||'rouge')}" style="flex-shrink:0" title="${escapeHtml(songRef.priority||'')}"></span>` : '';
+  const newBadge = (()=>{ if(!isRepet||!songRef||!songRef.createdAt) return ''; const added=new Date(songRef.createdAt); const sixMonthsAgo=new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth()-6); return added>=sixMonthsAgo?'<span class="song-badge-new">Récent</span>':''; })();
   const removeBtn = `<button type="button" class="cs-remove" onclick="removeSongFromConcertCard(event,'${item.id}')" title="Retirer">×</button>`;
   const wasPlayed = isRepet && isPlayedInRepet(item.song_id, concertId);
   const playedBtn = isRepet
@@ -2353,7 +2369,7 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
     <div class="concert-card-song-head">
       <span class="cs-order">#${idxInPartie+1}</span>
       ${prioDot}
-      <span class="cs-title">${escapeHtml(item.titre || 'Sans titre')}${item.artiste?`<small>${escapeHtml(item.artiste)}</small>`:''}</span>
+      <span class="cs-title">${escapeHtml(item.titre || 'Sans titre')}${item.artiste?`<small>${escapeHtml(item.artiste)}</small>`:''}${newBadge}</span>
       ${item.duree?`<span class="cs-dur">${escapeHtml(formatDuration(item.duree))}</span>`:''}
       ${playedBtn}
       ${(()=>{ if(!isRepet) return optBtn+removeBtn; const s=songs.find(x=>x.id===item.song_id); const studioBtn=s&&s.urlS?`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="toggleInlineVideoSetlist('${item.song_id}',event)">▶</button>`:''; const ficheBtn=`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="event.stopPropagation();openModal('${item.song_id}')">📋</button>`; return studioBtn+ficheBtn+removeBtn; })()}
@@ -2571,7 +2587,19 @@ function renderConcertCardSetlistInner(concertId){
     return `<div class="setlist-toolbar"><button type="button" class="btn-add" style="padding:3px 8px;font-size:9px;border-style:dashed" onclick="openPickerForCard('${concertId}')">Morceau</button></div><div class="concert-card-no-setlist">Aucun morceau dans la setlist.</div>`;
   }
 
+  const roleOptionsHtml = BAND_ROLE_OPTIONS.map(r=>`<option value="${r.value}"${repetSetlistFilterMyRole===r.value?' selected':''}>${escapeHtml(r.label)}</option>`).join('');
+  const repFilters = isRepet ? `<div class="setlist-toolbar-filters">
+    <label class="check-row" style="margin:0;cursor:pointer">
+      <input type="checkbox" ${repetSetlistFilterMySongs?'checked':''} onchange="toggleRepetMySongs()" />
+      <span style="font-size:10px">Mes morceaux</span>
+    </label>
+    <select onchange="onRepetRoleFilter(this.value)" style="width:auto;min-width:110px;padding:3px 6px;font-size:10px">
+      <option value="">Mes rôles</option>
+      ${roleOptionsHtml}
+    </select>
+  </div>` : '';
   const toolbar = `<div class="setlist-toolbar">
+    ${repFilters}
     <button type="button" class="btn-add" style="padding:3px 8px;font-size:9px;border-style:dashed" onclick="openPickerForCard('${concertId}')">Morceau</button>
     <button type="button" onclick="toggleSetlistAffs(this)">Afficher les affectations</button>
   </div>`;
@@ -2583,8 +2611,23 @@ function renderConcertCardSetlistInner(concertId){
   </div>`;
 
   if(isRepet){
-    const body = allItems.map((it,i)=>renderSetlistSongRow(it,i,allItems,concertId)).join('');
-    return `${toolbar}<div class="concert-card-setlist single">${body}</div>${grandTotal}`;
+    let visibleItems = allItems;
+    if(repetSetlistFilterMySongs || repetSetlistFilterMyRole){
+      const myId = getCurrentBandMemberId();
+      if(repetSetlistFilterMySongs && myId){
+        const mySongIds = new Set(songAssignments.filter(a=>String(a.band_member_id)===String(myId)).map(a=>String(a.song_id)));
+        visibleItems = visibleItems.filter(it=>mySongIds.has(String(it.song_id)));
+      }
+      if(repetSetlistFilterMyRole && myId){
+        const roleSongIds = new Set(songAssignments.filter(a=>a.role===repetSetlistFilterMyRole&&String(a.band_member_id)===String(myId)).map(a=>String(a.song_id)));
+        visibleItems = visibleItems.filter(it=>roleSongIds.has(String(it.song_id)));
+      }
+    }
+    const filteredNote = visibleItems.length < allItems.length
+      ? `<div style="font-size:10px;color:var(--dim);margin-bottom:6px">${visibleItems.length} / ${allItems.length} morceau${allItems.length>1?'x':''} affichés</div>`
+      : '';
+    const body = visibleItems.map((it,i)=>renderSetlistSongRow(it,i,visibleItems,concertId)).join('');
+    return `${toolbar}${filteredNote}<div class="concert-card-setlist single">${body}</div>${grandTotal}`;
   }
 
   const p1 = allItems.filter(it=>(it.partie||1)===1);
@@ -3183,6 +3226,14 @@ function agendaPrev(){ agendaMonth = new Date(agendaMonth.getFullYear(), agendaM
 function agendaNext(){ agendaMonth = new Date(agendaMonth.getFullYear(), agendaMonth.getMonth()+1, 1); renderAgenda(currentAgendaContext); }
 function agendaToday(){ agendaMonth = new Date(); renderAgenda(currentAgendaContext); }
 let showPastEvents = false;
+function toggleRepetMySongs(){
+  repetSetlistFilterMySongs = !repetSetlistFilterMySongs;
+  renderRepets();
+}
+function onRepetRoleFilter(val){
+  repetSetlistFilterMyRole = val;
+  renderRepets();
+}
 function togglePastEvents(type){
   showPastEvents = !showPastEvents;
   const btn = document.getElementById('btn-show-past-'+type);
@@ -3467,6 +3518,7 @@ function renderSongs() {
   const filterRole = document.getElementById('filter-role')?.value || '';
   const filterMember = document.getElementById('filter-member')?.value || '';
   const filterPriority = activePriorityFilter || '';
+  const filterRecent = document.getElementById('filter-recent')?.checked;
 
   if (filterSearch) {
     mine = mine.filter(s => {
@@ -3516,6 +3568,12 @@ function renderSongs() {
     mine = mine.filter(s => s.priority === filterPriority);
   }
 
+  if (filterRecent) {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    mine = mine.filter(s => s.createdAt && new Date(s.createdAt) >= sixMonthsAgo);
+  }
+
   const totalDurationSeconds = mine.reduce((sum, s) => sum + (parseInt(s.duree, 10) || 0), 0);
 
   if (count) count.textContent = `${mine.length} morceau${mine.length > 1 ? 'x' : ''}`;
@@ -3560,6 +3618,7 @@ function renderSongs() {
             <div class="stt">
               ${escapeHtml(s.titre)}
               ${artistText ? `<span class="stt-artist">${escapeHtml(artistText)}</span>` : ''}
+              ${(()=>{ if(!s.createdAt) return ''; const added=new Date(s.createdAt); const sixMonthsAgo=new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth()-6); return added>=sixMonthsAgo?'<span class="song-badge-new">Récent</span>':''; })()}
               ${(()=>{ if(repertoireMode!=='perso') return ''; const pd=getPersonalData(s.id); return (pd&&pd.notes)?`<span style="font-size:10px;color:#e05;font-style:italic;margin-left:6px">→ ${escapeHtml(pd.notes)}</span>`:''; })()}
               ${(()=>{ const d=getLastPlayedDate(s.id); if(!d) return ''; const dt=new Date(d+'T12:00:00'); return `<span class="stt-played"> | Joué le ${dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>`; })()}
             </div>
@@ -3645,6 +3704,14 @@ function openModal(id) {
     buildAssignmentsForAllRoles(s.id);
     renderAssignmentsEditor();
 
+    const fgCreatedAt = document.getElementById('fg-created-at');
+    const fCreatedAt = document.getElementById('f-created-at');
+    if(fgCreatedAt && fCreatedAt){
+      fgCreatedAt.style.display = 'flex';
+      fCreatedAt.value = s.createdAt ? s.createdAt.substring(0,10) : '';
+      fCreatedAt.disabled = !isAdminView;
+    }
+
     document.getElementById('btn-del').style.display = isAdminView ? 'inline-block' : 'none';
     document.getElementById('mt').textContent = isAdminView ? 'Modifier le morceau' : 'Fiche morceau';
 
@@ -3653,6 +3720,7 @@ function openModal(id) {
   } else {
     document.getElementById('btn-del').style.display = 'none';
     document.getElementById('mt').textContent = isAdminView ? 'Nouveau morceau' : 'Fiche morceau';
+    const fgCa = document.getElementById('fg-created-at'); if(fgCa) fgCa.style.display = 'none';
     initUrlFields('', '');
     renderHistorique(null);
     renderVideos(null);
@@ -3810,6 +3878,8 @@ async function save(e) {
     notes: document.getElementById('f-notes').value.trim() || null,
     last_practice: existing?.lastPractice || null
   };
+  const createdAtVal = document.getElementById('f-created-at')?.value;
+  if(createdAtVal) song.created_at = createdAtVal;
 
   if (!song.titre) {
     alert('Le titre est obligatoire.');
