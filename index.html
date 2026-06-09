@@ -1961,14 +1961,8 @@ async function loadData(skipAuth=false){
       created_at:r.created_at || null
     }));
   }
-  renderStats();
   const selRole=document.getElementById('filter-role'); if(selRole){selRole.innerHTML='<option value="">Mes rôles</option>'+BAND_ROLE_OPTIONS.map(r=>`<option value="${r.value}">${r.label}</option>`).join('');}
-    const selMember=document.getElementById('filter-member'); if(selMember){selMember.innerHTML='<option value="">Tous les membres</option>'+bandMembers.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');}
-    populateFilterConcert();
-    renderSongs();
-  renderConcerts();
-  renderAgenda();
-  renderNextEventsBanner();
+  const selMember=document.getElementById('filter-member'); if(selMember){selMember.innerHTML='<option value="">Tous les membres</option>'+bandMembers.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');}
   renderHome();
   return true;
 }
@@ -2008,12 +2002,22 @@ function switchUser(u){ if(authMode==='supabase') return;
   if(document.getElementById('fg-inst')){
     document.getElementById('fg-inst').style.display=u==='stephanie'?'none':'flex';
   }
-  renderStats();
-  renderSongs();
-  renderPlanning();
-  renderStatsPage();
-  renderConcerts();
+  renderHome();
   return true;
+}
+
+function currentPageId(){
+  const active = document.querySelector('.page.active');
+  return active ? active.id.replace('page-','') : null;
+}
+
+function renderCurrentPage(){
+  const id = currentPageId();
+  if(id==='home') renderHome();
+  else if(id==='repertoire'){ renderSongs(); }
+  else if(id==='concerts') renderConcerts();
+  else if(id==='repet') renderRepets();
+  else if(id==='agenda') renderAgenda();
 }
 
 function showPage(id){
@@ -2030,10 +2034,11 @@ function showPage(id){
 
   if(id==='repertoire'){ populateFilterConcert(); renderSongs(); }
   if(id==='planning'){ ensurePlanningLoaded().then(()=>renderPlanning()); }
-  if(id==='home'){ ensureLogsLoaded().then(()=>{ renderStats(); renderHome(); }); renderStats(); renderHome(); }
+  if(id==='home'){ renderHome(); ensureLogsLoaded().then(()=>{ renderStats(); renderHome(); }); }
   if(id==='stats'){ ensureLogsLoaded().then(()=>renderStatsPage()); }
   if(id==='repet'){ Promise.all([ensureAbsencesLoaded(), ensureRepetPlayedLoaded()]).then(()=>renderRepets()); }
   if(id==='concerts'){ renderConcerts(); ensureAbsencesLoaded(); }
+  if(id==='agenda'){ renderAgenda(); }
   if(id==='feu-de-camp') {
     if(!campfireStorageAttempted && !campfirePdfDoc){
       loadCampfirePdfFromStorage();
@@ -3040,24 +3045,24 @@ async function toggleAbsence(concertId, becomeAbsent){
   if(becomeAbsent){
     const newAbsence = { id: crypto.randomUUID(), band_member_id: myId, concert_id: concertId };
     absences.push(newAbsence);
-    renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+    renderAbsencesList(); renderCurrentPage();
     const { error } = await supabaseClient.from('absences').insert({ id: newAbsence.id, band_member_id: myId, concert_id: concertId });
     if(error){
       console.error('Erreur absences.insert:', error);
       absences = absences.filter(a => a.id !== newAbsence.id);
-      renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+      renderAbsencesList(); renderCurrentPage();
       alert("Erreur lors de l'enregistrement de l'absence.");
     }
   } else {
     const existing = getAbsenceForMemberAndConcert(myId, concertId);
     if(!existing) return;
     absences = absences.filter(a => a.id !== existing.id);
-    renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+    renderAbsencesList(); renderCurrentPage();
     const { error } = await supabaseClient.from('absences').delete().eq('id', existing.id);
     if(error){
       console.error('Erreur absences.delete:', error);
       absences.push(existing);
-      renderAbsencesList(); renderConcerts(); renderRepets(); renderHome();
+      renderAbsencesList(); renderCurrentPage();
       alert("Erreur lors de la suppression de l'absence.");
     }
   }
