@@ -1362,7 +1362,7 @@ function getCurrentBandMemberId(){ if(currentMemberId) return currentMemberId; c
 async function hydrateProfileFromSession(user){ currentProfile=user; const email=(user?.email||'').toLowerCase(); const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle(); if(error) throw error; if(!data){ throw new Error('Profil introuvable dans profiles pour cet utilisateur.'); } currentRole=(data.role||'band_member')==='admin'?'admin':'band_member'; currentUser=(data.username||data.display_name||data.full_name||email||'user').toLowerCase(); currentMemberId=data.band_member_id||null; }
 async function initAuth(){ try{ const { data: { session }, error } = await supabaseClient.auth.getSession(); if(error) throw error; if(!session?.user){ authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); openLoginOverlay(); return false; } await hydrateProfileFromSession(session.user); authMode='supabase'; setLoginError(''); closeLoginOverlay(); setEditabilityState(); return true; }catch(err){ console.error('initAuth',err); lastAuthError=err?.message||String(err); authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; setEditabilityState(); setLoginError(lastAuthError); openLoginOverlay(); return false; } }
 async function handleLogin(event){ if(event) event.preventDefault(); const email=document.getElementById('login-email')?.value?.trim()||''; const password=document.getElementById('login-password')?.value||''; if(!email||!password){ setLoginError('Email et mot de passe requis.'); return; } const submit=document.getElementById('login-submit'); if(submit) submit.disabled=true; setLoginError(''); try{ const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if(error) throw error; const ok=await initAuth(); if(!ok) throw new Error('Session ouverte mais profil non chargé.'); await loadData(true); showPage('home'); }catch(err){ console.error('handleLogin',err); setLoginError(err?.message||'Connexion impossible.'); openLoginOverlay(); }finally{ if(submit) submit.disabled=false; } }
-async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; sessions=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; absences=[]; repetPlayed=[]; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); const b=document.getElementById('next-events-banner'); if(b) b.innerHTML=''; openLoginOverlay(); showPage('repertoire'); }
+async function handleLogout(){ try{ await supabaseClient.auth.signOut(); }catch(err){ console.error('handleLogout',err); } authMode='locked'; currentProfile=null; currentRole='band_member'; currentUser='user'; currentMemberId=null; songs=[]; logs=[]; planning={}; concerts=[]; concertSetlist=[]; bandMembers=[]; songAssignments=[]; activeSongAssignments=[]; absences=[]; repetPlayed=[]; logsLoaded=false; planningLoaded=false; absencesLoaded=false; repetPlayedLoaded=false; campfirePdfDoc=null; campfireSongs=[]; campfireFilteredSongs=[]; campfireSelectedIndex=-1; campfireStorageAttempted=false; setEditabilityState(); const b=document.getElementById('next-events-banner'); if(b) b.innerHTML=''; openLoginOverlay(); showPage('repertoire'); }
 async function loadBandMembers(){ try{ const { data, error } = await supabaseClient.from('band_members').select('*').order('name',{ascending:true}); if(error) throw error; bandMembers=(data||[]).map(r=>({ id:r.id, name:r.name||r.nom||r.label||'Membre', role_default:r.role_default||null })); }catch(err){ console.warn('band_members unavailable:',err); bandMembers=[]; } }
 async function loadSongPersonal(){
   try{
@@ -1560,7 +1560,8 @@ async function persistSongAssignments(songId){
     alert('Affectations non sauvegardées: ' + (err?.message || err));
   }
 }
-let songs=[],sessions=[],logs=[],planning={},concerts=[],concertSetlist=[],absences=[],repetPlayed=[];
+let songs=[],logs=[],planning={},concerts=[],concertSetlist=[],absences=[],repetPlayed=[];
+let logsLoaded=false,planningLoaded=false,absencesLoaded=false,repetPlayedLoaded=false;
 let timerInterval=null,timerSeconds=0,timerBlocks=1,currentPlayedBy=true,currentSessionSongId=null
 let campfirePdfBytes=null,campfirePdfName='',campfirePdfDoc=null,campfireSongs=[],campfireFilteredSongs=[],campfireSelectedIndex=-1,campfireObjectUrl=null
 let campfireStorageAttempted=false
@@ -1840,12 +1841,56 @@ function formatDurationLong(value){
   return `${hours} heure${hours>1?'s':''}, ${minutes} minute${minutes>1?'s':''}, ${seconds} seconde${seconds>1?'s':''}`;
 }
 
+async function loadLogsInBackground(){
+  if(logsLoaded) return;
+  try{
+    const { data: l } = await supabaseClient.from('tempo_logs').select('*');
+    if(l) logs=l.map(r=>({id:r.id,user:r.user||'',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
+    logsLoaded=true;
+    renderStats();
+    const statsPage = document.getElementById('page-stats');
+    if(statsPage && statsPage.classList.contains('active')) renderStatsPage();
+  }catch(err){ console.warn('tempo_logs unavailable:',err); logsLoaded=true; }
+}
+
+async function ensureLogsLoaded(){
+  if(!logsLoaded) await loadLogsInBackground();
+}
+
+async function loadPlanningInBackground(){
+  if(planningLoaded) return;
+  try{
+    const { data: p } = await supabaseClient.from('tempo_planning').select('*');
+    if(p){ planning={}; p.forEach(r=>{ planning[r.key]={songId:r.song_id,done:r.done}; }); }
+    planningLoaded=true;
+    const planningPage = document.getElementById('page-planning');
+    if(planningPage && planningPage.classList.contains('active')) renderPlanning();
+  }catch(err){ console.warn('tempo_planning unavailable:',err); planningLoaded=true; }
+}
+
+async function ensurePlanningLoaded(){
+  if(!planningLoaded) await loadPlanningInBackground();
+}
+
+async function ensureAbsencesLoaded(){
+  if(absencesLoaded) return;
+  await loadAbsences();
+  absencesLoaded=true;
+  renderHome();
+}
+
+async function ensureRepetPlayedLoaded(){
+  if(repetPlayedLoaded) return;
+  await loadRepetPlayed();
+  repetPlayedLoaded=true;
+}
+
 async function loadData(skipAuth=false){
   if(!skipAuth){
     const ok = await initAuth();
     if(!ok) return false;
   }
-  await Promise.all([loadBandMembers(), loadSongAssignments(), loadAbsences(), loadRepetPlayed()]);
+  await Promise.all([loadBandMembers(), loadSongAssignments()]);
   await loadSongPersonal(); // après loadBandMembers pour le fallback par nom
   const { data: s, error: songsError } = await supabaseClient.from('songs').select('*');
   if(songsError){ console.error('Erreur Supabase (songs.select):',songsError); songs=[]; }
@@ -1871,12 +1916,9 @@ async function loadData(skipAuth=false){
   }));
   songs=songs.map(song=>({ ...song, assignmentSummary: assignmentsSummary(song.id) }));
   const _seen=new Set(); songs=songs.filter(s=>{if(_seen.has(s.id))return false;_seen.add(s.id);return true;});
-  const { data: ss } = await supabaseClient.from('tempo_sessions').select('*');
-  if(ss)sessions=ss.map(r=>({user:r.user||'',date:r.date,duration:r.duration,blocks:r.blocks}));
-  const { data: l } = await supabaseClient.from('tempo_logs').select('*');
-  if(l)logs=l.map(r=>({id:r.id,user:r.user||'',date:r.date,songId:r.song_id,duration:r.duration,bpm:r.bpm,feeling:r.feeling,note:r.note}));
-  const { data: p } = await supabaseClient.from('tempo_planning').select('*');
-  if(p){planning={};p.forEach(r=>{planning[r.key]={songId:r.song_id,done:r.done};});}
+  // logs et planning chargés en arrière-plan pour alléger la mémoire au démarrage
+  loadLogsInBackground();
+  loadPlanningInBackground();
   const { data: c, error: concertsError } = await supabaseClient.from('concerts').select('*').order('date',{ascending:true}).order('heure_debut',{ascending:true});
   if(concertsError){
     console.error('Erreur Supabase (concerts.select):',concertsError);
@@ -1924,10 +1966,7 @@ async function loadData(skipAuth=false){
     const selMember=document.getElementById('filter-member'); if(selMember){selMember.innerHTML='<option value="">Tous les membres</option>'+bandMembers.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');}
     populateFilterConcert();
     renderSongs();
-  renderPlanning();
-  renderStatsPage();
   renderConcerts();
-  renderRepets();
   renderAgenda();
   renderNextEventsBanner();
   renderHome();
@@ -1990,11 +2029,11 @@ function showPage(id){
   if(activeBtn) activeBtn.classList.add('active');
 
   if(id==='repertoire'){ populateFilterConcert(); renderSongs(); }
-  if(id==='planning') renderPlanning();
-  if(id==='home'){ renderStats(); renderHome(); }
-  if(id==='stats') renderStatsPage();
-  if(id==='repet') renderRepets();
-  if(id==='concerts'){ renderConcerts(); }
+  if(id==='planning'){ ensurePlanningLoaded().then(()=>renderPlanning()); }
+  if(id==='home'){ ensureLogsLoaded().then(()=>{ renderStats(); renderHome(); }); renderStats(); renderHome(); }
+  if(id==='stats'){ ensureLogsLoaded().then(()=>renderStatsPage()); }
+  if(id==='repet'){ Promise.all([ensureAbsencesLoaded(), ensureRepetPlayedLoaded()]).then(()=>renderRepets()); }
+  if(id==='concerts'){ renderConcerts(); ensureAbsencesLoaded(); }
   if(id==='feu-de-camp') {
     if(!campfireStorageAttempted && !campfirePdfDoc){
       loadCampfirePdfFromStorage();
@@ -3812,7 +3851,7 @@ function switchModalTab(tab){
     document.getElementById('panel-historique').classList.add('active');
     document.getElementById('btn-save').style.display='none';
     const songId = document.getElementById('f-id')?.value;
-    if(songId) renderHistorique(songId);
+    if(songId){ Promise.all([ensureLogsLoaded(), ensureRepetPlayedLoaded()]).then(()=>renderHistorique(songId)); }
   }else if(tab==='videos'){
     document.querySelectorAll('.modal-tab')[2].classList.add('active');
     document.getElementById('panel-videos').classList.add('active');
