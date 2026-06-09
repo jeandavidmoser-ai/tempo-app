@@ -728,6 +728,10 @@ textarea{resize:vertical;min-height:72px}
       <span style="font-size:11px">Récents</span>
     </label>
 
+    <select id="filter-concert" onchange="renderSongs()" style="width:auto;min-width:160px;padding:5px 8px;font-size:11px" title="Filtrer les morceaux d'un concert ou d'une répète">
+      <option value="">Tous les morceaux</option>
+    </select>
+
     <div class="prio-filter-row">
       <button type="button" class="prio-filter-btn rouge" data-prio="rouge" onclick="togglePriorityFilter('rouge')"><span class="song-prio-dot rouge"></span><span class="prio-label">À travailler</span></button>
       <button type="button" class="prio-filter-btn orange" data-prio="orange" onclick="togglePriorityFilter('orange')"><span class="song-prio-dot orange"></span><span class="prio-label">Pas ouf</span></button>
@@ -1918,6 +1922,7 @@ async function loadData(skipAuth=false){
   renderStats();
   const selRole=document.getElementById('filter-role'); if(selRole){selRole.innerHTML='<option value="">Mes rôles</option>'+BAND_ROLE_OPTIONS.map(r=>`<option value="${r.value}">${r.label}</option>`).join('');}
     const selMember=document.getElementById('filter-member'); if(selMember){selMember.innerHTML='<option value="">Tous les membres</option>'+bandMembers.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');}
+    populateFilterConcert();
     renderSongs();
   renderPlanning();
   renderStatsPage();
@@ -1984,7 +1989,7 @@ function showPage(id){
   const activeBtn=document.querySelector('#main-nav [data-page="'+id+'"]');
   if(activeBtn) activeBtn.classList.add('active');
 
-  if(id==='repertoire') renderSongs();
+  if(id==='repertoire'){ populateFilterConcert(); renderSongs(); }
   if(id==='planning') renderPlanning();
   if(id==='home'){ renderStats(); renderHome(); }
   if(id==='stats') renderStatsPage();
@@ -3505,6 +3510,29 @@ function renderSongsTable(filtered) {
   return `<div class="rep-table-wrap"><table class="rep-table"><thead>${thead}</thead><tbody>${rows}</tbody></table></div>`;
 }
 
+function populateFilterConcert() {
+  const sel = document.getElementById('filter-concert');
+  if (!sel) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = concerts
+    .filter(c => (c.date || '') >= today)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Tous les morceaux</option>';
+  upcoming.forEach(c => {
+    const isRepet = (c.type || 'concert') === 'repet';
+    const icon = isRepet ? '🥁' : '🎸';
+    const label = isRepet ? 'Répète' : 'Concert';
+    const songIds = concertSetlist.filter(x => String(x.concert_id) === String(c.id));
+    const suffix = songIds.length === 0 ? ' — (setlist vide)' : ` — ${songIds.length} morceau${songIds.length > 1 ? 'x' : ''}`;
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = `${icon} [${label}] ${c.nom || formatDate(c.date)}${suffix}`;
+    sel.appendChild(opt);
+  });
+  if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+
 function renderSongs() {
   const list = document.getElementById('sl');
   const count = document.getElementById('songs-count');
@@ -3572,6 +3600,16 @@ function renderSongs() {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
     mine = mine.filter(s => s.createdAt && new Date(s.createdAt) >= sixMonthsAgo);
+  }
+
+  const filterConcertId = document.getElementById('filter-concert')?.value || '';
+  if (filterConcertId) {
+    const setlistSongIds = new Set(
+      concertSetlist
+        .filter(x => String(x.concert_id) === String(filterConcertId))
+        .map(x => String(x.song_id))
+    );
+    mine = mine.filter(s => setlistSongIds.has(String(s.id)));
   }
 
   const totalDurationSeconds = mine.reduce((sum, s) => sum + (parseInt(s.duree, 10) || 0), 0);
