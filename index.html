@@ -550,8 +550,7 @@ textarea{resize:vertical;min-height:72px}
 .absence-row.absent .absence-flag{color:#ff6b81;font-weight:600}
 
 /* ALERTE ABSENCE DANS SETLIST */
-.cs-absent-warning{display:block;font-size:10px;color:#a07840;padding:2px 0 0 0;margin-top:2px;font-style:italic}
-.cs-absent-warning::before{content:'absent : '}
+.cs-absent-tag{font-size:9px;color:#8a6a35;font-style:italic;margin-left:6px;opacity:.8}
 .concert-card-song[draggable]{cursor:grab}
 .concert-card-song[draggable]:active{cursor:grabbing}
 .concert-card-song.dragging{opacity:.35;background:var(--bg2)}
@@ -2034,7 +2033,7 @@ function showPage(id){
 
   if(id==='repertoire'){ populateFilterConcert(); renderSongs(); }
   if(id==='planning'){ ensurePlanningLoaded().then(()=>renderPlanning()); }
-  if(id==='home'){ renderHome(); ensureLogsLoaded().then(()=>{ renderStats(); renderHome(); }); }
+  if(id==='home'){ renderHome(); ensureAbsencesLoaded().then(()=>renderHome()); ensureLogsLoaded().then(()=>{ renderStats(); renderHome(); }); }
   if(id==='stats'){ ensureLogsLoaded().then(()=>renderStatsPage()); }
   if(id==='repet'){ Promise.all([ensureAbsencesLoaded(), ensureRepetPlayedLoaded()]).then(()=>renderRepets()); }
   if(id==='concerts'){ renderConcerts(); ensureAbsencesLoaded(); }
@@ -2387,8 +2386,8 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   const orderedAffs = [...affs].sort((a,b)=>{ const ai=BAND_ROLE_OPTIONS.findIndex(r=>r.value===a.role); const bi=BAND_ROLE_OPTIONS.findIndex(r=>r.value===b.role); return (ai<0?99:ai)-(bi<0?99:bi); });
   const absentIds = new Set(getAbsentMemberIdsForConcert(concertId).map(String));
   const absentAffs = orderedAffs.filter(a => absentIds.has(String(a.band_member_id)));
-  const absentWarning = absentAffs.length
-    ? `<div class="cs-absent-warning">${absentAffs.map(a=>escapeHtml(a.member_name)+' ('+escapeHtml(roleLabelFor(a.role))+')').join(', ')}</div>`
+  const absentTag = absentAffs.length
+    ? `<span class="cs-absent-tag">${absentAffs.map(a=>escapeHtml(a.member_name)).join(', ')}</span>`
     : '';
   const affsHtml = orderedAffs.length
     ? orderedAffs.map(a=>{ const label=roleLabelFor(a.role); const gear=a.gear?` (${escapeHtml(a.gear)})`:''; const isAbsent = absentIds.has(String(a.band_member_id)); const nameStyle = isAbsent ? ' style="text-decoration:line-through;color:#ff6b81"' : ''; return `<span class="aff-gold">${escapeHtml(label)}${gear}</span> · <span${nameStyle}>${escapeHtml(a.member_name)}</span>`; }).join(' &nbsp;·&nbsp; ')
@@ -2416,12 +2415,11 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
     <div class="concert-card-song-head">
       <span class="cs-order">#${idxInPartie+1}</span>
       ${prioDot}
-      <span class="cs-title">${escapeHtml(item.titre || 'Sans titre')}${item.artiste?`<small>${escapeHtml(item.artiste)}</small>`:''}${newBadge}</span>
+      <span class="cs-title">${escapeHtml(item.titre || 'Sans titre')}${item.artiste?`<small>${escapeHtml(item.artiste)}</small>`:''}${newBadge}${absentTag}</span>
       ${item.duree?`<span class="cs-dur">${escapeHtml(formatDuration(item.duree))}</span>`:''}
       ${playedBtn}
       ${(()=>{ if(!isRepet) return optBtn+removeBtn; const s=songs.find(x=>x.id===item.song_id); const studioBtn=s&&s.urlS?`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="toggleInlineVideoSetlist('${item.song_id}',event)">▶</button>`:''; const ficheBtn=`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="event.stopPropagation();openModal('${item.song_id}')">📋</button>`; return studioBtn+ficheBtn+removeBtn; })()}
     </div>
-    ${absentWarning}
     <div class="concert-card-song-affs">${affsHtml}</div>
     ${isRepet ? '<div id="setlist-video-'+item.song_id+'" style="display:none;margin-top:6px"></div>' : ''}
   </div>`;
@@ -2583,33 +2581,40 @@ function printSetlist(concertId){
     mainBody += rowsHtml(p2, p1.length + 1);
   }
 
+  // Calcul auto de la taille de police pour tenir sur une page A4
+  // ~850px utiles pour le tableau (A4 281mm utiles - header/footer ~60mm)
+  // Chaque ligne occupe ~2.1× la font-size (ligne + padding en em)
+  const totalRows = items.length + (p2.length > 0 ? 1 : 0);
+  const autoFs = Math.min(16, Math.max(8, Math.floor(850 / (totalRows * 2.1))));
+  const fs = autoFs + 'px';
+  const fsSmall = Math.max(7, autoFs - 4) + 'px';
+  const fsMeta = Math.max(8, autoFs - 3) + 'px';
+
   const html = '<!DOCTYPE html>\n<html lang="fr"><head><meta charset="UTF-8"><title>Setlist — '+escapeHtml(headerTitle)+'</title><style>'
-    +'@page { size: A4; margin: 8mm 12mm; }'
+    +'@page { size: A4 portrait; margin: 8mm 12mm; }'
     +'body { font-family: "Helvetica Neue", Arial, sans-serif; color:#000; background:#fff; padding:0; margin:0; }'
     +'.wrap { max-width: 800px; margin: 0 auto; padding: 0; }'
-    +'.header { text-align:center; padding:0 0 10px; margin-bottom:14px; border-bottom:1px solid #000; }'
-    +'h1 { font-size:15px; margin:0 0 4px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }'
-    +'.meta { font-size:12px; color:#444; }'
+    +'.header { text-align:center; padding:0 0 6px; margin-bottom:8px; border-bottom:1px solid #000; }'
+    +'h1 { font-size:13px; margin:0 0 2px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }'
+    +'.meta { font-size:11px; color:#444; }'
     +'table { width:100%; border-collapse:collapse; }'
-    +'td { padding:9px 6px; font-size:16px; vertical-align:baseline; }'
-    +'tr.song-row td { border-bottom:1px solid #e5e5e5; padding-bottom:8px; }'
-    +'tr.song-row.has-extras td { border-bottom:none; padding-bottom:2px; }'
-    +'tr.extras-row td { padding:0 6px 6px 6px; border-bottom:1px solid #e5e5e5; font-size:11px; color:#555; line-height:1.4 }'
+    +'td { padding:0.45em 6px; font-size:'+fs+'; vertical-align:baseline; line-height:1.2; }'
+    +'tr.song-row td { border-bottom:1px solid #e5e5e5; }'
     +'tr.song-row.zebra td { background:#f5f5f5; }'
     +'tr.song-row.is-opt td { background:#f0f0f0; color:#888; font-style:italic; }'
     +'tr.song-row.is-opt td.num { color:#aaa; }'
-    +'.opt-label { font-size:10px; font-weight:400; color:#999; margin-left:8px; border:1px solid #ccc; border-radius:3px; padding:0 4px; font-style:normal; letter-spacing:.04em; vertical-align:middle; }'
-    +'.x-extras { margin-left:12px; font-size:11px; font-weight:400; border-left:1px solid #ddd; padding-left:10px; }'
+    +'.opt-label { font-size:'+fsSmall+'; font-weight:400; color:#999; margin-left:6px; border:1px solid #ccc; border-radius:3px; padding:0 3px; font-style:normal; letter-spacing:.04em; vertical-align:middle; }'
+    +'.x-extras { margin-left:10px; font-size:'+fsSmall+'; font-weight:400; border-left:1px solid #ddd; padding-left:8px; }'
     +'.x-acc { color:#333; font-style:italic; }'
     +'.x-notes { color:#999; font-style:italic; }'
-    +'.x-sep { margin:0 7px; color:#ccc; font-style:normal; }'
-    +'td.num { width:42px; font-weight:bold; font-size:17px; color:#000; }'
+    +'.x-sep { margin:0 5px; color:#ccc; font-style:normal; }'
+    +'td.num { width:36px; font-weight:bold; color:#000; }'
     +'td.titre { font-weight:600; }'
-    +'td.titre .artiste { font-weight:400; color:#666; font-size:12px; margin-left:4px; }'
-    +'td.duree { width:70px; text-align:right; font-variant-numeric:tabular-nums; color:#555; font-size:12px; white-space:nowrap; }'
-    +'.entracte { padding:10px 0 0; border-bottom:2px solid #000; height:0; }'
-    +'.footer { margin-top:16px; padding:10px 0 0; border-top:1px solid #000; text-align:center; font-size:13px; font-weight:bold; letter-spacing:.04em; }'
-    +'.no-print { text-align:center; margin:14px 0; }'
+    +'td.titre .artiste { font-weight:400; color:#666; font-size:'+fsMeta+'; margin-left:4px; }'
+    +'td.duree { width:60px; text-align:right; font-variant-numeric:tabular-nums; color:#555; font-size:'+fsMeta+'; white-space:nowrap; }'
+    +'.entracte { padding:6px 0 0; border-bottom:2px solid #000; height:0; }'
+    +'.footer { margin-top:10px; padding:6px 0 0; border-top:1px solid #000; text-align:center; font-size:11px; font-weight:bold; letter-spacing:.04em; }'
+    +'.no-print { text-align:center; margin:10px 0; }'
     +'.no-print button { padding:8px 18px; font-size:13px; background:#000; color:#fff; border:none; border-radius:4px; cursor:pointer; margin:0 4px; }'
     +'@media print { .no-print { display:none; } body { padding:0; } }'
     +'</style></head><body><div class="wrap">'
