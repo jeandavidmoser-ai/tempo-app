@@ -2358,10 +2358,8 @@ async function toggleOptionnel(setlistId, concertId, currentVal){
 
 function renderConcertCardSetlistInner_update(concertId){
   document.querySelectorAll(`.concert-card-setlist-details[data-concert-id="${concertId}"]`).forEach(details => {
-    const summary = details.querySelector('summary');
-    const wasOpen = details.open;
-    details.innerHTML = (summary ? summary.outerHTML : '') + renderConcertCardSetlistInner(concertId);
-    details.open = wasOpen;
+    const wrap = details.querySelector('.setlist-content-wrap');
+    if(wrap && details.open) wrap.innerHTML = renderConcertCardSetlistInner(concertId);
   });
   renderConcertSetlist(concertId);
 }
@@ -2425,7 +2423,7 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
     </div>
     ${absentWarning}
     <div class="concert-card-song-affs">${affsHtml}</div>
-    ${(()=>{ if(!isRepet) return ''; const s=songs.find(x=>x.id===item.song_id); if(!s||!s.urlS) return '<div id="setlist-video-'+item.song_id+'" style="display:none"></div>'; const match=s.urlS.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/); const vid=match?match[1]:''; return '<div id="setlist-video-'+item.song_id+'" style="display:none;margin-top:6px">'+(vid?'<div class="video-wrap"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>':'')+'</div>'; })()}
+    ${isRepet ? '<div id="setlist-video-'+item.song_id+'" style="display:none;margin-top:6px"></div>' : ''}
   </div>`;
 }
 
@@ -2889,9 +2887,9 @@ function renderConcertsOrRepets(filterType){
           <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
         </div>
       </div>
-      <details class="concert-card-setlist-details" data-concert-id="${c.id}"${openAttr}>
+      <details class="concert-card-setlist-details" data-concert-id="${c.id}"${openAttr} ontoggle="onSetlistDetailsToggle(this)">
         <summary>${summaryLabel}</summary>
-        ${renderConcertCardSetlistInner(c.id)}
+        <div class="setlist-content-wrap">${openAttr ? renderConcertCardSetlistInner(c.id) : ''}</div>
       </details>
     </div>`;
   }).join('');
@@ -3473,13 +3471,36 @@ function toggleInlineAudio(songId, event){
   if(!row) return;
   row.style.display = row.style.display === 'block' ? 'none' : 'block';
 }
+function onSetlistDetailsToggle(el){
+  const concertId = el.dataset.concertId;
+  if(!concertId) return;
+  const wrap = el.querySelector('.setlist-content-wrap');
+  if(!wrap) return;
+  if(el.open){
+    if(!wrap.firstChild) wrap.innerHTML = renderConcertCardSetlistInner(concertId);
+  } else {
+    wrap.innerHTML = '';
+  }
+}
+
 function toggleInlineVideoSetlist(songId, event){
   if(event) event.stopPropagation();
   const row = document.getElementById('setlist-video-' + songId);
   if(!row) return;
   const isOpen = row.style.display === 'block';
-  document.querySelectorAll('[id^="setlist-video-"]').forEach(el => el.style.display='none');
-  if(!isOpen) row.style.display = 'block';
+  document.querySelectorAll('[id^="setlist-video-"]').forEach(el => {
+    el.style.display = 'none';
+    el.innerHTML = '';
+  });
+  if(!isOpen){
+    const song = songs.find(s => s.id === songId);
+    if(song && song.urlS){
+      const match = song.urlS.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/);
+      const vid = match ? match[1] : '';
+      if(vid) row.innerHTML = '<div class="video-wrap"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+    }
+    row.style.display = 'block';
+  }
 }
 function toggleInlineVideo(songId, event){
   if(event) event.stopPropagation();
