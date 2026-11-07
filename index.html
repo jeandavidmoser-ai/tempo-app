@@ -941,6 +941,16 @@ textarea[readonly]{opacity:.85;cursor:default}
 .rep-panel{border-width:1.5px}
 .ev{border-width:2.5px}
 
+/* ===== FENÊTRE MODIFS NON ENREGISTRÉES ===== */
+.unsaved-ov{z-index:1300;align-items:center !important;background:rgba(0,0,0,.7) !important;padding:16px !important}
+.unsaved-box{width:100%;max-width:360px;margin:auto;background:var(--bg2);border:1.5px solid #3a3a3a;border-radius:14px;padding:20px 18px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.unsaved-title{font-family:'Oswald',sans-serif;font-size:18px;color:var(--text)}
+.unsaved-text{font-size:13px;color:var(--dim);line-height:1.45;margin-bottom:8px}
+.unsaved-btn{height:46px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.04em;cursor:pointer}
+.unsaved-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.unsaved-btn.danger{color:#ff8a9c;border-color:#4a1d26;background:none}
+#ov .modal.sheet{will-change:transform}
+
 /* ===== PASSE MOBILE ===== */
 @media(max-width:600px){
   /* En-tête */
@@ -1091,7 +1101,7 @@ textarea[readonly]{opacity:.85;cursor:default}
     <span class="rep-panel-lbl">Trier</span>
     <select id="sort-songs" onchange="setSongsSort(this.value)">
       <option value="alpha">A → Z</option>
-      <option value="prio">Priorité</option>
+      <option value="prio">Niveau</option>
       <option value="least">Moins répétés</option>
       <option value="oldest">Pas joués depuis longtemps</option>
     </select>
@@ -1413,6 +1423,16 @@ textarea[readonly]{opacity:.85;cursor:default}
   </div>
 </div>
 
+<div id="ov-unsaved" class="ov unsaved-ov" role="dialog" aria-label="Modifications non enregistrées">
+  <div class="unsaved-box">
+    <div class="unsaved-title">Modifications non enregistrées</div>
+    <div class="unsaved-text">Tu as modifié cette fiche sans l'enregistrer. Que veux-tu faire ?</div>
+    <button type="button" class="unsaved-btn primary" onclick="unsavedSave()">Enregistrer</button>
+    <button type="button" class="unsaved-btn danger" onclick="unsavedDiscard()">Quitter sans enregistrer</button>
+    <button type="button" class="unsaved-btn" onclick="hideUnsavedDialog()">Continuer à modifier</button>
+  </div>
+</div>
+
 <div id="ov-lyrics" role="dialog" aria-label="Paroles">
   <div class="ly-bar">
     <div class="ly-nav" id="ly-nav">
@@ -1435,7 +1455,7 @@ textarea[readonly]{opacity:.85;cursor:default}
       <button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closePlayedModal()">✕</button>
     </div>
     <div class="mb">
-      <div style="font-size:13px;color:var(--dim);margin-bottom:16px">Où en es-tu sur ce morceau ? Ça met à jour <strong style="color:#c4b5fd">ton statut perso</strong>, pas la priorité du groupe.</div>
+      <div style="font-size:13px;color:var(--dim);margin-bottom:16px">Où en es-tu sur ce morceau ? Ça met à jour <strong style="color:#c4b5fd">ton statut perso</strong>, pas le niveau du groupe.</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <button class="played-prio-opt" onclick="confirmPlayedPerso('adecouvrir')"><span class="statut-dot adecouvrir"></span><div><strong>À découvrir</strong></div></button>
         <button class="played-prio-opt" onclick="confirmPlayedPerso('encours')"><span class="statut-dot encours"></span><div><strong>En cours</strong></div></button>
@@ -1453,7 +1473,7 @@ textarea[readonly]{opacity:.85;cursor:default}
       <button style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer" onclick="closePlayedModal()">✕</button>
     </div>
     <div class="mb">
-      <div style="font-size:13px;color:var(--dim);margin-bottom:16px">Comment s'est passé ce morceau ? Mets à jour sa priorité de travail pour la prochaine répét.</div>
+      <div style="font-size:13px;color:var(--dim);margin-bottom:16px">Comment s'est passé ce morceau ? Mets à jour le niveau du groupe.</div>
       <div style="display:flex;flex-direction:column;gap:8px" id="played-prio-btns">
         <button class="played-prio-opt" data-prio="vert" onclick="confirmPlayed('vert')"><span class="song-prio-dot vert"></span><div><strong>Validé</strong><span> — Le groupe le maîtrise bien</span></div></button>
         <button class="played-prio-opt" data-prio="jaune" onclick="confirmPlayed('jaune')"><span class="song-prio-dot jaune"></span><div><strong>Pas mal</strong><span> — Encore quelques détails à peaufiner</span></div></button>
@@ -1558,7 +1578,7 @@ textarea[readonly]{opacity:.85;cursor:default}
     <div class="mh song-mh">
       <div class="song-mh-top">
         <div id="mt" class="mt">Nouveau morceau</div>
-        <button type="button" class="sheet-close" onclick="closeModal()" aria-label="Fermer"><i data-ic="x"></i></button>
+        <button type="button" class="sheet-close" onclick="requestCloseModal()" aria-label="Fermer"><i data-ic="x"></i></button>
       </div>
     </div>
 
@@ -1593,7 +1613,7 @@ textarea[readonly]{opacity:.85;cursor:default}
 
         <!-- Tout le reste : blocs à ouvrir -->
         <details class="fiche-affs fiche-edit-only" id="prio-details">
-          <summary><i data-ic="target"></i> Priorité du groupe <span class="sum-preview" id="sum-prio"></span></summary>
+          <summary><i data-ic="target"></i> Niveau <span class="sum-preview" id="sum-prio"></span></summary>
           <div id="mh-priority" class="mh-prio-row"></div>
         </details>
 
@@ -1683,7 +1703,7 @@ textarea[readonly]{opacity:.85;cursor:default}
 
       <div class="mfoot sheet-foot">
         <button type="button" id="btn-del" class="bdd" data-admin-only onclick="del()" style="display:none" title="Supprimer le morceau"><i data-ic="trash"></i><span class="btn-txt">Supprimer</span></button>
-        <button type="button" class="bo sheet-cancel" onclick="closeModal()">Annuler</button>
+        <button type="button" class="bo sheet-cancel" onclick="requestCloseModal()">Annuler</button>
         <button type="button" id="btn-save-perso" class="bo" onclick="savePersonalOnly()">Mon suivi</button>
         <button type="submit" id="btn-save" class="br" data-admin-only>Enregistrer</button>
       </div>
@@ -2696,8 +2716,8 @@ function closePlayedModal(){
   pendingPlayedSongId = null; pendingPlayedRepetId = null;
 }
 // Enregistre "joué" pour un morceau dans une répète (une seule fois par répète) puis :
-// - répète de groupe : met à jour la priorité du groupe
-// - répète perso : met à jour mon statut perso (la priorité du groupe n'est pas touchée)
+// - répète de groupe : met à jour le niveau du groupe (champ priority)
+// - répète perso : met à jour mon statut perso (le niveau du groupe n'est pas touché)
 async function recordPlayed(songId, repetId, value){
   const c = concerts.find(x=>x.id===repetId);
   const perso = isPersoConcert(c);
@@ -4461,7 +4481,7 @@ function renderSongs() {
             ${s.urlS ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineVideo('${s.id}', event)" title="Studio">${ico('play','fill')}<span class="btn-lbl"> Studio</span></button>` : ''}
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)" title="Audio">${ico('headphones')}<span class="btn-lbl"> Audio</span></button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
-            <span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité du groupe : ${escapeHtml(prio)}"></span>
+            <span class="song-prio-dot ${escapeHtml(prio)}" title="Niveau : ${escapeHtml(({rouge:'À travailler',orange:'Pas ouf',jaune:'Pas mal',vert:'Validé'})[prio]||prio)}"></span>
             ${(()=>{ if(!repertoireShowStatut) return ''; const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir';
               const mine = myAssignedIds.has(String(s.id)) || (pd && st && st!=='adecouvrir');
               if(!mine) return `<span class="stt-statut" style="visibility:hidden" aria-hidden="true"><span class="statut-dot adecouvrir"></span><span class="stt-statut-label">${escapeHtml(STATUT_LABELS.adecouvrir)}</span></span>`;
@@ -4550,6 +4570,8 @@ function openModal(id) {
     const lyDetN = document.getElementById('lyrics-details'); if(lyDetN) lyDetN.open = false;
     updateFicheSummaries();
   }
+  sheetSnapshot = serializeSheet();
+  sheetPush();
 }
 // Notes sur une ligne : s'agrandissent quand on les édite (et poignée pour agrandir à la main)
 function noteAutosize(el){ el.style.height='auto'; el.style.height=Math.min(Math.max(el.scrollHeight+2,38),320)+'px'; }
@@ -4588,7 +4610,64 @@ function renderFicheRead(s){
     ${s.artiste?`<div class="fiche-read-artist">${escapeHtml(s.artiste)}</div>`:''}
     ${chips.length?`<details class="fiche-affs" style="margin-top:14px"><summary>${ico('sliders')} Infos <span class="sum-preview">${escapeHtml(chips.slice(0,3).join(' · '))}</span></summary><div class="fiche-read-chips">${chips.map(c=>`<span class="fiche-read-chip">${escapeHtml(c)}</span>`).join('')}</div></details>`:''}`;
 }
-function closeModal(){document.getElementById('ov').classList.remove('open');}
+function closeModal(){
+  document.getElementById('ov').classList.remove('open');
+  sheetSnapshot = null;
+  hideUnsavedDialog();
+  if(sheetHist){ sheetHist=false; try{ history.back(); }catch(e){} }
+}
+// ===== Fiche : modifications non enregistrées, glisser pour fermer, bouton retour =====
+let sheetSnapshot=null, sheetHist=false, sheetIgnorePop=false;
+function serializeSheet(){
+  const f=document.getElementById('sf'); if(!f) return '';
+  const vals=[...f.querySelectorAll('input,select,textarea')].map(el=>el.id+'='+(el.type==='checkbox'?el.checked:el.value));
+  return vals.join('|')+'|prio='+activeSongPriority+'|affs='+JSON.stringify(activeSongAssignments||[]);
+}
+function sheetIsDirty(){ return sheetSnapshot!==null && serializeSheet()!==sheetSnapshot; }
+function sheetPush(){ if(sheetHist) return; try{ history.pushState({tempoSheet:1},''); sheetHist=true; }catch(e){} }
+window.addEventListener('popstate',()=>{
+  if(!sheetHist) return;
+  sheetHist=false;
+  if(document.getElementById('ov').classList.contains('open')) requestCloseModal(true);
+});
+function requestCloseModal(fromBack){
+  if(!sheetIsDirty()){ closeModal(); return; }
+  if(fromBack) sheetPush(); // on reste sur la fiche tant que l'utilisateur n'a pas choisi
+  document.getElementById('ov-unsaved').classList.add('open');
+}
+function hideUnsavedDialog(){ const d=document.getElementById('ov-unsaved'); if(d) d.classList.remove('open'); }
+function unsavedDiscard(){ hideUnsavedDialog(); closeModal(); }
+async function unsavedSave(){
+  hideUnsavedDialog();
+  if(canEdit) await save({preventDefault(){}}); else await savePersonalOnly();
+}
+function initSheetSwipe(){
+  const m=document.querySelector('#ov .modal.sheet'); if(!m) return;
+  let x0=null,y0=null,dx=0,active=false;
+  m.addEventListener('touchstart',e=>{
+    if(e.target.closest('input,textarea,select,.mh-prio-row,.video-wrap,iframe')){ x0=null; return; }
+    const t=e.touches[0]; x0=t.clientX; y0=t.clientY; dx=0; active=false;
+  },{passive:true});
+  m.addEventListener('touchmove',e=>{
+    if(x0===null) return;
+    const t=e.touches[0], ddx=t.clientX-x0, ddy=t.clientY-y0;
+    if(!active){
+      if(ddx>12 && Math.abs(ddx)>Math.abs(ddy)*1.5) active=true;
+      else if(Math.abs(ddy)>12 || ddx<-12){ x0=null; return; }
+    }
+    if(active){ dx=Math.max(0,ddx); m.style.transition='none'; m.style.transform='translateX('+dx+'px)'; m.style.opacity=String(1-Math.min(dx/700,0.35)); }
+  },{passive:true});
+  m.addEventListener('touchend',()=>{
+    if(x0===null) return; x0=null;
+    if(!active) return;
+    m.style.transition='transform .2s ease, opacity .2s ease';
+    if(dx>90){
+      m.style.transform='translateX(100%)'; m.style.opacity='0';
+      setTimeout(()=>{ m.style.transition='none'; m.style.transform=''; m.style.opacity=''; requestCloseModal(); },190);
+    } else { m.style.transform=''; m.style.opacity=''; }
+  });
+}
+document.addEventListener('DOMContentLoaded',initSheetSwipe);
 
 async function del() {
   const id = document.getElementById('f-id')?.value;
