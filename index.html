@@ -413,6 +413,7 @@ textarea{resize:vertical;min-height:72px}
 .agenda-event:hover{filter:brightness(1.15)}
 .agenda-event.concert{background:rgba(200,168,75,.35);color:#f0d484;border-left:3px solid #c8a84b}
 .agenda-event.repet{background:rgba(74,144,200,.35);color:#c4dceb;border-left:3px solid #4a90c8}
+.agenda-event.perso{background:rgba(167,139,250,.28);color:#e4dafe;border-left-color:#a78bfa}
 .agenda-event.divers{background:rgba(140,90,200,.35);color:#d4bcf0;border-left:3px solid #8c5ac8}
 .agenda-legend-dot.divers{background:#8c5ac8}
 .agenda-event-title{display:block;font-family:'Oswald',sans-serif;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -611,6 +612,57 @@ textarea{resize:vertical;min-height:72px}
 .home-next-affected-item{white-space:nowrap}
 .home-next-affected-who{color:#c2602a;font-size:9px}
 
+
+/* ===== PASSE MOBILE ===== */
+@media(max-width:600px){
+  /* En-tête */
+  header{padding:8px 12px;gap:8px}
+  .logo-img-left{height:32px;margin-right:6px}
+  .logo{font-size:14px;letter-spacing:.08em;white-space:nowrap}
+  .logo-skull{display:none}
+  #session-controls{gap:8px !important}
+  #btn-logout{padding:4px 8px;font-size:9px;white-space:nowrap}
+  #user-badge{max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.06em !important}
+  .page{padding:12px 8px}
+  .card{margin-bottom:12px}
+  .ch{padding:10px 12px;flex-wrap:wrap;gap:8px}
+  .ch > div[style]{flex-wrap:wrap;justify-content:flex-end;gap:6px !important}
+  .ch .btn-add{padding:5px 9px;font-size:10px;white-space:nowrap;gap:4px}
+  .ch .btn-add::before{font-size:12px}
+  .view-toggle-btn{white-space:nowrap;padding:4px 8px}
+  /* Répertoire : lignes plus lisibles */
+  .si{padding:9px 10px;gap:6px}
+  .si-left{padding-right:4px}
+  .stt{font-size:14px;line-height:1.25}
+  .stt-artist{display:block;margin:1px 0 0}
+  .stt-played{display:block;margin:2px 0 0}
+  .stt-sep,.stt-last,.btn-lbl{display:none}
+  .stt-notes-perso{display:block;margin:2px 0 0}
+  .si-right{gap:6px}
+  .si-right .bo{padding:3px 7px;font-size:11px}
+  .stt-statut{padding:2px 6px}
+  /* Répètes / concerts : cartes et setlists */
+  .concert-toolbar{gap:8px}
+  .concert-card-song-head{flex-wrap:wrap;row-gap:4px}
+  .cs-title{white-space:normal;overflow:visible;line-height:1.2;min-width:0;flex:1 1 90px}
+  .cs-played{padding:1px 5px;font-size:10px}
+  .concert-card-setlist-details > summary{font-size:10px;letter-spacing:.08em}
+  .setlist-toolbar{justify-content:flex-start}
+  .setlist-toolbar-filters{flex:1 1 100%}
+  /* Accueil */
+  .home-next-perso{flex-wrap:wrap;gap:2px 10px}
+  .home-next-perso .hnp-meta{margin-left:0;width:100%}
+  .home-next-head{gap:10px;padding:10px}
+  .home-next-icon{font-size:22px}
+  /* Fenêtres */
+  .mh{padding:12px 14px;flex-wrap:wrap;gap:8px}
+  .mb{padding:14px}
+  .modal-panel{padding:14px}
+  .mfoot{padding:10px 14px;flex-wrap:wrap;gap:8px}
+  .mfoot button{white-space:nowrap}
+  .mfoot .br{flex:1 1 100%;order:10;padding:11px 16px}
+  .bdd{margin-right:0}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs" type="module"></script>
@@ -624,7 +676,7 @@ textarea{resize:vertical;min-height:72px}
 <header>
 <div class="logo-wrap" onclick="showPage('home')">
 <img src="logo_v2.png" alt="BA" class="logo-img-left" onerror="this.style.display='none'">
-<div id="logo" class="logo">BROKEN ARMS<span>.</span> 💀</div>
+<div id="logo" class="logo">BROKEN ARMS<span>.</span><span class="logo-skull"> 💀</span></div>
 </div>
 <div id="session-controls" style="display:flex;align-items:center;gap:12px">
 <button id="btn-logout" class="bo" type="button" onclick="handleLogout()" style="display:none">Déconnexion</button>
@@ -1900,8 +1952,9 @@ function formatDurationLong(value){
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);
   const seconds = total % 60;
-
-  return `${hours} heure${hours>1?'s':''}, ${minutes} minute${minutes>1?'s':''}, ${seconds} seconde${seconds>1?'s':''}`;
+  if(hours) return `${hours} h ${String(minutes).padStart(2,'0')} min`;
+  if(minutes) return `${minutes} min ${String(seconds).padStart(2,'0')} s`;
+  return `${seconds} s`;
 }
 
 async function loadLogsInBackground(){
@@ -3536,9 +3589,10 @@ function renderAgenda(context){
     const eventsHtml = events.map(e=>{
       const type = (e.type||'concert');
       const heure = e.heure_debut ? e.heure_debut.substring(0,5) : '';
-      const label = type==='repet' ? 'Répétition' : (e.nom || (type==='divers'?'Divers':'Concert'));
+      const persoEvt = isPersoConcert(e);
+      const label = type==='repet' ? (persoEvt ? '👤 Perso' : 'Répétition') : (e.nom || (type==='divers'?'Divers':'Concert'));
       const sub = [heure, type==='concert' ? e.lieu : ''].filter(Boolean).join(' · ');
-      return `<div class="agenda-event ${type}" onclick="openConcertModal('${e.id}')">
+      return `<div class="agenda-event ${type}${persoEvt?' perso':''}" onclick="openConcertModal('${e.id}')">
         <span class="agenda-event-title">${escapeHtml(label)}</span>
         ${sub ? `<span class="agenda-event-time">${escapeHtml(sub)}</span>` : ''}
       </div>`;
@@ -4065,13 +4119,13 @@ function renderSongs() {
               ${s.actuel ? '<span class="song-actuel-title" title="Répertoire actuel">'+escapeHtml(s.titre)+'</span>' : escapeHtml(s.titre)}
               ${artistText ? `<span class="stt-artist">${escapeHtml(artistText)}</span>` : ''}
               ${(()=>{ const pd=getPersonalData(s.id); return (pd&&pd.notes)?`<span class="stt-notes-perso" title="Ma note perso">👤 ${escapeHtml(pd.notes)}</span>`:''; })()}
-              ${(()=>{ const d=getLastPlayedDate(s.id); if(!d) return ''; const n=getRepetCounts(s.id); const parts=[]; if(n.groupe) parts.push('👥 '+n.groupe+'×'); if(n.perso) parts.push('<span class="perso-count">👤 '+n.perso+'×</span>'); const dt=new Date(d+'T12:00:00'); return `<span class="stt-played"> | Joué ${parts.join(' · ')} · dernière le ${dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>`; })()}
+              ${(()=>{ const d=getLastPlayedDate(s.id); if(!d) return ''; const n=getRepetCounts(s.id); const parts=[]; if(n.groupe) parts.push('👥 '+n.groupe+'×'); if(n.perso) parts.push('<span class="perso-count">👤 '+n.perso+'×</span>'); const dt=new Date(d+'T12:00:00'); return `<span class="stt-played"><span class="stt-sep"> | </span>Joué ${parts.join(' · ')}<span class="stt-last"> · dernière le ${dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span></span>`; })()}
             </div>
             ${s.assignmentSummary ? `<div class="si-affs">${assignmentsSummaryHtml(s.id)}</div>` : ''}
           </div>
           <div class="si-right">
-            ${s.urlS ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineVideo('${s.id}', event)">▶ Studio</button>` : ''}
-            ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
+            ${s.urlS ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineVideo('${s.id}', event)" title="Studio">▶<span class="btn-lbl"> Studio</span></button>` : ''}
+            ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)" title="Audio">♪<span class="btn-lbl"> Audio</span></button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
             <span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité du groupe : ${escapeHtml(prio)}"></span>
             ${(()=>{ const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir';
