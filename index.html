@@ -616,6 +616,31 @@ textarea{resize:vertical;min-height:72px}
 .home-next-affected-who{color:#c2602a;font-size:9px}
 
 
+/* ===== PAROLES ===== */
+#ov-lyrics{display:none;position:fixed;inset:0;z-index:1200;background:#000;flex-direction:column}
+#ov-lyrics.open{display:flex}
+.ly-bar{display:flex;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));border-bottom:1px solid #222;background:#0b0b0b;flex-shrink:0}
+.ly-head{flex:1;min-width:0}
+.ly-title{font-family:'Oswald',sans-serif;font-size:17px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ly-artist{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ly-btn{background:#161616;border:1px solid #2a2a2a;color:var(--text);font-family:'Oswald',sans-serif;font-size:14px;min-width:40px;height:38px;padding:0 10px;border-radius:8px;cursor:pointer;flex-shrink:0}
+.ly-btn:disabled{opacity:.3;cursor:default}
+.ly-btn.on{border-color:var(--gold);color:var(--gold)}
+.ly-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px max(18px,env(safe-area-inset-right)) calc(40vh) max(18px,env(safe-area-inset-left));color:#f2f2f2;line-height:1.5;font-family:'Inter',sans-serif}
+.ly-body.mono{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+.ly-line{white-space:pre-wrap;min-height:1.5em}
+.ly-chord{color:var(--gold);font-weight:600;white-space:pre}
+.ly-body.no-chords .ly-chord{display:none}
+.ly-section{color:var(--dim);font-family:'Oswald',sans-serif;letter-spacing:.08em;text-transform:uppercase;font-size:.75em;margin-top:.8em}
+.ly-empty{color:var(--dim);text-align:center;padding:40px 10px;font-size:14px}
+.ly-nav{display:flex;gap:6px}
+.lyrics-details{margin-top:4px;border-top:1px solid var(--border);padding-top:10px}
+.lyrics-details > summary{cursor:pointer;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;list-style:none;user-select:none}
+.lyrics-details > summary::-webkit-details-marker{display:none}
+.lyrics-details > summary::before{content:'▶ ';font-size:9px;color:var(--dim)}
+.lyrics-details[open] > summary::before{content:'▼ '}
+#f-paroles{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;min-height:220px;line-height:1.45}
+
 /* ===== PASSE MOBILE ===== */
 @media(max-width:600px){
   /* En-tête */
@@ -690,8 +715,6 @@ textarea{resize:vertical;min-height:72px}
 <nav id="main-nav">
 <button data-page="home" onclick="showPage('home')">Tableau de bord</button>
 <button data-page="repertoire" onclick="showPage('repertoire')">Répertoire</button>
-<button data-page="planning" onclick="showPage('planning')">Planning</button>
-<button data-page="stats" onclick="showPage('stats')">Stats</button>
 <button data-page="repet" onclick="showPage('repet')">Répet</button>
 <button data-page="concerts" onclick="showPage('concerts')">Concerts</button>
 <button data-page="feu-de-camp" onclick="showPage('feu-de-camp')">Feu de camp</button>
@@ -728,16 +751,6 @@ textarea{resize:vertical;min-height:72px}
   <div class="card widget widget-stats">
     <div class="ch"><div class="cl">Répertoire en chiffres</div></div>
     <div id="home-repertoire-stats" style="padding:14px"></div>
-  </div>
-  <div class="card widget widget-coach">
-    <div class="ch"><div class="cl">Coach Broken Arms</div></div>
-    <div style="padding:20px">
-      <p style="font-size:13px;color:var(--dim);margin-bottom:14px">Pose une question à l'IA, elle prend le contexte de ton répertoire et te répond via Perplexity.</p>
-      <div class="ai-row" style="padding:0">
-        <input type="text" id="agent-in" placeholder="Pose une question à ton coach…" onkeydown="if(event.key==='Enter')askCoach()">
-        <button class="br" onclick="askCoach()">Envoyer</button>
-      </div>
-    </div>
   </div>
   <div class="card widget widget-session" id="widget-session" style="display:none;grid-column:1 / -1">
     <div class="ch"><div class="cl">Session en cours</div></div>
@@ -1101,6 +1114,21 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
 
+<div id="ov-lyrics" role="dialog" aria-label="Paroles">
+  <div class="ly-bar">
+    <div class="ly-nav" id="ly-nav">
+      <button type="button" class="ly-btn" id="ly-prev" onclick="lyricsStep(-1)" title="Morceau précédent">‹</button>
+      <button type="button" class="ly-btn" id="ly-next" onclick="lyricsStep(1)" title="Morceau suivant">›</button>
+    </div>
+    <div class="ly-head"><div class="ly-title" id="ly-title">—</div><div class="ly-artist" id="ly-artist"></div></div>
+    <button type="button" class="ly-btn" onclick="lyricsZoom(-1)" title="Réduire">A−</button>
+    <button type="button" class="ly-btn" onclick="lyricsZoom(1)" title="Agrandir">A+</button>
+    <button type="button" class="ly-btn" id="ly-chords-btn" onclick="lyricsToggleChords()" title="Afficher / masquer les accords">🎸</button>
+    <button type="button" class="ly-btn" onclick="closeLyrics()" title="Fermer">✕</button>
+  </div>
+  <div class="ly-body" id="ly-body"></div>
+</div>
+
 <div id="ov-played-perso" class="ov" style="z-index:500">
   <div class="modal" style="max-width:420px">
     <div class="mh">
@@ -1257,9 +1285,9 @@ textarea{resize:vertical;min-height:72px}
 
         <div id="fg-priority" style="display:none"></div>
 
-        <!-- Difficulté / Durée / Accordage sur 1 ligne -->
+        <!-- Durée / Accordage -->
         <div class="fiche-row4">
-          <div class="fg" id="fg-diff">
+          <div class="fg" id="fg-diff" style="display:none">
             <label>Difficulté</label>
             <input type="number" id="f-diff" min="1" max="5" value="3">
           </div>
@@ -1302,6 +1330,15 @@ textarea{resize:vertical;min-height:72px}
             <input type="url" id="f-url-t" placeholder="https://youtube.com/...">
           </div>
         </div>
+
+        <details class="lyrics-details" id="lyrics-details">
+          <summary>📄 Paroles</summary>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 8px">
+            <button type="button" class="bo" onclick="searchLyricsWeb()" style="padding:4px 10px;font-size:10px">🔍 Chercher les paroles</button>
+            <button type="button" class="bo" onclick="openLyricsFromForm()" style="padding:4px 10px;font-size:10px">⛶ Plein écran</button>
+          </div>
+          <textarea id="f-paroles" placeholder="Colle les paroles ici. Les lignes d'accords (ex : Am  F  C  G) seront affichées en doré et peuvent être masquées. Les titres de section entre crochets, ex : [Refrain]."></textarea>
+        </details>
 
         <div class="fg full">
           <label>Notes groupe</label>
@@ -2085,14 +2122,12 @@ async function loadData(skipAuth=false){
     urlAudio:r.url_audio,
     notes:r.notes,
     lastPractice:r.last_practice,
+    paroles:r.paroles||'',
     actuel:r.repertoire_actuel===undefined?true:!!r.repertoire_actuel,
     assignmentSummary:''
   }));
   songs=songs.map(song=>({ ...song, assignmentSummary: assignmentsSummary(song.id) }));
   const _seen=new Set(); songs=songs.filter(s=>{if(_seen.has(s.id))return false;_seen.add(s.id);return true;});
-  // logs et planning chargés en arrière-plan pour alléger la mémoire au démarrage
-  loadLogsInBackground();
-  loadPlanningInBackground();
   const { data: c, error: concertsError } = await supabaseClient.from('concerts').select('*').order('date',{ascending:true}).order('heure_debut',{ascending:true});
   if(concertsError){
     console.error('Erreur Supabase (concerts.select):',concertsError);
@@ -2215,7 +2250,7 @@ function showPage(id){
 
   if(id==='repertoire'){ populateFilterConcert(); renderSongs(); ensureRepetPlayedLoaded().then(()=>renderSongs()); }
   if(id==='planning'){ ensurePlanningLoaded().then(()=>renderPlanning()); }
-  if(id==='home'){ renderHome(); ensureAbsencesLoaded().then(()=>renderHome()); ensureLogsLoaded().then(()=>{ renderStats(); renderHome(); }); }
+  if(id==='home'){ renderHome(); Promise.all([ensureAbsencesLoaded(), ensureRepetPlayedLoaded()]).then(()=>renderHome()); }
   if(id==='stats'){ ensureLogsLoaded().then(()=>renderStatsPage()); }
   if(id==='repet'){ Promise.all([ensureAbsencesLoaded(), ensureRepetPlayedLoaded()]).then(()=>renderRepets()); }
   if(id==='concerts'){ renderConcerts(); ensureAbsencesLoaded(); }
@@ -2670,7 +2705,7 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
       <span class="cs-title">${escapeHtml(item.titre || 'Sans titre')}${item.artiste?`<small>${escapeHtml(item.artiste)}</small>`:''}${absentTag}</span>
       ${item.duree?`<span class="cs-dur">${escapeHtml(formatDuration(item.duree))}</span>`:''}
       ${playedBtn}
-      ${(()=>{ if(!isRepet) return optBtn+removeBtn; const s=songs.find(x=>x.id===item.song_id); const studioBtn=s&&s.urlS?`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="toggleInlineVideoSetlist('${item.song_id}',event)">▶</button>`:''; const ficheBtn=`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="event.stopPropagation();openModal('${item.song_id}')">📋</button>`; return studioBtn+ficheBtn+removeBtn; })()}
+      ${(()=>{ if(!isRepet) return optBtn+removeBtn; const s=songs.find(x=>x.id===item.song_id); const studioBtn=s&&s.urlS?`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="toggleInlineVideoSetlist('${item.song_id}',event)">▶</button>`:''; const ficheBtn=`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" onclick="event.stopPropagation();openModal('${item.song_id}')">📋</button>`; const lyricsBtn=s&&s.paroles?`<button type="button" class="bo" style="padding:1px 6px;font-size:9px" title="Paroles" onclick="event.stopPropagation();openLyricsInSetlist('${concertId}','${item.song_id}')">📄</button>`:''; return lyricsBtn+studioBtn+ficheBtn+removeBtn; })()}
     </div>
     <div class="concert-card-song-affs">${affsHtml}</div>
     ${isRepet ? '<div id="setlist-video-'+item.song_id+'" style="display:none;margin-top:6px"></div>' : ''}
@@ -4195,6 +4230,7 @@ function renderSongs() {
             ${s.assignmentSummary ? `<div class="si-affs">${assignmentsSummaryHtml(s.id)}</div>` : ''}
           </div>
           <div class="si-right">
+            ${s.paroles ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="event.stopPropagation();openLyrics('${s.id}')" title="Paroles">📄<span class="btn-lbl"> Paroles</span></button>` : ''}
             ${s.urlS ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineVideo('${s.id}', event)" title="Studio">▶<span class="btn-lbl"> Studio</span></button>` : ''}
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)" title="Audio">♪<span class="btn-lbl"> Audio</span></button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
@@ -4226,12 +4262,6 @@ function openModal(id) {
 
   const isAdminView = canEdit;
 
-  const adminOnlyFields = ['fg-diff'];
-
-  adminOnlyFields.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = isAdminView ? 'flex' : 'none';
-  });
 
   activeSongAssignments = [];
   buildAssignmentsForAllRoles();
@@ -4239,6 +4269,7 @@ function openModal(id) {
   const affDet = document.getElementById('assignments-details'); if(affDet) affDet.open = false;
   setSongPriority('rouge');
   renderMhPriority();
+  const persoBtn = document.getElementById('btn-save-perso'); if(persoBtn) persoBtn.textContent = canEdit ? '💾 Mon suivi' : '💾 Enregistrer';
 
   if (id !== 'new') {
     const s = songs.find(x => x.id === id);
@@ -4262,6 +4293,8 @@ function openModal(id) {
     initUrlFields(s.urlL, s.urlT);
     document.getElementById('f-url-audio').value = s.urlAudio || '';
     document.getElementById('f-notes').value = s.notes || '';
+    document.getElementById('f-paroles').value = s.paroles || '';
+    const lyDet = document.getElementById('lyrics-details'); if(lyDet) lyDet.open = false;
 
     buildAssignmentsForAllRoles(s.id);
     renderAssignmentsEditor();
@@ -4281,6 +4314,7 @@ function openModal(id) {
     initUrlFields('', '');
     renderHistorique(null);
     renderVideos(null);
+    const lyDetN = document.getElementById('lyrics-details'); if(lyDetN) lyDetN.open = false;
   }
 }
 function closeModal(){document.getElementById('ov').classList.remove('open');}
@@ -4331,7 +4365,7 @@ function switchModalTab(tab){
     document.getElementById('panel-historique').classList.add('active');
     document.getElementById('btn-save').style.display='none';
     const songId = document.getElementById('f-id')?.value;
-    if(songId){ Promise.all([ensureLogsLoaded(), ensureRepetPlayedLoaded()]).then(()=>renderHistorique(songId)); }
+    if(songId){ ensureRepetPlayedLoaded().then(()=>renderHistorique(songId)); }
   }else if(tab==='videos'){
     document.querySelectorAll('.modal-tab')[2].classList.add('active');
     document.getElementById('panel-videos').classList.add('active');
@@ -4356,20 +4390,7 @@ function renderHistorique(songId){
   if(playedP.length) playedHtml += label('👤 Mes répétitions perso · '+cnt.perso+' fois','#c4b5fd',!playedG.length) + rowsHtml(playedP);
   if(!playedHtml) playedHtml = '<div class="empty-hist">Jamais joué en répétition</div>';
 
-  // Sessions personnelles
-  const hist=logs.filter(l=>l.songId===songId).sort((a,b)=>b.date.localeCompare(a.date));
-  const sessHtml = hist.length
-    ? `<div style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin:16px 0 8px">Sessions personnelles</div>`
-      + hist.map(l=>{
-          const parts=[];
-          parts.push((l.duration||0)>0?l.duration+' min':'< 1 min');
-          if(l.bpm)parts.push('BPM '+l.bpm);
-          if(l.feeling)parts.push(l.feeling);
-          return `<div class="log-row"><div class="log-date">${new Date(l.date).toLocaleDateString('fr-FR')}</div><div class="log-meta">${parts.join(' · ')}</div>${l.note?`<div class="log-note">"${l.note}"</div>`:''}</div>`;
-        }).join('')
-    : '';
-
-  document.getElementById('hist-content').innerHTML = playedHtml + sessHtml;
+  document.getElementById('hist-content').innerHTML = playedHtml;
 }
 
 function renderVideos(song){
@@ -4394,6 +4415,106 @@ ${videoId?`<div class="video-wrap">
   document.getElementById('video-content').innerHTML=html;
 }
 
+// ===== Paroles plein écran =====
+let lyricsList=[], lyricsIndex=0, lyricsWakeLock=null, lyricsDraft=null;
+let lyricsFontSize=(()=>{ try{ return parseInt(localStorage.getItem('tempo_lyrics_fs'),10)||22; }catch(e){ return 22; } })();
+let lyricsShowChords=(()=>{ try{ return localStorage.getItem('tempo_lyrics_chords')!=='0'; }catch(e){ return true; } })();
+const LY_CHORD_TOKEN=/^(\(?[A-G](#|b|♯|♭)?(m|min|maj|M|dim|aug|sus|add|°|ø|\+)?\d*(sus\d*|add\d*|maj\d*|b\d+|#\d+)*(\/[A-G](#|b)?)?\)?|N\.?C\.?|x\d+|\||-|\/)$/;
+function lyricsIsChordLine(line){
+  const toks=line.trim().split(/\s+/).filter(Boolean);
+  if(!toks.length) return false;
+  const chordToks=toks.filter(t=>LY_CHORD_TOKEN.test(t));
+  return chordToks.length===toks.length && toks.some(t=>/^[A-G]/.test(t.replace('(','')));
+}
+function lyricsRender(){
+  const id=lyricsList[lyricsIndex];
+  const song=songs.find(x=>String(x.id)===String(id));
+  const text = (lyricsDraft!==null) ? lyricsDraft : (song ? (song.paroles||'') : '');
+  document.getElementById('ly-title').textContent = song ? (song.titre||'Sans titre') : '—';
+  document.getElementById('ly-artist').textContent = song ? (song.artiste||'') : '';
+  const body=document.getElementById('ly-body');
+  const lines=text.replace(/\r/g,'').split('\n');
+  const hasChords=lines.some(lyricsIsChordLine);
+  body.classList.toggle('mono', hasChords && lyricsShowChords);
+  body.classList.toggle('no-chords', !lyricsShowChords);
+  body.style.fontSize=lyricsFontSize+'px';
+  const chordBtn=document.getElementById('ly-chords-btn');
+  chordBtn.style.display = hasChords ? '' : 'none';
+  chordBtn.classList.toggle('on', lyricsShowChords);
+  body.innerHTML = text.trim()
+    ? lines.map(l=>{
+        if(lyricsIsChordLine(l)) return '<div class="ly-line ly-chord">'+escapeHtml(l)+'</div>';
+        if(/^\s*\[.*\]\s*$/.test(l)) return '<div class="ly-line ly-section">'+escapeHtml(l.trim().replace(/^\[|\]$/g,''))+'</div>';
+        return '<div class="ly-line">'+escapeHtml(l)+'</div>';
+      }).join('')
+    : '<div class="ly-empty">Pas encore de paroles pour ce morceau.<br>Ouvre sa fiche, section « 📄 Paroles », pour les ajouter.</div>';
+  body.scrollTop=0;
+  const multi=lyricsList.length>1;
+  document.getElementById('ly-nav').style.display = multi ? '' : 'none';
+  document.getElementById('ly-prev').disabled = lyricsIndex<=0;
+  document.getElementById('ly-next').disabled = lyricsIndex>=lyricsList.length-1;
+}
+async function lyricsKeepAwake(on){
+  try{
+    if(on && 'wakeLock' in navigator){ lyricsWakeLock = await navigator.wakeLock.request('screen'); }
+    else if(!on && lyricsWakeLock){ await lyricsWakeLock.release(); lyricsWakeLock=null; }
+  }catch(e){ /* non supporté ou refusé : sans gravité */ }
+}
+function openLyrics(songId, list){
+  lyricsList = (list && list.length) ? list.map(String) : [String(songId)];
+  lyricsIndex = Math.max(0, lyricsList.indexOf(String(songId)));
+  lyricsDraft = null;
+  document.getElementById('ov-lyrics').classList.add('open');
+  document.body.style.overflow='hidden';
+  lyricsRender();
+  lyricsKeepAwake(true);
+}
+// Depuis la fiche : affiche le texte en cours de saisie (même non enregistré)
+function openLyricsFromForm(){
+  const id=document.getElementById('f-id').value;
+  openLyrics(id||'__draft__');
+  lyricsDraft=document.getElementById('f-paroles').value;
+  if(!id){ document.getElementById('ly-title').textContent=document.getElementById('f-titre').value||'Nouveau morceau'; }
+  lyricsRender();
+  if(!id){ document.getElementById('ly-title').textContent=document.getElementById('f-titre').value||'Nouveau morceau'; }
+}
+// Depuis une setlist : ‹ › parcourt les morceaux de la setlist qui ont des paroles
+function openLyricsInSetlist(concertId, songId){
+  const ids=getConcertSetlist(concertId).map(it=>String(it.song_id)).filter(id=>{ const sg=songs.find(x=>String(x.id)===id); return sg && sg.paroles; });
+  openLyrics(songId, ids.includes(String(songId)) ? ids : [songId]);
+}
+function closeLyrics(){
+  document.getElementById('ov-lyrics').classList.remove('open');
+  document.body.style.overflow='';
+  lyricsDraft=null;
+  lyricsKeepAwake(false);
+}
+function lyricsStep(d){ const n=lyricsIndex+d; if(n<0||n>=lyricsList.length) return; lyricsIndex=n; lyricsDraft=null; lyricsRender(); }
+function lyricsZoom(d){
+  lyricsFontSize=Math.min(60,Math.max(12,lyricsFontSize+d*2));
+  try{ localStorage.setItem('tempo_lyrics_fs',String(lyricsFontSize)); }catch(e){}
+  document.getElementById('ly-body').style.fontSize=lyricsFontSize+'px';
+}
+function lyricsToggleChords(){
+  lyricsShowChords=!lyricsShowChords;
+  try{ localStorage.setItem('tempo_lyrics_chords',lyricsShowChords?'1':'0'); }catch(e){}
+  const keep=lyricsDraft; lyricsRender(); lyricsDraft=keep;
+}
+function searchLyricsWeb(){
+  const t=document.getElementById('f-titre').value.trim(), a=document.getElementById('f-artiste').value.trim();
+  if(!t){ alert('Renseigne d\'abord le titre.'); return; }
+  window.open('https://www.google.com/search?q='+encodeURIComponent(t+' '+a+' paroles'),'_blank','noopener');
+}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('ov-lyrics')?.classList.contains('open')) return;
+  if(e.key==='Escape') closeLyrics();
+  else if(e.key==='+'||e.key==='=') lyricsZoom(1);
+  else if(e.key==='-') lyricsZoom(-1);
+  else if(e.key==='ArrowRight') lyricsStep(1);
+  else if(e.key==='ArrowLeft') lyricsStep(-1);
+});
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && document.getElementById('ov-lyrics')?.classList.contains('open')) lyricsKeepAwake(true); });
+
 async function savePersonalOnly() {
   const songId = document.getElementById('f-id').value;
   if(!songId){ alert('Impossible de sauvegarder : morceau non identifié.'); return; }
@@ -4408,6 +4529,14 @@ async function savePersonalOnly() {
   };
   const { error } = await supabaseClient.from('song_personal').upsert(payload, { onConflict: 'song_id,band_member_id' });
   if(error){ alert('Erreur sauvegarde données personnelles : ' + error.message); return; }
+  // Paroles : modifiables par tous les membres
+  const song = songs.find(x => String(x.id) === String(songId));
+  const newLyrics = document.getElementById('f-paroles').value;
+  if(song && (song.paroles||'') !== newLyrics){
+    const { error: lyErr } = await supabaseClient.from('songs').update({ paroles: newLyrics || null }).eq('id', songId);
+    if(lyErr){ console.error('Erreur paroles:', lyErr); alert('Erreur lors de l\'enregistrement des paroles : ' + lyErr.message); }
+    else song.paroles = newLyrics;
+  }
   await loadSongPersonal();
   renderSongs();
   closeModal();
@@ -4438,6 +4567,7 @@ async function save(e) {
     url_audio: document.getElementById('f-url-audio').value.trim() || null,
     notes: document.getElementById('f-notes').value.trim() || null,
     last_practice: existing?.lastPractice || null,
+    paroles: document.getElementById('f-paroles').value || null,
     repertoire_actuel: document.getElementById('f-actuel')?.checked ?? true
   };
 
@@ -4483,14 +4613,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   if(ok) showPage('home');
 });
 
-function askCoach(){
-  const q=document.getElementById('agent-in').value.trim();
-  if(!q)return;
-  const mine=songs.filter(s=>s.user===currentUser);
-  const ctx=mine.length?`Mon répertoire TEMPO (${mine.length} morceaux): ${mine.map(s=>`${s.titre}${s.artiste?' de '+s.artiste:''} (${s.statut})`).join(', ')}. `:'';
-  window.open('https://www.perplexity.ai/search?q='+encodeURIComponent(ctx+q),'_blank');
-  document.getElementById('agent-in').value='';
-}
 
 function startSession(){
   const select=document.getElementById('start-song');
