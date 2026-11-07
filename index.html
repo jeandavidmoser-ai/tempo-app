@@ -1988,7 +1988,8 @@ async function loadData(skipAuth=false){
   }
   const selRole=document.getElementById('filter-role'); if(selRole){selRole.innerHTML='<option value="">Mes rôles</option>'+BAND_ROLE_OPTIONS.map(r=>`<option value="${r.value}">${r.label}</option>`).join('');}
   const selMember=document.getElementById('filter-member'); if(selMember){selMember.innerHTML='<option value="">Tous les membres</option>'+bandMembers.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');}
-  renderHome();
+  // Redessine la page affichée (répertoire, concerts, répètes…) pour que les changements soient visibles sans rafraîchir
+  if(currentPageId()) renderCurrentPage(); else renderHome();
   return true;
 }
 
