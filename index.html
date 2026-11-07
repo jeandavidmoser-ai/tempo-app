@@ -510,6 +510,9 @@ textarea{resize:vertical;min-height:72px}
 .campfire-current-meta{font-size:11px;color:var(--dim)}
 .campfire-actions{display:flex;gap:8px;flex-wrap:wrap}
 .campfire-stage{padding:14px;display:flex;align-items:center;justify-content:center;background:#0a0a0a;min-height:calc(70vh - 70px)}
+.campfire-stage.campfire-full{position:fixed;inset:0;z-index:1000;background:#000;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));min-height:0;overflow:auto;align-items:flex-start}
+.campfire-stage.campfire-full .campfire-canvas{margin:0 auto;max-width:none;max-height:none;border-radius:0}
+.campfire-fs-close{display:none;position:fixed;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));z-index:1001;align-items:center;gap:6px;background:rgba(20,20,20,.85);border:1px solid var(--border);color:var(--text);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;padding:8px 14px;border-radius:20px;cursor:pointer}
 .campfire-canvas{max-width:100%;max-height:100%;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.35);background:white}
 .campfire-empty{padding:28px;text-align:center;color:var(--muted);font-size:12px}
 .campfire-loading{padding:18px 14px;color:var(--gold);font-size:12px}
@@ -813,6 +816,7 @@ textarea{resize:vertical;min-height:72px}
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">
   <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
   <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
+  <button type="button" id="btn-toggle-statut" class="bo" onclick="toggleRepertoireStatut()" title="Afficher / masquer mon statut perso sur chaque morceau" style="padding:4px 10px;font-size:10px;white-space:nowrap">👤 Mon statut</button>
   <div class="view-toggle">
     <button id="btn-view-list" class="active" title="Vue liste" onclick="setRepertoireView('list')">≡</button>
     <button id="btn-view-table" title="Vue tableau" onclick="setRepertoireView('table')">⊞</button>
@@ -1043,6 +1047,7 @@ textarea{resize:vertical;min-height:72px}
           <div id="campfire-stage" class="campfire-stage">
             <div id="campfire-empty" class="campfire-empty">Charge ton recueil PDF pour générer automatiquement le sommaire Feu de camp.</div>
             <canvas id="campfire-canvas" class="campfire-canvas" style="display:none"></canvas>
+            <button type="button" id="campfire-fs-close" class="campfire-fs-close" onclick="campfireFullscreen()">✕ Quitter</button>
           </div>
         </div>
       </div>
@@ -1691,8 +1696,39 @@ const CAMPFIRE_FALLBACK_SONGS=[
 function campfireNormalize(s){return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
 function campfireEscapeHtml(s){return (s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function campfireLooksLikeChordLine(line){return /^([A-G](#|b)?(m|maj|min|sus|dim|aug|add)?\d*(\/[A-G](#|b)?)?\s+){2,}[A-G](#|b)?/.test(line);}
+// Regroupe les morceaux de texte du PDF par ligne visuelle (même ligne de base), de haut en bas.
+// Évite qu'une lettrine ou un mot coupé en deux morceaux (ex. "N" + "oir Désir") soit séparé.
+function campfireItemsToText(items){
+  const rows=[];
+  (items||[]).forEach(it=>{
+    const str=it.str||'';
+    if(!str) return;
+    const t=it.transform||[1,0,0,1,0,0];
+    const x=t[4], y=t[5];
+    const h=it.height||Math.abs(t[3])||10;
+    let row=rows.find(r=>Math.abs(r.y-y)<=Math.max(2,Math.min(r.h,h)*0.5));
+    if(!row){ row={y,h,parts:[]}; rows.push(row); }
+    row.parts.push({x,str,w:it.width||0});
+  });
+  rows.sort((a,b)=>b.y-a.y);
+  return rows.map(r=>{
+    r.parts.sort((a,b)=>a.x-b.x);
+    let out='', prevEnd=null;
+    r.parts.forEach(p=>{
+      if(prevEnd!==null && p.x-prevEnd>1.5 && !out.endsWith(' ') && !p.str.startsWith(' ')) out+=' ';
+      out+=p.str; prevEnd=p.x+p.w;
+    });
+    return out;
+  }).join('\n');
+}
 function campfireParseHeader(text,pageNumber){
-  const lines=(text||'').split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,12);
+  const rawLines=(text||'').split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,14);
+  const lines=[];
+  for(let i=0;i<rawLines.length;i++){
+    const cur=rawLines[i], nxt=rawLines[i+1];
+    if(cur.length===1 && /[A-Za-zÀ-ÿ]/.test(cur) && nxt && /^[a-zà-ÿ]/.test(nxt)){ lines.push(cur+nxt); i++; }
+    else lines.push(cur);
+  }
   let clean=lines.filter(line=>line.length>1&&!/^capo\b/i.test(line)&&!/^tonalit/i.test(line)&&!/^intro\b/i.test(line)&&!campfireLooksLikeChordLine(line));
   let chosen=clean[0]||('Page '+pageNumber);
   let title='',artist='';
@@ -1816,7 +1852,7 @@ async function processCampfirePdfFile(file){
       try{
         const pdfPage=await campfirePdfDoc.getPage(page);
         const content=await pdfPage.getTextContent();
-        const raw=content.items.map(item=>item.str||'').join('\n');
+        const raw=campfireItemsToText(content.items);
         const parsed=campfireParseHeader(raw,page);
         campfireSongs.push(parsed.title || parsed.artist ? parsed : {
           title:'Page '+page,
@@ -1888,6 +1924,7 @@ async function selectCampfireSong(index){
   document.getElementById('campfire-current-meta').textContent=(song.artist? song.artist+' · ' : '')+'Page '+song.page;
   await renderCampfirePage(song.page);
 }
+let campfireRenderTask=null;
 async function renderCampfirePage(pageNumber){
   if(!campfirePdfDoc)return;
   const canvas=document.getElementById('campfire-canvas');
@@ -1896,15 +1933,30 @@ async function renderCampfirePage(pageNumber){
   canvas.style.display='block';
   const page=await campfirePdfDoc.getPage(pageNumber);
   const stage=document.getElementById('campfire-stage');
+  const full=stage.classList.contains('campfire-full');
+  const cs=getComputedStyle(stage);
+  const padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
+  const padY=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
   const viewport=page.getViewport({scale:1});
-  const maxWidth=Math.max(320,stage.clientWidth-28);
-  const maxHeight=Math.max(420,stage.clientHeight-28);
-  const scale=Math.min(maxWidth/viewport.width,maxHeight/viewport.height);
-  const scaled=page.getViewport({scale:scale});
+  const maxWidth=Math.max(200,stage.clientWidth-padX);
+  const maxHeight=Math.max(200,stage.clientHeight-padY);
+  // Plein écran : page entière visible. Écran étroit : on cadre sur la largeur (la page défile). Bureau : page entière.
+  const narrow=window.innerWidth<=980;
+  const fit=(narrow&&!full)?maxWidth/viewport.width:Math.min(maxWidth/viewport.width,maxHeight/viewport.height);
+  const cssViewport=page.getViewport({scale:fit});
+  // Netteté : on dessine à la densité de pixels de l'écran (limitée pour la mémoire)
+  const dpr=Math.min(Math.max(window.devicePixelRatio||1,1),3);
+  const hi=page.getViewport({scale:fit*dpr});
+  if(campfireRenderTask){ try{ campfireRenderTask.cancel(); }catch(e){} }
   const ctx=canvas.getContext('2d');
-  canvas.width=scaled.width;
-  canvas.height=scaled.height;
-  await page.render({canvasContext:ctx,viewport:scaled}).promise;
+  canvas.width=Math.floor(hi.width);
+  canvas.height=Math.floor(hi.height);
+  canvas.style.width=Math.floor(cssViewport.width)+'px';
+  canvas.style.height=Math.floor(cssViewport.height)+'px';
+  const task=page.render({canvasContext:ctx,viewport:hi});
+  campfireRenderTask=task;
+  try{ await task.promise; }catch(err){ if(err&&err.name!=='RenderingCancelledException') console.warn('campfire render',err); }
+  finally{ if(campfireRenderTask===task) campfireRenderTask=null; }
 }
 function campfireOpenNativePage(){
   if(campfireObjectUrl&&campfireSelectedIndex>=0){
@@ -1914,12 +1966,18 @@ function campfireOpenNativePage(){
     window.open(campfireObjectUrl,'_blank');
   }
 }
+// Plein écran en surcouche CSS (fonctionne aussi sur iPhone, où l'API native n'existe pas pour un élément)
 function campfireFullscreen(){
   const stage=document.getElementById('campfire-stage');
   if(!stage)return;
-  if(document.fullscreenElement){document.exitFullscreen();return;}
-  if(stage.requestFullscreen)stage.requestFullscreen();
+  const on=!stage.classList.contains('campfire-full');
+  stage.classList.toggle('campfire-full',on);
+  document.body.style.overflow=on?'hidden':'';
+  const closeBtn=document.getElementById('campfire-fs-close');
+  if(closeBtn) closeBtn.style.display=on?'flex':'none';
+  if(campfireSelectedIndex>=0) renderCampfirePage(campfireSongs[campfireSelectedIndex].page);
 }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.getElementById('campfire-stage')?.classList.contains('campfire-full')) campfireFullscreen(); });
 window.addEventListener('resize',()=>{if(campfireSelectedIndex>=0&&document.getElementById('page-feu-de-camp')?.classList.contains('active')){renderCampfirePage(campfireSongs[campfireSelectedIndex].page);}});
 
 function parseDurationToSeconds(value){
@@ -3919,6 +3977,18 @@ function calcStreak(){
   return streak;
 }
 
+let repertoireShowStatut = (()=>{ try{ return localStorage.getItem('tempo_show_statut')==='1'; }catch(e){ return false; } })();
+function updateStatutBtn(){
+  const b=document.getElementById('btn-toggle-statut'); if(!b) return;
+  b.style.borderColor = repertoireShowStatut ? '#a78bfa' : '';
+  b.style.color = repertoireShowStatut ? '#c4b5fd' : '';
+  b.style.background = repertoireShowStatut ? 'rgba(167,139,250,.12)' : '';
+}
+function toggleRepertoireStatut(){
+  repertoireShowStatut = !repertoireShowStatut;
+  try{ localStorage.setItem('tempo_show_statut', repertoireShowStatut?'1':'0'); }catch(e){}
+  renderSongs();
+}
 function setRepertoireView(mode) {
   repertoireViewMode = mode;
   document.getElementById('btn-view-list').classList.toggle('active', mode === 'list');
@@ -3996,6 +4066,7 @@ function populateFilterConcert() {
 function renderSongs() {
   const list = document.getElementById('sl');
   const count = document.getElementById('songs-count');
+  updateStatutBtn();
   const totalBox = document.getElementById('songs-duration-total');
   if (!list) return;
 
@@ -4128,7 +4199,7 @@ function renderSongs() {
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)" title="Audio">♪<span class="btn-lbl"> Audio</span></button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
             <span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité du groupe : ${escapeHtml(prio)}"></span>
-            ${(()=>{ const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir';
+            ${(()=>{ if(!repertoireShowStatut) return ''; const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir';
               const mine = myAssignedIds.has(String(s.id)) || (pd && st && st!=='adecouvrir');
               if(!mine) return `<span class="stt-statut" style="visibility:hidden" aria-hidden="true"><span class="statut-dot adecouvrir"></span><span class="stt-statut-label">${escapeHtml(STATUT_LABELS.adecouvrir)}</span></span>`;
               return `<span class="stt-statut" title="Mon statut perso : ${escapeHtml(STATUT_LABELS[st]||st)}"><span class="statut-dot ${escapeHtml(st)}"></span><span class="stt-statut-label">${escapeHtml(STATUT_LABELS[st]||st)}</span></span>`; })()}
