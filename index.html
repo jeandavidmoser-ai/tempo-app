@@ -2566,6 +2566,75 @@ function renderSetlistSongRow(item,idxInPartie,sameParticeItems,concertId){
   </div>`;
 }
 
+// Génère un fichier .ics (événement + setlist dans les notes + 2 rappels) à ajouter à l'agenda du téléphone
+function downloadIcs(concertId){
+  const c = concerts.find(x=>x.id===concertId);
+  if(!c || !c.date){ alert('Événement introuvable.'); return; }
+  const type = c.type || 'concert';
+  const perso = isPersoConcert(c);
+  const esc = t => String(t==null?'':t).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  // Pliage des lignes à 75 octets (norme iCalendar)
+  const enc = new TextEncoder();
+  const fold = line => {
+    let out='', cur='', bytes=0;
+    for(const ch of line){
+      const b = enc.encode(ch).length;
+      if(bytes + b > 74){ out += cur + '\r\n '; cur=''; bytes=1; }
+      cur += ch; bytes += b;
+    }
+    return out + cur;
+  };
+  const pad = n => String(n).padStart(2,'0');
+  const d = c.date.replace(/-/g,'');
+  const now = new Date();
+  const stamp = now.getUTCFullYear()+pad(now.getUTCMonth()+1)+pad(now.getUTCDate())+'T'+pad(now.getUTCHours())+pad(now.getUTCMinutes())+pad(now.getUTCSeconds())+'Z';
+
+  // Setlist (dans l'ordre d'affichage)
+  let items = getConcertSetlist(concertId);
+  if(isSplitConcert(c)) items = [...items.filter(it=>(it.partie||1)!==2), ...items.filter(it=>(it.partie||1)===2)];
+  const totalSec = items.reduce((sum,it)=>sum+(parseInt(it.duree,10)||0),0);
+  const desc = [];
+  if(c.notes) desc.push(c.notes, '');
+  if(items.length){
+    desc.push('SETLIST — '+items.length+' morceau'+(items.length>1?'x':'')+(totalSec?' · '+formatDurationLong(totalSec):''));
+    items.forEach((it,i)=>{
+      const dur = it.duree ? ' ('+formatDuration(it.duree)+')' : '';
+      desc.push((i+1)+'. '+(it.titre||'Sans titre')+(it.artiste?' — '+it.artiste:'')+dur+(it.optionnel?' [option]':''));
+    });
+  } else {
+    desc.push('Setlist vide pour le moment.');
+  }
+
+  const title = type==='repet'
+    ? (perso ? 'Répète perso' : 'Répétition')
+    : (c.nom || 'Concert');
+  const loc = [c.lieu, c.adresse].filter(Boolean).join(', ');
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TEMPO//FR','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+c.id+'@tempo-app','DTSTAMP:'+stamp];
+  if(c.heure_debut){
+    const [hh,mm] = c.heure_debut.split(':');
+    lines.push('DTSTART:'+d+'T'+pad(parseInt(hh,10)||0)+pad(parseInt(mm,10)||0)+'00');
+    const minutes = (type==='concert' && parseInt(c.duree_prevue,10)) ? parseInt(c.duree_prevue,10) : 180;
+    lines.push('DURATION:PT'+minutes+'M');
+  } else {
+    const nextDay = new Date(c.date+'T12:00:00'); nextDay.setDate(nextDay.getDate()+1);
+    lines.push('DTSTART;VALUE=DATE:'+d, 'DTEND;VALUE=DATE:'+nextDay.getFullYear()+pad(nextDay.getMonth()+1)+pad(nextDay.getDate()));
+  }
+  lines.push('SUMMARY:'+esc(title));
+  if(loc) lines.push('LOCATION:'+esc(loc));
+  lines.push('DESCRIPTION:'+esc(desc.join('\n')));
+  // Rappels : la veille et 2 h avant (évènement sans heure : la veille à 18 h)
+  const alarms = c.heure_debut ? ['-PT24H','-PT2H'] : ['-PT6H'];
+  alarms.forEach(tr=>{ lines.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+esc(title),'TRIGGER:'+tr,'END:VALARM'); });
+  lines.push('END:VEVENT','END:VCALENDAR');
+
+  const blob = new Blob([lines.map(fold).join('\r\n')+'\r\n'], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'tempo-'+c.date+'-'+(type==='repet'?'repet':'concert')+'.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
 async function cloneConcert(concertId){
   if(!ensureAdminAction()) return;
   const c = concerts.find(x => x.id === concertId);
@@ -3040,6 +3109,7 @@ function renderConcertsOrRepets(filterType){
           ${isRepet ? '' : setlistItems.length ? `<button class="bo" type="button" onclick="askAIForSetlistOrder('${c.id}')" title="Demander un ordre à l'IA (Perplexity)">🧠 IA</button>` : ''}
           ${isRepet ? '' : setlistItems.length ? `<button class="bo" type="button" onclick="printSetlist('${c.id}')" title="Imprimer la setlist">🖨 Imprimer</button>` : ''}
           ${isRepet ? '' : canEdit ? `<button class="bo" type="button" onclick="cloneConcert('${c.id}')" title="Dupliquer">📋 Dupliquer</button>` : ''}
+          <button class="bo" type="button" onclick="downloadIcs('${c.id}')" title="Ajouter à l'agenda du téléphone (avec la setlist et des rappels)">📅 Agenda</button>
           <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
         </div>
       </div>
