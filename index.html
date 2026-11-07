@@ -2,8 +2,16 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>BROKEN ARMS</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tempo">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -12,6 +20,7 @@
 :root{--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--border:#272727;--accent:#C41E3A;--text:#f0f0f0;--dim:#777;--muted:#444;--gold:#c8a84b}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh}
 header{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border)}
+@media(display-mode:standalone){header{padding-top:max(12px,env(safe-area-inset-top))}}
 .logo-wrap{display:flex;align-items:center;cursor:pointer;user-select:none}
 .logo{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:0.14em}
 .logo span{color:var(--accent)}
@@ -806,7 +815,7 @@ textarea{resize:vertical;min-height:72px}
 
   <div class="card widget widget-next-repet" style="grid-column:1 / -1">
     <div class="ch">
-      <div class="cl">Prochaine répétition</div>
+      <div class="cl">Prochaine répète</div>
     </div>
     <div id="home-next-repet" style="padding:14px"></div>
   </div>
@@ -1108,7 +1117,7 @@ textarea{resize:vertical;min-height:72px}
             </div>
             <input id="campfire-search" class="campfire-search" type="text" placeholder="Rechercher un titre ou un artiste" oninput="renderCampfireList()">
             <div class="campfire-meta">
-              <span id="campfire-count">0 chanson</span>
+              <span id="campfire-count">0 morceau</span>
               <span id="campfire-file-name">Aucun PDF chargé</span>
             </div>
           </div>
@@ -1118,7 +1127,7 @@ textarea{resize:vertical;min-height:72px}
         <div class="campfire-viewer">
           <div class="campfire-toolbar">
             <div class="campfire-current">
-              <div id="campfire-current-title" class="campfire-current-title">Aucune chanson sélectionnée</div>
+              <div id="campfire-current-title" class="campfire-current-title">Aucun morceau sélectionné</div>
               <div id="campfire-current-meta" class="campfire-current-meta">Charge un PDF, puis clique sur un morceau.</div>
             </div>
             <div class="campfire-actions">
@@ -1269,7 +1278,7 @@ textarea{resize:vertical;min-height:72px}
         </button>
         <button type="button" class="create-choice-btn create-choice-repet" onclick="onCreateChoice('repet')">
           <div style="font-size:30px">🔁</div>
-          <div>Répétition</div>
+          <div>Répète</div>
         </button>
         <button type="button" class="create-choice-btn create-choice-divers" onclick="onCreateChoice('divers')">
           <div style="font-size:30px">📌</div>
@@ -2005,7 +2014,7 @@ async function processCampfirePdfFile(file){
     }else{
       empty.style.display='block';
       empty.textContent='Aucune page exploitable trouvée dans ce PDF.';
-      list.innerHTML='<div class="campfire-empty">Aucune chanson détectée.</div>';
+      list.innerHTML='<div class="campfire-empty">Aucun morceau détecté.</div>';
     }
 
   }catch(err){
@@ -2029,7 +2038,7 @@ function renderCampfireList(){
   campfireFilteredSongs=campfireSongs.filter(song=>!q||campfireNormalize(song.title).includes(q)||campfireNormalize(song.artist).includes(q));
   const list=document.getElementById('campfire-list');
   const count=document.getElementById('campfire-count');
-  count.textContent=campfireFilteredSongs.length+' chanson'+(campfireFilteredSongs.length>1?'s':'');
+  count.textContent=campfireFilteredSongs.length+' morceau'+(campfireFilteredSongs.length>1?'x':'');
   if(!campfireFilteredSongs.length){
     list.innerHTML='<div class="campfire-empty">Aucun résultat.</div>';
     return;
@@ -2843,7 +2852,7 @@ function downloadIcs(concertId){
   }
 
   const title = type==='repet'
-    ? (perso ? 'Répète perso' : 'Répétition')
+    ? (perso ? 'Répète perso' : 'Répète')
     : (c.nom || 'Concert');
   const loc = [c.lieu, c.adresse].filter(Boolean).join(', ');
   const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TEMPO//FR','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT','UID:'+c.id+'@tempo-app','DTSTAMP:'+stamp];
@@ -3105,7 +3114,7 @@ function renderConcertCardSetlistInner(concertId){
     <button type="button" onclick="toggleSetlistAffs(this)">Afficher les affectations</button>
   </div>`;
   const grandTotalDur = allItems.reduce((s,it)=>s+(parseInt(it.duree,10)||0),0);
-  const grandTotalLabel = isRepet ? 'Total répétition' : 'Total concert';
+  const grandTotalLabel = isRepet ? 'Total répète' : 'Total concert';
   const grandTotal = `<div class="concert-card-grandtotal">
     <span class="concert-card-grandtotal-label">${grandTotalLabel}</span>
     <span class="concert-card-grandtotal-value">${allItems.length} morceau${allItems.length>1?'x':''}${grandTotalDur?' · '+formatDurationLong(grandTotalDur):''}</span>
@@ -3591,7 +3600,7 @@ function renderHomeNextRepet(){
   }
 
   if(!next){
-    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Aucune répétition de groupe planifiée.</div>' + persoHtml;
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Aucune répète de groupe planifiée.</div>' + persoHtml;
     return;
   }
 
@@ -3720,7 +3729,7 @@ function renderNextEventsBanner(){
   function block(kind, ev){
     if(!ev){
       const label = kind==='repet' ? 'Prochaine répét' : 'Prochain concert';
-      const empty = kind==='repet' ? 'Aucune répétition planifiée' : 'Aucun concert prévu';
+      const empty = kind==='repet' ? 'Aucune répète planifiée' : 'Aucun concert prévu';
       return `<div class="next-event is-empty is-${kind}">
         <div class="next-event-icon">${kind==='repet'?'🔁':'🎤'}</div>
         <div class="next-event-body">
@@ -3789,7 +3798,7 @@ function renderAgenda(context){
       const type = (e.type||'concert');
       const heure = e.heure_debut ? e.heure_debut.substring(0,5) : '';
       const persoEvt = isPersoConcert(e);
-      const label = type==='repet' ? (persoEvt ? '👤 Perso' : 'Répétition') : (e.nom || (type==='divers'?'Divers':'Concert'));
+      const label = type==='repet' ? (persoEvt ? '👤 Perso' : 'Répète') : (e.nom || (type==='divers'?'Divers':'Concert'));
       const sub = [heure, type==='concert' ? e.lieu : ''].filter(Boolean).join(' · ');
       return `<div class="agenda-event ${type}${persoEvt?' perso':''}" onclick="openConcertModal('${e.id}')">
         <span class="agenda-event-title">${escapeHtml(label)}</span>
@@ -3930,8 +3939,8 @@ function openConcertModal(id, explicitType, prefillDate, perso){
   const isRepet = type === 'repet';
   const isDivers = type === 'divers';
   currentEditingType = isDivers ? 'divers' : type;
-  const titlesNew = {concert:'Nouveau concert',repet:currentEditingPerso?'Nouvelle répète perso':'Nouvelle répétition',divers:'Nouvel événement'};
-  const titlesEdit = {concert:'Modifier le concert',repet:currentEditingPerso?'Modifier la répète perso':'Modifier la répétition',divers:"Modifier l'événement"};
+  const titlesNew = {concert:'Nouveau concert',repet:currentEditingPerso?'Nouvelle répète perso':'Nouvelle répète',divers:'Nouvel événement'};
+  const titlesEdit = {concert:'Modifier le concert',repet:currentEditingPerso?'Modifier la répète perso':'Modifier la répète',divers:"Modifier l'événement"};
   document.getElementById('concert-mt').textContent = id==='new' ? (titlesNew[type]||'Nouveau') : (titlesEdit[type]||'Modifier');
   document.querySelectorAll('.concert-only-field').forEach(el=>{ el.style.display = (isRepet||isDivers) ? 'none' : ''; });
   const nomInput = document.getElementById('concert-nom');
@@ -4523,9 +4532,9 @@ function renderHistorique(songId){
   const playedP = playedAll.filter(r=>repetScopeOf(r)==='perso');
   const cnt = getRepetCounts(songId);
   let playedHtml = '';
-  if(playedG.length) playedHtml += label('👥 Répétitions de groupe · '+cnt.groupe+' fois','var(--dim)',true) + rowsHtml(playedG);
-  if(playedP.length) playedHtml += label('👤 Mes répétitions perso · '+cnt.perso+' fois','#c4b5fd',!playedG.length) + rowsHtml(playedP);
-  if(!playedHtml) playedHtml = '<div class="empty-hist">Jamais joué en répétition</div>';
+  if(playedG.length) playedHtml += label('👥 Répètes de groupe · '+cnt.groupe+' fois','var(--dim)',true) + rowsHtml(playedG);
+  if(playedP.length) playedHtml += label('👤 Mes répètes perso · '+cnt.perso+' fois','#c4b5fd',!playedG.length) + rowsHtml(playedP);
+  if(!playedHtml) playedHtml = '<div class="empty-hist">Jamais joué en répète</div>';
 
   document.getElementById('hist-content').innerHTML = playedHtml;
 }
