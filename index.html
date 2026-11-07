@@ -319,9 +319,9 @@ textarea{resize:vertical;min-height:72px}
 .perso-badge{display:inline-block;font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;background:rgba(167,139,250,.16);color:#c4b5fd;border:1px solid rgba(167,139,250,.45);border-radius:3px;padding:1px 6px;margin-left:8px;vertical-align:middle}
 .repet-list .concert-item.is-perso{border-left:3px solid #a78bfa;background:linear-gradient(180deg,rgba(167,139,250,.08),var(--bg3))}
 .perso-count{color:#c4b5fd}
-.stt-statut{display:flex;align-items:center;gap:5px;padding:2px 8px;border:1px solid rgba(167,139,250,.4);border-radius:10px;background:rgba(167,139,250,.08);white-space:nowrap}
+.stt-statut{display:flex;align-items:center;gap:5px;box-sizing:border-box;width:98px;padding:2px 8px;border:1px solid rgba(167,139,250,.4);border-radius:10px;background:rgba(167,139,250,.08);white-space:nowrap;flex-shrink:0}
 .stt-statut-label{font-size:10px;color:#c4b5fd}
-@media(max-width:600px){.stt-statut-label{display:none}}
+@media(max-width:600px){.stt-statut-label{display:none}.stt-statut{width:auto}}
 .stt-notes-perso{font-size:10px;color:#c4b5fd;font-style:italic;margin-left:6px}
 .repet-scope{display:inline-flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-left:10px;vertical-align:middle}
 .repet-scope button{background:var(--bg2);border:none;color:var(--dim);font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:.04em;padding:4px 10px;cursor:pointer}
@@ -3953,6 +3953,8 @@ function renderSongs() {
   if (count) count.textContent = `${mine.length} morceau${mine.length > 1 ? 'x' : ''}`;
   if (totalBox) totalBox.textContent = formatDurationLong(totalDurationSeconds);
 
+  const _myId = getCurrentBandMemberId();
+  const myAssignedIds = _myId ? new Set(songAssignments.filter(a => String(a.band_member_id) === String(_myId)).map(a => String(a.song_id))) : new Set();
   const highlightMemberId = filterMember || getCurrentBandMemberId();
   const highlightSongIds = highlightMemberId
     ? new Set(
@@ -4002,7 +4004,10 @@ function renderSongs() {
             ${s.urlAudio ? `<button class="bo" style="padding:4px 8px;font-size:9px" onclick="toggleInlineAudio('${s.id}', event)">Audio</button>` : ''}
             ${s.duree ? `<span class="si-duration">${formatDuration(s.duree)}</span>` : ''}
             <span class="song-prio-dot ${escapeHtml(prio)}" title="Priorité du groupe : ${escapeHtml(prio)}"></span>
-            ${(()=>{ const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir'; return `<span class="stt-statut" title="Mon statut perso : ${escapeHtml(STATUT_LABELS[st]||st)}"><span class="statut-dot ${escapeHtml(st)}"></span><span class="stt-statut-label">${escapeHtml(STATUT_LABELS[st]||st)}</span></span>`; })()}
+            ${(()=>{ const pd=getPersonalData(s.id); const st=pd?pd.statut:'adecouvrir';
+              const mine = myAssignedIds.has(String(s.id)) || (pd && st && st!=='adecouvrir');
+              if(!mine) return `<span class="stt-statut" style="visibility:hidden" aria-hidden="true"><span class="statut-dot adecouvrir"></span><span class="stt-statut-label">${escapeHtml(STATUT_LABELS.adecouvrir)}</span></span>`;
+              return `<span class="stt-statut" title="Mon statut perso : ${escapeHtml(STATUT_LABELS[st]||st)}"><span class="statut-dot ${escapeHtml(st)}"></span><span class="stt-statut-label">${escapeHtml(STATUT_LABELS[st]||st)}</span></span>`; })()}
           </div>
         </div>
         ${s.urlS ? `
