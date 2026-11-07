@@ -314,7 +314,7 @@ textarea{resize:vertical;min-height:72px}
 .si-left{flex:1;min-width:0;padding-right:12px}
 .si-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .stt-artist{font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px}
-.song-actuel-star{color:var(--gold);font-size:10px;opacity:.7;margin-right:6px;vertical-align:middle;cursor:default}
+.song-actuel-title{text-decoration:underline;text-decoration-color:rgba(200,168,75,.55);text-decoration-thickness:1px;text-underline-offset:4px}
 .stt-played{font-family:'Inter',sans-serif;font-size:10px;font-weight:400;color:var(--muted);margin-left:6px}
 .si-affs{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.7;display:none}
 .si-affs .aff-pair{display:inline-block;margin-right:14px;white-space:nowrap}
@@ -3218,7 +3218,7 @@ function renderHomeNextRepet(){
     : '<div class="home-next-prio-title">Aucun morceau prioritaire dans cette setlist.</div>';
 
   const setlistHtml = items.length
-    ? `<details class="home-next-setlist" open>
+    ? `<details class="home-next-setlist">
         <summary>🎵 Setlist · ${items.length} morceau${items.length>1?'x':''}</summary>
         ${items.map((it,i)=>{
           const sg = songs.find(x => x.id === it.song_id);
@@ -3715,7 +3715,7 @@ function renderSongsTable(filtered) {
 
     return `<tr>
       <td class="rt-num">${idx + 1}</td>
-      <td class="rt-title" onclick="openModal('${s.id}')">${s.actuel ? '<span class="song-actuel-star" title="Répertoire actuel">★</span>' : ''}${escapeHtml(s.titre || '')}</td>
+      <td class="rt-title" onclick="openModal('${s.id}')">${s.actuel ? '<span class="song-actuel-title" title="Répertoire actuel">'+escapeHtml(s.titre || '')+'</span>' : escapeHtml(s.titre || '')}</td>
       <td class="rt-artist">${escapeHtml(s.artiste || '')}</td>
       ${cells}
     </tr>`;
@@ -3868,7 +3868,7 @@ function renderSongs() {
         <div class="si ${highlightSongIds.has(String(s.id)) ? 'mine' : ''}" onclick="openModal('${s.id}')">
           <div class="si-left">
             <div class="stt">
-              ${s.actuel ? '<span class="song-actuel-star" title="Répertoire actuel">★</span>' : ''}${escapeHtml(s.titre)}
+              ${s.actuel ? '<span class="song-actuel-title" title="Répertoire actuel">'+escapeHtml(s.titre)+'</span>' : escapeHtml(s.titre)}
               ${artistText ? `<span class="stt-artist">${escapeHtml(artistText)}</span>` : ''}
               ${(()=>{ if(repertoireMode!=='perso') return ''; const pd=getPersonalData(s.id); return (pd&&pd.notes)?`<span style="font-size:10px;color:#e05;font-style:italic;margin-left:6px">→ ${escapeHtml(pd.notes)}</span>`:''; })()}
               ${(()=>{ const d=getLastPlayedDate(s.id); if(!d) return ''; const n=getRepetCount(s.id); const dt=new Date(d+'T12:00:00'); return `<span class="stt-played"> | Joué ${n}× · dernière le ${dt.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>`; })()}
