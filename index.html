@@ -688,6 +688,22 @@ textarea{resize:vertical;min-height:72px}
 .live-start{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;padding:12px;border-radius:8px;border:1px solid var(--gold);background:rgba(200,168,75,.12);color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .bo.live-btn{border-color:var(--gold);color:var(--gold)}
 
+/* ===== PRÉSENCE / ACCUEIL / FICHE LECTURE ===== */
+.my-presence{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 12px;margin-bottom:12px;border-radius:6px;border:1px solid rgba(30,180,80,.4);background:rgba(30,180,80,.07);font-size:12px;color:#8fe0b0}
+.my-presence.absent{border-color:rgba(196,30,58,.45);background:rgba(196,30,58,.08);color:#ff8a9c}
+.my-presence button{background:none;border:1px solid currentColor;color:inherit;border-radius:14px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:.04em}
+.bo.pres-btn.absent{border-color:#c41e3a;color:#ff8a9c}
+.towork-tag{font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(200,168,75,.4);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+#sf.readonly .fiche-edit-only{display:none !important}
+.fiche-read{display:none}
+#sf.readonly .fiche-read{display:block}
+.fiche-read-title{font-family:'Oswald',sans-serif;font-size:24px;line-height:1.15;color:var(--text)}
+.fiche-read-artist{font-size:13px;color:var(--dim);margin-top:2px}
+.fiche-read-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fiche-read-chip{font-size:12px;padding:4px 10px;border-radius:14px;background:var(--bg3);border:1px solid var(--border);color:var(--text)}
+.fiche-read-notes{margin-top:12px;font-size:13px;line-height:1.5;white-space:pre-wrap;color:#ddd;padding:10px 12px;background:var(--bg3);border-radius:6px}
+.fiche-read-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
 /* ===== PASSE MOBILE ===== */
 @media(max-width:600px){
   /* En-tête */
@@ -794,9 +810,9 @@ textarea{resize:vertical;min-height:72px}
     </div>
     <div id="home-next-repet" style="padding:14px"></div>
   </div>
-  <div class="card widget widget-stats">
-    <div class="ch"><div class="cl">Répertoire en chiffres</div></div>
-    <div id="home-repertoire-stats" style="padding:14px"></div>
+  <div class="card widget widget-stats" style="grid-column:1 / -1">
+    <div class="ch"><div class="cl">🎯 Mes morceaux à bosser</div></div>
+    <div id="home-to-work" style="padding:14px"></div>
   </div>
   <div class="card widget widget-session" id="widget-session" style="display:none;grid-column:1 / -1">
     <div class="ch"><div class="cl">Session en cours</div></div>
@@ -825,7 +841,6 @@ textarea{resize:vertical;min-height:72px}
 <div id="stat-count" style="display:none"></div>
 <div id="stat-p" style="display:none"></div>
 <div id="stat-month" style="display:none"></div>
-<div id="home-to-work" style="display:none"></div>
 <div id="home-upcoming" style="display:none"></div>
 <div id="home-recent-songs" style="display:none"></div>
 </div>
@@ -875,6 +890,12 @@ textarea{resize:vertical;min-height:72px}
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">
   <div id="songs-count" style="font-size:11px;color:var(--dim)">0 morceau</div>
   <div id="songs-duration-total" style="font-size:11px;color:var(--gold);text-align:right">0 heure, 0 minute, 0 seconde</div>
+  <select id="sort-songs" onchange="setSongsSort(this.value)" style="width:auto;padding:4px 6px;font-size:10px" title="Trier">
+    <option value="alpha">A → Z</option>
+    <option value="prio">Priorité</option>
+    <option value="least">Moins répétés</option>
+    <option value="oldest">Pas joués depuis longtemps</option>
+  </select>
   <button type="button" id="btn-toggle-statut" class="bo" onclick="toggleRepertoireStatut()" title="Afficher / masquer mon statut perso sur chaque morceau" style="padding:4px 10px;font-size:10px;white-space:nowrap">👤 Mon statut</button>
   <div class="view-toggle">
     <button id="btn-view-list" class="active" title="Vue liste" onclick="setRepertoireView('list')">≡</button>
@@ -1280,7 +1301,10 @@ textarea{resize:vertical;min-height:72px}
           <input type="checkbox" id="concert-setlist-actuel" checked onchange="renderConcertSetlistPicker()">
           <span style="font-size:11px">Répertoire actuel</span>
         </label>
-        <button type="button" class="br" id="concert-setlist-add-all" onclick="addAllSongsToConcert()" style="padding:5px 12px;font-size:11px">Tout ajouter</button>
+        <div style="display:flex;gap:6px">
+          <button type="button" class="bo" id="concert-setlist-suggest" onclick="suggestSongsForConcert()" style="padding:5px 10px;font-size:11px" title="Propose les morceaux rouges/orange les moins répétés récemment">✨ Suggérer</button>
+          <button type="button" class="br" id="concert-setlist-add-all" onclick="addAllSongsToConcert()" style="padding:5px 12px;font-size:11px">Tout ajouter</button>
+        </div>
       </div>
       <div id="concert-setlist-picker" class="concert-picker"></div>
     </div>
@@ -1336,8 +1360,10 @@ textarea{resize:vertical;min-height:72px}
       <div id="panel-fiche" class="modal-panel active">
         <input type="hidden" id="f-id">
 
+        <div class="fiche-read" id="fiche-read"></div>
+
         <!-- Titre + Artiste -->
-        <div class="fr2">
+        <div class="fr2 fiche-edit-only">
           <div class="fg">
             <label>Titre</label>
             <input type="text" id="f-titre" required>
@@ -1351,7 +1377,7 @@ textarea{resize:vertical;min-height:72px}
         <div id="fg-priority" style="display:none"></div>
 
         <!-- Durée / Accordage -->
-        <div class="fiche-row4">
+        <div class="fiche-row4 fiche-edit-only">
           <div class="fg" id="fg-diff" style="display:none">
             <label>Difficulté</label>
             <input type="number" id="f-diff" min="1" max="5" value="3">
@@ -1369,7 +1395,7 @@ textarea{resize:vertical;min-height:72px}
         <input type="url" id="f-url-audio" style="display:none">
 
         <!-- URLs groupées -->
-        <div class="fg full">
+        <div class="fg full fiche-edit-only">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
             <label style="margin:0">URLs</label>
             <button type="button" class="bo" onclick="searchYoutube()" style="padding:2px 8px;font-size:10px">🔍 YouTube</button>
@@ -1379,7 +1405,7 @@ textarea{resize:vertical;min-height:72px}
           <input type="url" id="f-url-s" placeholder="Studio — https://youtube.com/...">
         </div>
 
-        <div class="fr2">
+        <div class="fr2 fiche-edit-only">
           <div class="fg" id="fg-url-l" style="display:none">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
               <label style="margin:0">Live</label>
@@ -1405,12 +1431,12 @@ textarea{resize:vertical;min-height:72px}
           <textarea id="f-paroles" placeholder="Colle les paroles ici. Les lignes d'accords (ex : Am  F  C  G) seront affichées en doré et peuvent être masquées. Les titres de section entre crochets, ex : [Refrain]."></textarea>
         </details>
 
-        <div class="fg full">
+        <div class="fg full fiche-edit-only">
           <label>Notes groupe</label>
           <textarea id="f-notes"></textarea>
         </div>
 
-        <div class="fg">
+        <div class="fg fiche-edit-only">
           <label class="check-row" style="margin:0">
             <input type="checkbox" id="f-actuel" checked />
             <span>Répertoire actuel</span>
@@ -2588,38 +2614,41 @@ function renderConcertSetlistPicker(){
   </div>`).join('');
 }
 
-async function addAllSongsToConcert(){
-  const concertId=document.getElementById('concert-id')?.value || '';
-  if(!concertId) return;
-  const pool=getConcertPickerPool(concertId);
-  if(!pool.length) return;
-  if(!confirm('Ajouter '+pool.length+' morceau'+(pool.length>1?'x':'')+' à la setlist ?')) return;
-
+async function addSongsToConcert(concertId, list){
+  if(!concertId || !list.length) return;
   const startOrder=getConcertSetlist(concertId).reduce((max,item)=>Math.max(max,parseInt(item.ordre,10)||0),0);
-  const payload=pool.map((song,i)=>({
-    id:crypto.randomUUID(),
-    concert_id:concertId,
-    song_id:String(song.id),
-    ordre:startOrder+i+1,
-    partie:1,
-    titre:song.titre || null,
-    artiste:song.artiste || null,
-    accordage:song.ton || null,
+  const payload=list.map((song,i)=>({
+    id:crypto.randomUUID(), concert_id:concertId, song_id:String(song.id), ordre:startOrder+i+1, partie:1,
+    titre:song.titre || null, artiste:song.artiste || null, accordage:song.ton || null,
     duree:song.duree ? parseInt(song.duree,10) : null
   }));
-
   const { error } = await supabaseClient.from('concert_setlist').insert(payload);
-  if(error){
-    console.error('Erreur Supabase (concert_setlist.insert multiple):',error);
-    alert("Erreur lors de l'ajout des morceaux à la setlist.");
-    return;
-  }
-
+  if(error){ console.error('Erreur Supabase (concert_setlist.insert multiple):',error); alert("Erreur lors de l'ajout des morceaux à la setlist."); return; }
   await loadData();
   renderConcertSetlist(concertId);
   renderConcertSetlistPicker();
 }
-
+async function addAllSongsToConcert(){
+  const concertId=document.getElementById('concert-id')?.value || '';
+  const pool=getConcertPickerPool(concertId);
+  if(!pool.length) return;
+  if(!confirm('Ajouter '+pool.length+' morceau'+(pool.length>1?'x':'')+' à la setlist ?')) return;
+  await addSongsToConcert(concertId, pool);
+}
+// Suggestion : morceaux rouges/orange, jamais ou plus anciennement répétés d'abord (8 max)
+async function suggestSongsForConcert(){
+  const concertId=document.getElementById('concert-id')?.value || '';
+  const pool=getConcertPickerPool(concertId).filter(s=>s.priority==='rouge'||s.priority==='orange');
+  if(!pool.length){ alert('Aucun morceau rouge ou orange à proposer parmi ceux affichés.'); return; }
+  const pick=[...pool].sort((a,b)=>{
+    const da=getLastPlayedDate(a.id)||'', db=getLastPlayedDate(b.id)||'';
+    if(da!==db) return da.localeCompare(db);
+    return (a.priority==='rouge'?0:1)-(b.priority==='rouge'?0:1);
+  }).slice(0,8);
+  const lines=pick.map(s=>{ const d=getLastPlayedDate(s.id); return '• '+s.titre+(d?'  (dernière fois le '+new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})+')':'  (jamais répété)'); });
+  if(!confirm('Proposition ('+pick.length+' morceaux) :\n\n'+lines.join('\n')+'\n\nLes ajouter à la setlist ?')) return;
+  await addSongsToConcert(concertId, pick);
+}
 async function addSongToConcert(songId){
   const concertId=document.getElementById('concert-id')?.value || '';
   if(!concertId) return;
@@ -3283,6 +3312,7 @@ function renderConcertsOrRepets(filterType){
 
   list.innerHTML = pastBtn + sorted.map(c=>{
     const cIsRepet = (c.type||'concert')==='repet';
+    const persoCard = isPersoConcert(c);
     const datePretty = formatConcertDate(c.date);
     const placePretty = c.lieu || '';
     const heurePretty = c.heure_debut ? c.heure_debut.substring(0,5) : '';
@@ -3306,7 +3336,6 @@ function renderConcertsOrRepets(filterType){
           ${placePretty ? `<span class="concert-summary-sep">·</span><span class="concert-summary-place">${escapeHtml(placePretty)}</span>` : ''}
         </div>`;
 
-    const persoCard = isPersoConcert(c);
     return `<div class="concert-item${persoCard?' is-perso':''}${cIsRepet?'':' is-concert'}" id="repet-card-${c.id}">
       <div class="concert-item-head">
         <div class="concert-main">
@@ -3318,6 +3347,7 @@ function renderConcertsOrRepets(filterType){
           ${cIsRepet ? '' : setlistItems.length ? `<button class="bo" type="button" onclick="askAIForSetlistOrder('${c.id}')" title="Demander un ordre à l'IA (Perplexity)">🧠 IA</button>` : ''}
           ${cIsRepet ? '' : setlistItems.length ? `<button class="bo" type="button" onclick="printSetlist('${c.id}')" title="Imprimer la setlist">🖨 Imprimer</button>` : ''}
           ${cIsRepet ? '' : canEdit ? `<button class="bo" type="button" onclick="cloneConcert('${c.id}')" title="Dupliquer">📋 Dupliquer</button>` : ''}
+          ${(()=>{ const me=getCurrentBandMemberId(); if(!me || persoCard || (c.date||'')<today) return ''; const ab=!!getAbsenceForMemberAndConcert(me,c.id); return `<button class="bo pres-btn${ab?' absent':''}" type="button" onclick="setMyPresence('${c.id}',${!ab})" title="${ab?'Tu as prévenu de ton absence (clique pour annuler)':'Tu seras là (clique pour signaler une absence)'}">${ab?'🙅 Absent·e':'🙋 Présent·e'}</button>`; })()}
           ${setlistItems.length ? `<button class="bo live-btn" type="button" onclick="openLive('${c.id}')">▶ ${cIsRepet?'Mode répète':'Mode scène'}</button>` : ''}
           <button class="bo" type="button" onclick="downloadIcs('${c.id}')" title="Ajouter à l'agenda du téléphone (avec la setlist et des rappels)">📅 Agenda</button>
           <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
@@ -3377,24 +3407,28 @@ function renderHomeToWork(){
   const el = document.getElementById('home-to-work');
   if(!el) return;
   const myId = getCurrentBandMemberId();
-  let candidates = songs.filter(s => s.priority === 'rouge' || s.priority === 'orange');
+  const today = ymdLocal(new Date());
+  const nextRepet = concerts.filter(c=>(c.type||'concert')==='repet' && !isPersoConcert(c) && c.date && c.date>=today).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
+  const nextIds = new Set(nextRepet ? getConcertSetlist(nextRepet.id).map(it=>String(it.song_id)) : []);
+  let candidates = songs.filter(s => (s.priority === 'rouge' || s.priority === 'orange') && (s.actuel || nextIds.has(String(s.id))));
   if(myId){
     const mySongIds = new Set(songAssignments.filter(a => String(a.band_member_id) === String(myId)).map(a => String(a.song_id)));
     candidates = candidates.filter(s => mySongIds.has(String(s.id)));
   }
   const prioOrder = {rouge:0, orange:1};
-  candidates.sort((a,b) => (prioOrder[a.priority]??9) - (prioOrder[b.priority]??9) || (a.titre||'').localeCompare(b.titre||'','fr'));
-  const top = candidates.slice(0, 5);
+  candidates.sort((a,b) => (nextIds.has(String(b.id))?1:0)-(nextIds.has(String(a.id))?1:0) || (prioOrder[a.priority]??9) - (prioOrder[b.priority]??9) || (a.titre||'').localeCompare(b.titre||'','fr'));
+  const top = candidates.slice(0, 6);
   if(!top.length){
-    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Rien à travailler en priorité 🙌</div>';
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:12px">Rien d\'urgent sur tes morceaux 🙌</div>';
     return;
   }
   el.innerHTML = top.map(s => `<div class="home-towork-item" onclick="openModal('${s.id}')">
     <span class="song-prio-dot ${escapeHtml(s.priority)}"></span>
     <div class="home-towork-main">
-      <div class="home-towork-title">${escapeHtml(s.titre||'')}</div>
+      <div class="home-towork-title">${escapeHtml(s.titre||'')}${nextIds.has(String(s.id))?'<span class="towork-tag">Prochaine répète</span>':''}</div>
       <div class="home-towork-meta">${escapeHtml(s.artiste||'')}</div>
     </div>
+    ${s.paroles?`<button type="button" class="bo" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();openLyrics('${s.id}')" title="Paroles">📄</button>`:''}
   </div>`).join('');
 }
 function renderHomeRepertoireStats(){
@@ -3496,8 +3530,8 @@ function renderAbsencesList(){
     </label>`;
   }).join('');
 }
-async function toggleAbsence(concertId, becomeAbsent){
-  const myId = getAbsenceTargetId();
+async function toggleAbsence(concertId, becomeAbsent, memberId){
+  const myId = memberId || getAbsenceTargetId();
   if(!myId){ alert("Sélectionne un membre."); return; }
   if(becomeAbsent){
     const newAbsence = { id: crypto.randomUUID(), band_member_id: myId, concert_id: concertId };
@@ -3525,6 +3559,7 @@ async function toggleAbsence(concertId, becomeAbsent){
   }
 }
 
+function setMyPresence(concertId, absent){ const me=getCurrentBandMemberId(); if(!me){ alert('Membre non identifié.'); return; } toggleAbsence(concertId, absent, me); }
 function renderHomeNextRepet(){
   const el = document.getElementById('home-next-repet');
   if(!el) return;
@@ -3601,6 +3636,9 @@ function renderHomeNextRepet(){
     absHtml = '<div class="home-next-presence warn">⚠ '+presentCount+'/'+allMembers+' présents — absent'+(absentIds.length>1?'s':'')+' : '+absentNames.map(escapeHtml).join(', ')+'</div>'+affectedHtml;
   }
 
+  const meId = getCurrentBandMemberId();
+  const meAbsent = !!(meId && getAbsenceForMemberAndConcert(meId, next.id));
+  const myPresenceHtml = meId ? `<div class="my-presence${meAbsent?' absent':''}"><span>${meAbsent?'🙅 Tu as prévenu que tu seras absent·e':'🙋 Tu seras là'}</span><button type="button" onclick="event.stopPropagation();setMyPresence('${next.id}',${!meAbsent})">${meAbsent?'Finalement je viens':'Je ne pourrai pas venir'}</button></div>` : '';
   const prioHtml = prioItems.length
     ? '<div class="home-next-prio-title">🔥 Morceaux à travailler en priorité</div><div class="home-next-prio-list">'
       + prioItems.slice(0,8).map(it => {
@@ -3645,6 +3683,7 @@ function renderHomeNextRepet(){
         ${days!==null?`<span class="next-event-countdown" ${cdClass}>${cdLabel}</span>`:''}
       </div>
     </div>
+    ${myPresenceHtml}
     ${absHtml}
     ${prioHtml}
     ${setlistHtml}
@@ -4079,6 +4118,8 @@ function calcStreak(){
   return streak;
 }
 
+let repertoireSort = (()=>{ try{ return localStorage.getItem('tempo_songs_sort')||'alpha'; }catch(e){ return 'alpha'; } })();
+function setSongsSort(v){ repertoireSort=v; try{ localStorage.setItem('tempo_songs_sort',v); }catch(e){} renderSongs(); }
 let repertoireShowStatut = (()=>{ try{ return localStorage.getItem('tempo_show_statut')==='1'; }catch(e){ return false; } })();
 function updateStatutBtn(){
   const b=document.getElementById('btn-toggle-statut'); if(!b) return;
@@ -4245,6 +4286,10 @@ function renderSongs() {
     mine = mine.filter(s => setlistSongIds.has(String(s.id)));
   }
 
+  const sortSel = document.getElementById('sort-songs'); if(sortSel && sortSel.value!==repertoireSort) sortSel.value = repertoireSort;
+  if(repertoireSort==='prio'){ const po={rouge:0,orange:1,jaune:2,vert:3}; mine.sort((a,b)=>(po[a.priority]??9)-(po[b.priority]??9) || (a.titre||'').localeCompare(b.titre||'','fr')); }
+  else if(repertoireSort==='least'){ const cnt=x=>{ const n=getRepetCounts(x.id); return n.groupe+n.perso; }; mine.sort((a,b)=>cnt(a)-cnt(b) || (a.titre||'').localeCompare(b.titre||'','fr')); }
+  else if(repertoireSort==='oldest'){ mine.sort((a,b)=>(getLastPlayedDate(a.id)||'').localeCompare(getLastPlayedDate(b.id)||'') || (a.titre||'').localeCompare(b.titre||'','fr')); }
   const totalDurationSeconds = mine.reduce((sum, s) => sum + (parseInt(s.duree, 10) || 0), 0);
 
   if (count) count.textContent = `${mine.length} morceau${mine.length > 1 ? 'x' : ''}`;
@@ -4336,6 +4381,8 @@ function openModal(id) {
   const affDet = document.getElementById('assignments-details'); if(affDet) affDet.open = false;
   setSongPriority('rouge');
   renderMhPriority();
+  const sfForm = document.getElementById('sf'); if(sfForm) sfForm.classList.toggle('readonly', !canEdit && id !== 'new');
+  const mhPrio = document.getElementById('mh-priority'); if(mhPrio) mhPrio.style.display = canEdit ? '' : 'none';
   const persoBtn = document.getElementById('btn-save-perso'); if(persoBtn) persoBtn.textContent = canEdit ? '💾 Mon suivi' : '💾 Enregistrer';
 
   if (id !== 'new') {
@@ -4374,6 +4421,7 @@ function openModal(id) {
 
     renderHistorique(s.id);
     renderVideos(s);
+    renderFicheRead(s);
   } else {
     document.getElementById('btn-del').style.display = 'none';
     document.getElementById('mt').textContent = isAdminView ? 'Nouveau morceau' : 'Fiche morceau';
@@ -4383,6 +4431,28 @@ function openModal(id) {
     renderVideos(null);
     const lyDetN = document.getElementById('lyrics-details'); if(lyDetN) lyDetN.open = false;
   }
+}
+// Vue de lecture de la fiche (membres non admins) : l'essentiel, sans formulaire
+function renderFicheRead(s){
+  const box=document.getElementById('fiche-read'); if(!box||!s) return;
+  const chips=[];
+  const prioLbl={rouge:'🔴 À travailler',orange:'🟠 Pas ouf',jaune:'🟡 Pas mal',vert:'🟢 Validé'}[s.priority];
+  if(prioLbl) chips.push(prioLbl);
+  if(s.ton) chips.push('🎚 '+s.ton);
+  if(s.bpm) chips.push('♩ '+s.bpm+' bpm');
+  if(s.duree) chips.push('⏱ '+formatDuration(s.duree));
+  if(s.actuel) chips.push('Répertoire actuel');
+  const n=getRepetCounts(s.id);
+  if(n.groupe||n.perso) chips.push('Joué 👥 '+n.groupe+'×'+(n.perso?' · 👤 '+n.perso+'×':''));
+  const vids=[['Studio',s.urlS],['Live',s.urlL],['Tuto',s.urlT]].filter(v=>v[1]);
+  box.innerHTML=`<div class="fiche-read-title">${escapeHtml(s.titre||'')}</div>
+    ${s.artiste?`<div class="fiche-read-artist">${escapeHtml(s.artiste)}</div>`:''}
+    ${chips.length?`<div class="fiche-read-chips">${chips.map(c=>`<span class="fiche-read-chip">${escapeHtml(c)}</span>`).join('')}</div>`:''}
+    <div class="fiche-read-actions">
+      ${s.paroles?`<button type="button" class="bo" onclick="openLyrics('${s.id}')">📄 Paroles</button>`:''}
+      ${vids.length?`<button type="button" class="bo" onclick="switchModalTab('videos')">▶ Vidéos (${vids.length})</button>`:''}
+    </div>
+    ${s.notes?`<div class="fiche-read-notes">${escapeHtml(s.notes)}</div>`:''}`;
 }
 function closeModal(){document.getElementById('ov').classList.remove('open');}
 
@@ -4426,7 +4496,7 @@ function switchModalTab(tab){
   if(tab==='fiche'){
     document.querySelectorAll('.modal-tab')[0].classList.add('active');
     document.getElementById('panel-fiche').classList.add('active');
-    document.getElementById('btn-save').style.display='inline-block';
+    document.getElementById('btn-save').style.display=canEdit?'inline-block':'none';
   }else if(tab==='historique'){
     document.querySelectorAll('.modal-tab')[1].classList.add('active');
     document.getElementById('panel-historique').classList.add('active');
