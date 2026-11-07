@@ -643,6 +643,51 @@ textarea{resize:vertical;min-height:72px}
 .lyrics-details[open] > summary::before{content:'▼ '}
 #f-paroles{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;min-height:220px;line-height:1.45}
 
+/* ===== MODE RÉPÈTE ===== */
+#ov-live{display:none;position:fixed;inset:0;z-index:1100;background:#080808;flex-direction:column}
+#ov-live.open{display:flex}
+.live-top{padding:max(10px,env(safe-area-inset-top)) 14px 10px;border-bottom:1px solid #222;background:#0d0d0d;flex-shrink:0}
+.live-top-row{display:flex;align-items:center;gap:10px}
+.live-title{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-size:17px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-progress-txt{font-family:'Oswald',sans-serif;font-size:12px;color:var(--gold);flex-shrink:0}
+.live-bar{height:4px;background:#222;border-radius:2px;margin-top:8px;overflow:hidden}
+.live-bar > div{height:100%;background:#1eb450;transition:width .3s}
+.live-absent{margin-top:8px;font-size:12px;color:#ff8a9c}
+.live-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px 30px}
+.live-sep{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:center;margin:14px 0 8px;border-top:1px dashed #333;padding-top:10px}
+.live-row{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #1f1f1f;border-radius:10px;margin-bottom:6px;background:#111;cursor:pointer}
+.live-row.played{opacity:.55}
+.live-num{font-family:'Oswald',sans-serif;color:var(--gold);font-size:14px;min-width:22px}
+.live-name{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-size:16px;color:var(--text)}
+.live-name small{display:block;font-family:'Inter',sans-serif;font-size:11px;color:var(--dim)}
+.live-dur{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.live-check{color:#57d98c;font-size:16px}
+.live-card{border:1px solid var(--gold);border-radius:12px;background:#151515;padding:14px;margin-bottom:8px;box-shadow:0 0 0 3px rgba(200,168,75,.08)}
+.live-card.perso{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(167,139,250,.1)}
+.live-card-head{display:flex;align-items:flex-start;gap:10px}
+.live-card-title{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-size:24px;line-height:1.15;color:#fff}
+.live-card-title small{display:block;font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);margin-top:2px}
+.live-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.live-chip{font-size:12px;padding:4px 10px;border-radius:14px;background:#1d1d1d;border:1px solid #2c2c2c;color:var(--text)}
+.live-note{margin-top:10px;font-size:13px;line-height:1.45;color:#ddd;white-space:pre-wrap}
+.live-note.perso{color:#c4b5fd}
+.live-affs{margin-top:10px;font-size:12px;color:var(--dim);line-height:1.7}
+.live-affs b{color:var(--gold);font-weight:500;font-family:'Oswald',sans-serif;letter-spacing:.04em}
+.live-affs .absent{color:#ff6b81;text-decoration:line-through}
+.live-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.live-actions button{flex:1;min-width:110px;height:44px;border-radius:10px;border:1px solid #333;background:#1b1b1b;color:var(--text);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.04em;cursor:pointer}
+.live-video{margin-top:10px}
+.live-rate-label{margin-top:14px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.live-rate{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.live-rate button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:10px;border:1px solid #2c2c2c;background:#1a1a1a;color:var(--text);font-size:11px;cursor:pointer;line-height:1.15}
+.live-rate button.sel{border-color:var(--gold);background:rgba(200,168,75,.12)}
+.live-rate .song-prio-dot,.live-rate .statut-dot{transform:scale(1.4)}
+.live-foot{display:flex;gap:8px;padding:10px 12px max(10px,env(safe-area-inset-bottom));border-top:1px solid #222;background:#0d0d0d;flex-shrink:0}
+.live-foot button{flex:1;height:48px;border-radius:10px;border:1px solid #333;background:#181818;color:var(--text);font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:.05em;cursor:pointer}
+.live-foot button:disabled{opacity:.3}
+.live-start{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;padding:12px;border-radius:8px;border:1px solid var(--gold);background:rgba(200,168,75,.12);color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.bo.live-btn{border-color:var(--gold);color:var(--gold)}
+
 /* ===== PASSE MOBILE ===== */
 @media(max-width:600px){
   /* En-tête */
@@ -1114,6 +1159,23 @@ textarea{resize:vertical;min-height:72px}
     <div class="mfoot">
       <button type="button" class="bo" onclick="closeAbsencesModal()">Fermer</button>
     </div>
+  </div>
+</div>
+
+<div id="ov-live" role="dialog" aria-label="Mode répète">
+  <div class="live-top">
+    <div class="live-top-row">
+      <button type="button" class="ly-btn" onclick="closeLive()" title="Quitter">✕</button>
+      <div class="live-title" id="live-title">—</div>
+      <div class="live-progress-txt" id="live-progress-txt"></div>
+    </div>
+    <div class="live-bar" id="live-bar-wrap"><div id="live-bar" style="width:0%"></div></div>
+    <div class="live-absent" id="live-absent" style="display:none"></div>
+  </div>
+  <div class="live-body" id="live-body"></div>
+  <div class="live-foot">
+    <button type="button" id="live-prev" onclick="liveGo(liveIndex-1)">‹ Précédent</button>
+    <button type="button" id="live-next" onclick="liveGo(liveIndex+1)">Suivant ›</button>
   </div>
 </div>
 
@@ -2397,48 +2459,44 @@ function closePlayedModal(){
   document.getElementById('ov-played-perso').classList.remove('open');
   pendingPlayedSongId = null; pendingPlayedRepetId = null;
 }
+// Enregistre "joué" pour un morceau dans une répète (une seule fois par répète) puis :
+// - répète de groupe : met à jour la priorité du groupe
+// - répète perso : met à jour mon statut perso (la priorité du groupe n'est pas touchée)
+async function recordPlayed(songId, repetId, value){
+  const c = concerts.find(x=>x.id===repetId);
+  const perso = isPersoConcert(c);
+  const today = ymdLocal(new Date());
+  const jobs = [];
+  if(!isPlayedInRepet(songId, repetId)){
+    const row = {id: crypto.randomUUID(), song_id: songId, repet_id: repetId, played_date: today};
+    repetPlayed.unshift(row);
+    jobs.push(supabaseClient.from('repet_played').insert(row).then(({error})=>{ if(error) console.error('repet_played insert:', error); }));
+  }
+  if(perso){
+    const myId = currentMemberId || getCurrentBandMemberId();
+    if(!myId){ alert('Impossible : membre non identifié.'); return; }
+    const pd = songPersonal.find(p=>String(p.song_id)===String(songId));
+    if(pd) pd.statut = value; else songPersonal.push({song_id: songId, band_member_id: myId, statut: value, notes: ''});
+    jobs.push(supabaseClient.from('song_personal').upsert({ song_id: songId, band_member_id: myId, statut: value }, { onConflict: 'song_id,band_member_id' }).then(({error})=>{ if(error) console.error('song_personal upsert:', error); }));
+  } else {
+    const localSong = songs.find(s=>s.id===songId);
+    if(localSong) localSong.priority = value;
+    jobs.push(supabaseClient.from('songs').update({priority: value}).eq('id', songId).then(({error})=>{ if(error) console.error('songs priority update:', error); }));
+  }
+  await Promise.all(jobs);
+}
 async function confirmPlayedPerso(statut){
   if(!pendingPlayedSongId || !pendingPlayedRepetId){ closePlayedModal(); return; }
   const songId = pendingPlayedSongId, repetId = pendingPlayedRepetId;
-  const myId = currentMemberId || getCurrentBandMemberId();
-  if(!myId){ alert('Impossible : membre non identifié.'); return; }
   closePlayedModal();
-
-  const today = ymdLocal(new Date());
-  const { error: e1 } = await supabaseClient.from('repet_played').insert({
-    id: crypto.randomUUID(), song_id: songId, repet_id: repetId, played_date: today
-  });
-  if(e1) console.error('repet_played insert (perso):', e1);
-
-  // Statut perso uniquement : la priorité du groupe n'est pas touchée
-  const { error: e2 } = await supabaseClient.from('song_personal').upsert({ song_id: songId, band_member_id: myId, statut }, { onConflict: 'song_id,band_member_id' });
-  if(e2) console.error('song_personal upsert (perso):', e2);
-
-  repetPlayed.unshift({id: crypto.randomUUID(), song_id: songId, repet_id: repetId, played_date: today});
-  await loadSongPersonal();
+  await recordPlayed(songId, repetId, statut);
   renderConcerts(); renderRepets();
 }
 async function confirmPlayed(newPriority){
   if(!pendingPlayedSongId || !pendingPlayedRepetId){ closePlayedModal(); return; }
   const songId = pendingPlayedSongId, repetId = pendingPlayedRepetId;
   closePlayedModal();
-
-  // Enregistrer dans repet_played
-  const today = ymdLocal(new Date());
-  const { error: e1 } = await supabaseClient.from('repet_played').insert({
-    id: crypto.randomUUID(), song_id: songId, repet_id: repetId, played_date: today
-  });
-  if(e1) console.error('repet_played insert:', e1);
-
-  // Mettre à jour la priorité du morceau
-  const { error: e2 } = await supabaseClient.from('songs').update({priority: newPriority}).eq('id', songId);
-  if(e2) console.error('songs priority update:', e2);
-
-  // Mise à jour locale immédiate
-  const localSong = songs.find(s=>s.id===songId);
-  if(localSong) localSong.priority = newPriority;
-  repetPlayed.unshift({id: crypto.randomUUID(), song_id: songId, repet_id: repetId, played_date: today});
-
+  await recordPlayed(songId, repetId, newPriority);
   renderConcerts(); renderRepets();
 }
 function openPickerForCard(concertId){
@@ -3260,6 +3318,7 @@ function renderConcertsOrRepets(filterType){
           ${cIsRepet ? '' : setlistItems.length ? `<button class="bo" type="button" onclick="askAIForSetlistOrder('${c.id}')" title="Demander un ordre à l'IA (Perplexity)">🧠 IA</button>` : ''}
           ${cIsRepet ? '' : setlistItems.length ? `<button class="bo" type="button" onclick="printSetlist('${c.id}')" title="Imprimer la setlist">🖨 Imprimer</button>` : ''}
           ${cIsRepet ? '' : canEdit ? `<button class="bo" type="button" onclick="cloneConcert('${c.id}')" title="Dupliquer">📋 Dupliquer</button>` : ''}
+          ${setlistItems.length ? `<button class="bo live-btn" type="button" onclick="openLive('${c.id}')">▶ ${cIsRepet?'Mode répète':'Mode scène'}</button>` : ''}
           <button class="bo" type="button" onclick="downloadIcs('${c.id}')" title="Ajouter à l'agenda du téléphone (avec la setlist et des rappels)">📅 Agenda</button>
           <button class="bo" type="button" onclick="openConcertModal('${c.id}')">Ouvrir</button>
         </div>
@@ -3574,6 +3633,7 @@ function renderHomeNextRepet(){
   const cdLabel = days === 0 ? "Aujourd'hui" : days === 1 ? 'Demain' : 'J−'+days;
   const cdClass = days !== null && days <= 4 ? 'style="color:#fff;background:var(--accent)"' : '';
   el.innerHTML = `
+    ${items.length?`<button type="button" class="live-start" onclick="openLive('${next.id}')">▶ ${days===0?'C\'est parti : mode répète':'Mode répète'}</button>`:''}
     <div class="home-next-head" onclick="goToRepet('${next.id}')">
       <div class="home-next-icon">🔁</div>
       <div class="home-next-main">
@@ -4422,6 +4482,139 @@ ${videoId?`<div class="video-wrap">
   document.getElementById('video-content').innerHTML=html;
 }
 
+// ===== Mode répète (ou mode scène pour un concert) =====
+let liveConcertId=null, liveIndex=0, liveVideoOpen=false;
+const LIVE_PRIO=[['rouge','À travailler'],['orange','Pas ouf'],['jaune','Pas mal'],['vert','Validé']];
+const LIVE_STATUT=[['adecouvrir','À découvrir'],['encours','En cours'],['acquis','Acquis'],['maitrise','Maîtrisé']];
+function liveItems(){
+  const c=concerts.find(x=>x.id===liveConcertId);
+  let items=getConcertSetlist(liveConcertId);
+  if(isSplitConcert(c)) items=[...items.filter(it=>(it.partie||1)!==2), ...items.filter(it=>(it.partie||1)===2)];
+  return items;
+}
+function openLive(concertId){
+  liveConcertId=concertId;
+  const items=liveItems();
+  if(!items.length){ alert('La setlist est vide : ajoute des morceaux avant de lancer le mode répète.'); return; }
+  const first=items.findIndex(it=>!isPlayedInRepet(it.song_id, concertId));
+  liveIndex=first>=0?first:0;
+  liveVideoOpen=false;
+  document.getElementById('ov-live').classList.add('open');
+  document.body.style.overflow='hidden';
+  keepAwake('live',true);
+  renderLive(true);
+  Promise.all([ensureRepetPlayedLoaded(), ensureAbsencesLoaded()]).then(()=>{ if(liveConcertId===concertId) renderLive(false); });
+}
+function closeLive(){
+  document.getElementById('ov-live').classList.remove('open');
+  document.body.style.overflow='';
+  liveConcertId=null;
+  keepAwake('live',false);
+  renderCurrentPage();
+}
+function liveGo(i){
+  const n=liveItems().length;
+  if(i<0||i>=n) return;
+  liveIndex=i; liveVideoOpen=false; renderLive(true);
+}
+function liveToggleVideo(){ liveVideoOpen=!liveVideoOpen; renderLive(false); }
+function liveOpenLyrics(songId){
+  const ids=liveItems().map(it=>String(it.song_id)).filter(id=>{ const sg=songs.find(x=>String(x.id)===id); return sg && sg.paroles; });
+  openLyrics(songId, ids.includes(String(songId))?ids:[songId]);
+}
+async function liveRate(value){
+  const items=liveItems(); const it=items[liveIndex]; if(!it) return;
+  const p = recordPlayed(it.song_id, liveConcertId, value);
+  // passe au prochain morceau pas encore joué (sinon reste sur place)
+  let nxt=-1;
+  for(let k=liveIndex+1;k<items.length;k++){ if(!isPlayedInRepet(items[k].song_id, liveConcertId)){ nxt=k; break; } }
+  if(nxt<0 && liveIndex<items.length-1) nxt=liveIndex+1;
+  if(nxt>=0){ liveIndex=nxt; liveVideoOpen=false; }
+  renderLive(true);
+  await p;
+}
+function renderLive(scrollToCurrent){
+  const c=concerts.find(x=>x.id===liveConcertId);
+  if(!c){ closeLive(); return; }
+  const isRepetC=(c.type||'concert')==='repet';
+  const perso=isPersoConcert(c);
+  const items=liveItems();
+  if(liveIndex>=items.length) liveIndex=items.length-1;
+  const heure=c.heure_debut?' · '+c.heure_debut.substring(0,5):'';
+  document.getElementById('live-title').textContent = isRepetC ? ((perso?'👤 Répète perso':'Répète')+' · '+formatConcertDate(c.date)+heure) : ('🎤 '+(c.nom||'Concert'));
+  const played=isRepetC?items.filter(it=>isPlayedInRepet(it.song_id,c.id)).length:0;
+  document.getElementById('live-progress-txt').textContent = isRepetC ? (played+'/'+items.length+' joués') : (items.length+' morceaux');
+  document.getElementById('live-bar-wrap').style.display = isRepetC ? '' : 'none';
+  document.getElementById('live-bar').style.width = items.length ? Math.round(played*100/items.length)+'%' : '0%';
+  const absentIds=new Set(getAbsentMemberIdsForConcert(c.id).map(String));
+  const absEl=document.getElementById('live-absent');
+  if(absentIds.size){ absEl.style.display=''; absEl.textContent='Absent'+(absentIds.size>1?'s':'')+' : '+[...absentIds].map(memberNameById).join(', '); }
+  else absEl.style.display='none';
+  const firstP2 = isSplitConcert(c) ? items.findIndex(it=>(it.partie||1)===2) : -1;
+
+  const html=items.map((it,i)=>{
+    const sg=songs.find(x=>x.id===it.song_id);
+    const wasPlayed=isRepetC && isPlayedInRepet(it.song_id,c.id);
+    const pd=getPersonalData(it.song_id);
+    const dot = perso
+      ? `<span class="statut-dot ${escapeHtml(pd?pd.statut:'adecouvrir')}"></span>`
+      : `<span class="song-prio-dot ${escapeHtml((sg&&sg.priority)||'rouge')}"></span>`;
+    const dur = it.duree ? formatDuration(it.duree) : '';
+    const sep = (i===firstP2 && firstP2>0) ? '<div class="live-sep">Entracte · Partie 2</div>' : '';
+    if(i!==liveIndex){
+      return sep+`<div class="live-row${wasPlayed?' played':''}" onclick="liveGo(${i})">
+        <span class="live-num">${i+1}</span>${dot}
+        <span class="live-name">${escapeHtml(it.titre||'Sans titre')}${it.artiste?`<small>${escapeHtml(it.artiste)}</small>`:''}</span>
+        ${dur?`<span class="live-dur">${escapeHtml(dur)}</span>`:''}${wasPlayed?'<span class="live-check">✓</span>':''}
+      </div>`;
+    }
+    const chips=[];
+    if(sg&&sg.ton) chips.push('🎚 '+sg.ton);
+    if(sg&&sg.bpm) chips.push('♩ '+sg.bpm+' bpm');
+    if(dur) chips.push('⏱ '+dur);
+    if(it.optionnel) chips.push('Option');
+    const affs=getAssignmentsForSong(it.song_id).sort((a,b)=>{ const ai=BAND_ROLE_OPTIONS.findIndex(r=>r.value===a.role); const bi=BAND_ROLE_OPTIONS.findIndex(r=>r.value===b.role); return (ai<0?99:ai)-(bi<0?99:bi); });
+    const affsHtml = (!perso && affs.length) ? '<div class="live-affs">'+affs.map(a=>`<b>${escapeHtml(roleLabelFor(a.role))}</b> <span class="${absentIds.has(String(a.band_member_id))?'absent':''}">${escapeHtml(a.member_name)}${a.gear?' ('+escapeHtml(a.gear)+')':''}</span>`).join(' · ')+'</div>' : '';
+    let videoHtml='';
+    if(liveVideoOpen && sg && sg.urlS){
+      const m=sg.urlS.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/);
+      videoHtml = m ? `<div class="live-video video-wrap"><iframe src="https://www.youtube.com/embed/${m[1]}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : `<div class="live-video"><a href="${escapeHtml(sg.urlS)}" target="_blank" rel="noopener" style="color:var(--accent)">Ouvrir la vidéo</a></div>`;
+    }
+    const opts = perso ? LIVE_STATUT : LIVE_PRIO;
+    const current = perso ? (pd?pd.statut:'') : (sg?sg.priority:'');
+    const rateHtml = isRepetC ? `<div class="live-rate-label">${wasPlayed?'✓ Joué · ':''}Comment c'était ?${perso?' (ton statut perso)':''}</div>
+      <div class="live-rate">${opts.map(([v,l])=>`<button type="button" class="${(wasPlayed&&current===v)?'sel':''}" onclick="liveRate('${v}')"><span class="${perso?'statut-dot':'song-prio-dot'} ${v}"></span>${escapeHtml(l)}</button>`).join('')}</div>` : '';
+    return sep+`<div class="live-card${perso?' perso':''}" id="live-current">
+      <div class="live-card-head"><span class="live-num" style="font-size:18px">${i+1}</span>
+        <div class="live-card-title">${escapeHtml(it.titre||'Sans titre')}${it.artiste?`<small>${escapeHtml(it.artiste)}</small>`:''}</div>
+        ${wasPlayed?'<span class="live-check">✓</span>':''}
+      </div>
+      ${chips.length?`<div class="live-chips">${chips.map(x=>`<span class="live-chip">${escapeHtml(x)}</span>`).join('')}</div>`:''}
+      ${sg&&sg.notes?`<div class="live-note">${escapeHtml(sg.notes)}</div>`:''}
+      ${pd&&pd.notes?`<div class="live-note perso">👤 ${escapeHtml(pd.notes)}</div>`:''}
+      ${affsHtml}
+      <div class="live-actions">
+        <button type="button" onclick="liveOpenLyrics('${it.song_id}')" ${sg&&sg.paroles?'':'disabled style="opacity:.35"'}>📄 Paroles</button>
+        ${sg&&sg.urlS?`<button type="button" onclick="liveToggleVideo()">${liveVideoOpen?'✕ Vidéo':'▶ Vidéo'}</button>`:''}
+      </div>
+      ${videoHtml}
+      ${rateHtml}
+    </div>`;
+  }).join('');
+  const body=document.getElementById('live-body');
+  body.innerHTML=html;
+  document.getElementById('live-prev').disabled = liveIndex<=0;
+  document.getElementById('live-next').disabled = liveIndex>=items.length-1;
+  if(scrollToCurrent){ const cur=document.getElementById('live-current'); if(cur) body.scrollTop=Math.max(0,cur.offsetTop-body.offsetTop-60); }
+}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('ov-live')?.classList.contains('open')) return;
+  if(document.getElementById('ov-lyrics')?.classList.contains('open')) return;
+  if(e.key==='Escape') closeLive();
+  else if(e.key==='ArrowRight') liveGo(liveIndex+1);
+  else if(e.key==='ArrowLeft') liveGo(liveIndex-1);
+});
+
 // ===== Paroles plein écran =====
 let lyricsList=[], lyricsIndex=0, lyricsWakeLock=null, lyricsDraft=null;
 let lyricsFontSize=(()=>{ try{ return parseInt(localStorage.getItem('tempo_lyrics_fs'),10)||22; }catch(e){ return 22; } })();
@@ -4461,12 +4654,17 @@ function lyricsRender(){
   document.getElementById('ly-prev').disabled = lyricsIndex<=0;
   document.getElementById('ly-next').disabled = lyricsIndex>=lyricsList.length-1;
 }
-async function lyricsKeepAwake(on){
+const awakeKeys=new Set(); let awakeLock=null;
+async function keepAwake(key,on){
+  if(on) awakeKeys.add(key); else awakeKeys.delete(key);
   try{
-    if(on && 'wakeLock' in navigator){ lyricsWakeLock = await navigator.wakeLock.request('screen'); }
-    else if(!on && lyricsWakeLock){ await lyricsWakeLock.release(); lyricsWakeLock=null; }
+    if(awakeKeys.size && !awakeLock && 'wakeLock' in navigator){
+      awakeLock = await navigator.wakeLock.request('screen');
+      awakeLock.addEventListener && awakeLock.addEventListener('release',()=>{ awakeLock=null; });
+    } else if(!awakeKeys.size && awakeLock){ await awakeLock.release(); awakeLock=null; }
   }catch(e){ /* non supporté ou refusé : sans gravité */ }
 }
+function lyricsKeepAwake(on){ return keepAwake('lyrics',on); }
 function openLyrics(songId, list){
   lyricsList = (list && list.length) ? list.map(String) : [String(songId)];
   lyricsIndex = Math.max(0, lyricsList.indexOf(String(songId)));
@@ -4514,13 +4712,13 @@ function searchLyricsWeb(){
 }
 document.addEventListener('keydown',e=>{
   if(!document.getElementById('ov-lyrics')?.classList.contains('open')) return;
-  if(e.key==='Escape') closeLyrics();
+  if(e.key==='Escape'){ e.stopImmediatePropagation(); closeLyrics(); }
   else if(e.key==='+'||e.key==='=') lyricsZoom(1);
   else if(e.key==='-') lyricsZoom(-1);
   else if(e.key==='ArrowRight') lyricsStep(1);
   else if(e.key==='ArrowLeft') lyricsStep(-1);
 });
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && document.getElementById('ov-lyrics')?.classList.contains('open')) lyricsKeepAwake(true); });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && awakeKeys.size){ awakeLock=null; const k=[...awakeKeys][0]; keepAwake(k,true); } });
 
 async function savePersonalOnly() {
   const songId = document.getElementById('f-id').value;
