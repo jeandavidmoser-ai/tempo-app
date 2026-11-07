@@ -4662,8 +4662,14 @@ function initSheetSwipe(){
     if(!active) return;
     m.style.transition='transform .2s ease, opacity .2s ease';
     if(dx>90){
-      m.style.transform='translateX(100%)'; m.style.opacity='0';
-      setTimeout(()=>{ m.style.transition='none'; m.style.transform=''; m.style.opacity=''; requestCloseModal(); },190);
+      if(sheetIsDirty()){
+        // modifs en cours : la fiche revient en place et on demande tout de suite
+        m.style.transform=''; m.style.opacity='';
+        requestCloseModal();
+      } else {
+        m.style.transform='translateX(100%)'; m.style.opacity='0';
+        setTimeout(()=>{ m.style.transition='none'; m.style.transform=''; m.style.opacity=''; closeModal(); },180);
+      }
     } else { m.style.transform=''; m.style.opacity=''; }
   });
 }
