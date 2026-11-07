@@ -314,6 +314,12 @@ textarea{resize:vertical;min-height:72px}
 .si-left{flex:1;min-width:0;padding-right:12px}
 .si-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .stt-artist{font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--dim);margin-left:8px}
+.fiche-affs{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
+.fiche-affs > summary{cursor:pointer;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;list-style:none;user-select:none}
+.fiche-affs > summary::-webkit-details-marker{display:none}
+.fiche-affs > summary::before{content:'▶ ';font-size:9px;color:var(--dim)}
+.fiche-affs[open] > summary::before{content:'▼ '}
+.fiche-affs[open] > summary{margin-bottom:8px}
 .song-actuel-title{text-decoration:underline;text-decoration-color:rgba(200,168,75,.55);text-decoration-thickness:1px;text-underline-offset:4px}
 .stt-played{font-family:'Inter',sans-serif;font-size:10px;font-weight:400;color:var(--muted);margin-left:6px}
 .si-affs{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.7;display:none}
@@ -1238,7 +1244,10 @@ textarea{resize:vertical;min-height:72px}
           </div>
         </div>
 
-        <div class="fg full" id="song-assignments-box"></div>
+        <details id="assignments-details" class="fiche-affs">
+          <summary>👥 Affectations</summary>
+          <div class="fg full" id="song-assignments-box"></div>
+        </details>
       </div>
 
       <div id="panel-historique" class="modal-panel">
@@ -3917,6 +3926,7 @@ function openModal(id) {
   activeSongAssignments = [];
   buildAssignmentsForAllRoles();
   renderAssignmentsEditor();
+  const affDet = document.getElementById('assignments-details'); if(affDet) affDet.open = false;
   setSongPriority('rouge');
   renderMhPriority();
 
