@@ -813,7 +813,8 @@ textarea.note-1l:focus{overflow:auto}
 .rep-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:12px;color:var(--dim)}
 #songs-duration-total{color:var(--dim)}
 
-@media(max-width:768px){
+/* Barre d'onglets en bas : téléphones + tablettes tactiles (iPad), pas sur ordinateur */
+@media(max-width:768px),(pointer:coarse){
   #main-nav{display:none}
   #tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:150;background:rgba(12,12,12,.97);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:6px 4px max(6px,env(safe-area-inset-bottom))}
   #tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--dim);padding:5px 0;cursor:pointer;font-family:'Oswald',sans-serif;font-size:10.5px;letter-spacing:.03em;min-height:48px}
